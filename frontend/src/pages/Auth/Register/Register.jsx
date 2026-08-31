@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { User, Mail, Lock, Globe } from "lucide-react";
+import axios from "axios";
 import bgImage from "../../../assets/bg-image.jpeg";
 import "./Register.css";
 
@@ -12,6 +13,8 @@ const Register = () => {
     agreeTerms: false,
   });
 
+  const [loading, setLoading] = useState(false);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
@@ -21,7 +24,7 @@ const Register = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
@@ -34,8 +37,36 @@ const Register = () => {
       return;
     }
 
-    console.log("Register Data:", formData);
-    alert("Account created successfully!");
+    setLoading(true);
+
+    try {
+      // Backend Integration using Axios
+      const response = await axios.post("http://localhost:5000/api/auth/register", {
+        fullName: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+        agreeTerms: formData.agreeTerms,
+      });
+
+      alert(response.data.message || "Account created successfully!");
+      
+      // Reset form fields after successful registration
+      setFormData({
+        fullName: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+        agreeTerms: false,
+      });
+
+    } catch (error) {
+      console.error("Registration Error:", error);
+      alert(
+        error.response?.data?.message || "Registration failed! Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -139,8 +170,8 @@ const Register = () => {
           </div>
 
           {/* Create Account */}
-          <button type="submit" className="create-account-btn">
-            Create Account
+          <button type="submit" className="create-account-btn" disabled={loading}>
+            {loading ? "Creating Account..." : "Create Account"}
           </button>
 
         </form>
