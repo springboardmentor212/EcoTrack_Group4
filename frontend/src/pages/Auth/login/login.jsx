@@ -22,13 +22,16 @@ const Login = () => {
 
       <div className="register-card">
 
-        {/* Logo */}
+
         <div className="logo">
-          <svg className="logo-icon" viewBox="0 0 40 40">
+           <svg className="logo-icon" viewBox="0 0 40 40">
             <circle cx="20" cy="20" r="18" />
-            <path d="M12 23c2-7 7-11 16-12-2 5-5 9-10 11" />
-            <path d="M12 28c4-1 8-4 12-9" />
-          </svg>
+            <ellipse cx="20" cy="20" rx="8" ry="18" />
+            <path d="M2 20h36" />
+            <path d="M5 12h30" />
+            <path d="M5 28h30" />
+            </svg>
+            
 
           <span>EcoTrack</span>
         </div>
