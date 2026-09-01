@@ -21,10 +21,21 @@
 }
 
 .sidebar .logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  background: #dceee5;
+  color: #0f4d38;
+
+  padding: 10px 14px;
+  border-radius: 10px;
+
   font-family: Georgia, serif;
-  font-size: 18px;
-  font-weight: 600;
-  color: #3e665a;
+  font-size: 16px;
+  font-weight: 700;
+
   margin-bottom: 28px;
 }
 
@@ -49,8 +60,8 @@
 }
 
 .sidebar-nav a.active {
-  background: #e9f3ee;
-  color: #176b4b;
+  background: #dceee5;
+  color: #0f4d38;
   font-weight: 700;
 }
 
@@ -84,17 +95,32 @@
   box-shadow: 0px 4px 14px rgba(0, 0, 0, 0.05);
 }
 
-/* ================= TOP ROW ================= */
+/* ================= TWO COLUMN LAYOUT ================= */
 
-.top-row {
+.content-columns {
   display: flex;
   gap: 20px;
-  margin-bottom: 20px;
+  align-items: flex-start;
 }
 
-.profile-card {
+.left-column {
   width: 300px;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.right-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ================= PROFILE CARD ================= */
+
+.profile-card {
   text-align: center;
 }
 
@@ -103,12 +129,12 @@
   height: 72px;
   margin: 0 auto 12px;
   border-radius: 50%;
-  background: #e9f3ee;
+  background: #dceee5;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 30px;
-  color: #3e665a;
+  color: #0f4d38;
 }
 
 .profile-card h2 {
@@ -125,7 +151,7 @@
 
 .badge {
   display: inline-block;
-  background: #176b4b;
+  background: #0f4d38;
   color: #ffffff;
   font-size: 10px;
   font-weight: 700;
@@ -168,10 +194,10 @@
 }
 
 .settings-btn {
-  background: #176b4b;
+  background: #0f4d38;
   color: #ffffff;
   margin-top: 12px;
-  box-shadow: 0px 4px 9px rgba(23, 107, 75, 0.28);
+  box-shadow: 0px 4px 9px rgba(15, 77, 56, 0.28);
 }
 
 .edit-btn:hover {
@@ -179,20 +205,30 @@
 }
 
 .settings-btn:hover {
-  background: #12583e;
+  background: #0b3c2a;
+}
+
+.settings-card h4 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.settings-card p {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 16px;
 }
 
 /* ================= STATS ================= */
 
-.stats-grid {
-  flex: 1;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+.stats-row {
+  display: flex;
   gap: 20px;
-  align-content: start;
 }
 
 .stat-card {
+  flex: 1;
   text-align: left;
 }
 
@@ -205,7 +241,7 @@
   margin: 6px 0 4px;
   font-size: 24px;
   font-weight: 700;
-  color: #176b4b;
+  color: #0f4d38;
 }
 
 .stat-sub {
@@ -213,39 +249,13 @@
   color: #8a9399;
 }
 
-/* ================= BOTTOM ROW ================= */
+/* ================= ACHIEVEMENTS ================= */
 
-.bottom-row {
-  display: flex;
-  gap: 20px;
-}
-
-.left-col {
-  width: 300px;
-  flex-shrink: 0;
-}
-
-.left-col h4,
-.right-col h4 {
+.achievements-card h4 {
   margin: 0 0 6px;
   font-size: 14px;
   font-weight: 700;
 }
-
-.left-col p {
-  font-size: 12px;
-  color: #6b7280;
-  margin-bottom: 16px;
-}
-
-.right-col {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-/* ================= ACHIEVEMENTS ================= */
 
 .achievements-list {
   list-style: none;
@@ -257,6 +267,10 @@
   display: flex;
   gap: 10px;
   margin-bottom: 14px;
+}
+
+.achievements-list li:last-child {
+  margin-bottom: 0;
 }
 
 .achievements-list strong {
@@ -274,7 +288,7 @@
   height: 20px;
   flex-shrink: 0;
   border-radius: 50%;
-  background: #176b4b;
+  background: #0f4d38;
   color: #ffffff;
   font-size: 12px;
   display: flex;
@@ -288,6 +302,12 @@
 }
 
 /* ================= ACTIVITY ================= */
+
+.activity-card h4 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 700;
+}
 
 .activity-row {
   display: flex;
@@ -314,23 +334,21 @@
 .activity-value {
   font-size: 13px;
   font-weight: 700;
-  color: #176b4b;
+  color: #0f4d38;
 }
 
 /* ================= RESPONSIVE ================= */
 
 @media (max-width: 900px) {
-  .top-row,
-  .bottom-row {
+  .content-columns {
     flex-direction: column;
   }
 
-  .profile-card,
-  .left-col {
+  .left-column {
     width: 100%;
   }
 
-  .stats-grid {
-    grid-template-columns: 1fr;
+  .stats-row {
+    flex-direction: column;
   }
 }

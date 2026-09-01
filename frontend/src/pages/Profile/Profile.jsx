@@ -7,7 +7,11 @@ function Profile() {
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="logo">
-          <span>🌿 EcoTrack</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="10" stroke="#0f4d38" strokeWidth="1.8"/>
+            <path d="M2 12h20M12 2c2.5 2.5 4 6 4 10s-1.5 7.5-4 10c-2.5-2.5-4-6-4-10s1.5-7.5 4-10z" stroke="#0f4d38" strokeWidth="1.8"/>
+          </svg>
+          <span>EcoTrack</span>
         </div>
         <nav className="sidebar-nav">
           <a href="/home">Home</a>
@@ -27,73 +31,72 @@ function Profile() {
           <p>Manage your personal information, impact metrics, and app settings.</p>
         </header>
 
-        <div className="top-row">
-          {/* Profile card */}
-          <div className="card profile-card">
-            <div className="avatar">👤</div>
-            <h2>Alex Morgan</h2>
-            <p className="email">alex.morgan@ecotrack.io</p>
-            <span className="badge">ECO HERO LEVEL 4</span>
+        <div className="content-columns">
 
-            <div className="info-list">
-              <div className="info-row">
-                <span>Location</span>
-                <strong>San Francisco, CA</strong>
+          {/* LEFT COLUMN */}
+          <div className="left-column">
+            <div className="card profile-card">
+              <div className="avatar">👤</div>
+              <h2>Alex Morgan</h2>
+              <p className="email">alex.morgan@ecotrack.io</p>
+              <span className="badge">ECO HERO LEVEL 4</span>
+
+              <div className="info-list">
+                <div className="info-row">
+                  <span>Location</span>
+                  <strong>San Francisco, CA</strong>
+                </div>
+                <div className="info-row">
+                  <span>Member Since</span>
+                  <strong>January 2024</strong>
+                </div>
+                <div className="info-row">
+                  <span>Primary Transport</span>
+                  <strong>Bicycle / Transit</strong>
+                </div>
               </div>
-              <div className="info-row">
-                <span>Member Since</span>
-                <strong>January 2024</strong>
-              </div>
-              <div className="info-row">
-                <span>Primary Transport</span>
-                <strong>Bicycle / Transit</strong>
-              </div>
+
+              <button className="edit-btn">Edit Personal Info</button>
             </div>
 
-            <button className="edit-btn">Edit Personal Info</button>
-          </div>
-
-          {/* Stat cards */}
-          <div className="stats-grid">
-            <div className="card stat-card">
-              <span className="stat-label">CO₂ Saved</span>
-              <h3>428 kg</h3>
-              <span className="stat-sub">↑ 12% this month</span>
-            </div>
-            <div className="card stat-card">
-              <span className="stat-label">Trees Equivalent</span>
-              <h3>19 Trees</h3>
-              <span className="stat-sub">Lifetime impact</span>
-            </div>
-            <div className="card stat-card">
-              <span className="stat-label">Active Streak</span>
-              <h3>24 Days</h3>
-              <span className="stat-sub">Personal best!</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="bottom-row">
-          <div className="left-col">
-            <div className="card">
+            <div className="card settings-card">
               <h4>Account &amp; App Settings</h4>
               <p>Manage notification preferences, privacy controls, and application options.</p>
               <button className="settings-btn">Go to Settings</button>
             </div>
           </div>
 
-          <div className="right-col">
-            <div className="card">
+          {/* RIGHT COLUMN */}
+          <div className="right-column">
+            <div className="stats-row">
+              <div className="card stat-card">
+                <span className="stat-label">CO₂ Saved</span>
+                <h3>428 kg</h3>
+                <span className="stat-sub">↑ 12% this month</span>
+              </div>
+              <div className="card stat-card">
+                <span className="stat-label">Trees Equivalent</span>
+                <h3>19 Trees</h3>
+                <span className="stat-sub">Lifetime impact</span>
+              </div>
+              <div className="card stat-card">
+                <span className="stat-label">Active Streak</span>
+                <h3>24 Days</h3>
+                <span className="stat-sub">Personal best!</span>
+              </div>
+            </div>
+
+            <div className="card achievements-card">
               <h4>Recent Achievements</h4>
               <ul className="achievements-list">
-                <li className="done">
+                <li>
                   <span className="check">✓</span>
                   <div>
                     <strong>Commute Champion</strong>
                     <p>Logged 20 public transit trips in a single month.</p>
                   </div>
                 </li>
-                <li className="done">
+                <li>
                   <span className="check">✓</span>
                   <div>
                     <strong>Zero Waste Week</strong>
@@ -110,7 +113,7 @@ function Profile() {
               </ul>
             </div>
 
-            <div className="card">
+            <div className="card activity-card">
               <h4>Recent Activity</h4>
               <div className="activity-row">
                 <div>
@@ -128,6 +131,7 @@ function Profile() {
               </div>
             </div>
           </div>
+
         </div>
       </main>
     </div>
