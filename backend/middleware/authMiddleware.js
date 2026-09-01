@@ -13,7 +13,7 @@ module.exports = function (req, res, next) {
     const tokenString = token.startsWith("Bearer ") ? token.split(" ")[1] : token;
     const decoded = jwt.verify(
       tokenString,
-      process.env.JWT_SECRET || "ecotrack_secret_key"
+      process.env.JWT_SECRET || "ecotrack_secret_key_123"
     );
 
     req.user = decoded;
