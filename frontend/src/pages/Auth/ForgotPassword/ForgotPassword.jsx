@@ -6,28 +6,60 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (!email.trim()) {
-      setError("Please enter your email address.");
+  setError("");
+  setSubmitted(false);
+
+  if (!email.trim()) {
+    setError("Please enter your email address.");
+    return;
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!emailRegex.test(email)) {
+    setError("Please enter a valid email address.");
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    const response = await fetch(
+      "http://localhost:5000/api/auth/forgot-password",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      setError(data.message || "Something went wrong. Please try again.");
       return;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!emailRegex.test(email)) {
-      setError("Please enter a valid email address.");
-      return;
-    }
-
-    setError("");
+    console.log("Forgot password response:", data);
     setSubmitted(true);
 
-    // Backend API will be connected here later.
-    console.log("Reset password request:", email);
-  };
+  } catch (err) {
+    console.error("Forgot password error:", err);
+
+    setError(
+      "Unable to connect to the server. Please make sure the backend is running."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="forgot-page">
@@ -101,18 +133,19 @@ const ForgotPassword = () => {
 
           {/* Success message */}
           {submitted && (
-            <div className="success-message">
-              Reset instructions have been sent to your email.
-            </div>
-          )}
+          <div className="success-message">
+           Password reset request created successfully.
+          </div>
+)}
 
           {/* Button */}
           <button
-            type="submit"
-            className="reset-button"
+           type="submit"
+           className="reset-button"
+           disabled={loading}
           >
-            Send Reset Link
-          </button>
+  {loading ? "Sending..." : "Send Reset Link"}
+</button>
 
         </form>
 
