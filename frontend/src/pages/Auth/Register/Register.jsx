@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { User, Mail, Lock, Globe } from "lucide-react";
 import axios from "axios";
 import bgImage from "../../../assets/bg-image.jpeg";
@@ -229,7 +230,7 @@ const Register = () => {
         {/* Footer */}
         <p className="login-text">
           Already have an account?{" "}
-          <a href="/login">Log in</a>
+          <Link to="/login">Log in</Link>
         </p>
 
       </div>
