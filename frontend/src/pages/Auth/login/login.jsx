@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { Mail, Lock } from "lucide-react";
 import background from "../../../assets/bg-image.jpeg";
 import "./login.css";
@@ -184,7 +185,7 @@ const Login = () => {
         {/* Register */}
         <p className="login-text">
           Don't have an account?{" "}
-          <a href="/register">Register here</a>
+          <Link to="/register">Register here</Link>
         </p>
 
       </div>
