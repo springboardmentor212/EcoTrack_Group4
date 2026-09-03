@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./ForgotPassword.css";
+import { Globe } from "lucide-react";
 import bgImage from "../../../assets/bg-image.jpeg";
 
 const ForgotPassword = () => {
@@ -63,20 +64,19 @@ const ForgotPassword = () => {
 
   return (
     <div className="forgot-page">
-     <div
-  className="background-image"
-  style={{ backgroundImage: `url(${bgImage})` }}
-></div>
 
-      {/* Main card */}
+      {/* Background Image */}
+      <div
+        className="background-image"
+        style={{ backgroundImage: `url(${bgImage})` }}
+      ></div>
+
+      {/* Main Card */}
       <main className="forgot-card">
 
-        {/* Logo */}
-        <div className="brand">
-          <div className="brand-icon">
-            🌐
-          </div>
-
+        {/* EcoTrack Logo */}
+        <div className="logo">
+          <Globe size={21} strokeWidth={1.8} />
           <span>EcoTrack</span>
         </div>
 
@@ -90,10 +90,12 @@ const ForgotPassword = () => {
         {/* Form */}
         <form onSubmit={handleSubmit}>
 
+          {/* Email Label */}
           <label htmlFor="email">
             Email
           </label>
 
+          {/* Email Input */}
           <div className={`input-wrapper ${error ? "input-error" : ""}`}>
 
 
@@ -118,7 +120,7 @@ const ForgotPassword = () => {
             </p>
           )}
 
-          {/* Information box */}
+          {/* Information Box */}
           <div className="instruction-box">
 
             <strong>
@@ -131,7 +133,7 @@ const ForgotPassword = () => {
 
           </div>
 
-          {/* Success message */}
+          {/* Success Message */}
           {submitted && (
           <div className="success-message">
            Password reset request created successfully.
@@ -149,12 +151,12 @@ const ForgotPassword = () => {
 
         </form>
 
-        {/* Bottom links */}
+        {/* Bottom Links */}
         <div className="auth-links">
 
           <p>
             Remembered password?
-            <a href="/login"> Sign In</a>
+            <a href="/"> Sign In</a>
           </p>
 
           <p>
