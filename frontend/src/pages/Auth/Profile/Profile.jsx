@@ -1,0 +1,71 @@
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import "./Profile.css";
+
+function Profile() {
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
+
+  return (
+    <div className="profile-page">
+      <aside className="sidebar">
+        <div className="logo">
+          <span>EcoTrack</span>
+        </div>
+        <nav className="sidebar-nav">
+          <Link to="/">Home</Link>
+          <Link to="/profile" className="active">Profile</Link>
+        </nav>
+      </aside>
+
+      <main className="profile-main">
+        <header className="profile-header">
+          <h1>User Profile</h1>
+          <p>Manage your account settings & Eco details</p>
+        </header>
+
+        <div className="content-columns">
+          <div className="left-column">
+            <div className="card profile-card">
+              <div className="avatar">👤</div>
+              <h2>{user?.fullName || "Eco User"}</h2>
+              <p className="email">{user?.email || "user@ecotrack.io"}</p>
+              <span className="badge">ECO TRACKER MEMBER</span>
+
+              <button
+                className="edit-btn"
+                onClick={handleLogout}
+                style={{
+                  marginTop: "20px",
+                  backgroundColor: "#e53e3e",
+                  color: "#fff",
+                  cursor: "pointer",
+                  border: "none",
+                  padding: "10px 20px",
+                  borderRadius: "6px"
+                }}
+              >
+                Log Out
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+export default Profile;

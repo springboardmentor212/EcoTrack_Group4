@@ -1,310 +1,175 @@
-* {
-  box-sizing: border-box;
-}
-
-.register-page {
-  width: 100%;
+.auth-container {
   min-height: 100vh;
-
+  width: 100vw;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-
   display: flex;
-  justify-content: center;
   align-items: center;
-
-  position: relative;
-  font-family: Arial, sans-serif;
-}
-
-/* Background Overlay */
-.background-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(5, 30, 40, 0.42);
-}
-
-/* ================= REGISTER CARD ================= */
-
-.register-card {
-  position: relative;
-  z-index: 1;
-
-  width: 420px;
-  padding: 32px 28px 26px;
-
-  background: rgba(247, 249, 249, 0.95);
-  backdrop-filter: blur(12px);
-
-  border: 1px solid rgba(210, 220, 220, 0.9);
-  border-radius: 18px;
-
-  box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.25);
-
-  color: #1f2937;
-}
-
-/* ================= LOGO ================= */
-
-.logo {
-  display: flex;
   justify-content: center;
-  align-items: center;
-  gap: 8px;
-
-  margin-bottom: 16px;
-
-  color: #3e665a;
+  padding: 20px;
 }
 
-.logo span {
-  font-family: Georgia, serif;
-  font-size: 23px;
-  font-weight: 600;
-}
-
-/* ================= HEADER ================= */
-
-.register-header {
-  text-align: center;
-  margin-bottom: 24px;
-}
-
-.register-header h2 {
-  margin: 0;
-  font-size: 21px;
-  font-weight: 700;
-  color: #29313a;
-}
-
-.register-header p {
-  margin: 8px 0 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: #59616b;
-}
-
-/* ================= INPUTS ================= */
-
-.input-group {
-  position: relative;
-  margin-bottom: 14px;
-}
-
-.input-icon {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #6b7280;
-}
-
-.input-group input,
-.password-group input {
-  width: 100%;
-  height: 42px;
-
-  padding-left: 42px;
-  padding-right: 14px;
-
-  border: 1px solid #d3d9d8;
-  border-radius: 21px;
-
+.auth-card {
   background: #ffffff;
-
-  font-size: 12px;
-  color: #374151;
-
-  outline: none;
-
-  box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.06);
-}
-
-/* Placeholder text */
-.input-group input::placeholder,
-.password-group input::placeholder {
-  font-size: 12px;
-  color: #8a9399;
-}
-
-/* Input focus */
-.input-group input:focus,
-.password-group input:focus {
-  border-color: #3e665a;
-  box-shadow: 0px 0px 5px rgba(62, 102, 90, 0.25);
-}
-
-/* ================= PASSWORD ROW ================= */
-
-.password-row {
+  width: 100%;
+  max-width: 450px;
+  border-radius: 24px;
+  padding: 32px 36px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   display: flex;
-  gap: 12px;
-  margin-bottom: 15px;
+  flex-direction: column;
+  align-items: center;
 }
 
-.password-group {
-  position: relative;
-  width: 50%;
-}
-
-.password-group input {
-  padding-left: 38px;
-  padding-right: 8px;
-}
-
-/* ================= TERMS ================= */
-
-.terms {
+.brand-logo {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-bottom: 8px;
+}
 
-  margin-bottom: 17px;
+.logo-icon {
+  width: 26px;
+  height: 26px;
+  stroke: #2b3b36;
+}
 
+.brand-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2b3b36;
+}
+
+.auth-title {
+  font-size: 19px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 2px;
+}
+
+.auth-subtitle {
   font-size: 12px;
-  color: #6b7280;
+  color: #666;
+  margin-bottom: 20px;
 }
 
-.terms input {
-  width: 15px;
-  height: 15px;
-
-  margin: 0;
-
-  accent-color: #176b4b;
-  cursor: pointer;
-
-  flex-shrink: 0;
-}
-
-.terms b {
-  color: #3e665a;
-  font-weight: 600;
-}
-
-/* ================= CREATE ACCOUNT ================= */
-
-.create-account-btn {
+.auth-form {
   width: 100%;
-  height: 44px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 
-  border: none;
-  border-radius: 22px;
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
 
-  background: #176b4b;
-  color: #ffffff;
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
 
-  font-size: 13px;
-  font-weight: 600;
+.field-icon {
+  position: absolute;
+  left: 12px;
+  color: #8c8c8c;
+}
 
+.input-wrapper input {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px 0 36px;
+  border: 1px solid #d9d9d9;
+  border-radius: 20px;
+  font-size: 12px;
+  outline: none;
+}
+
+.input-wrapper input:focus {
+  border-color: #1b7a42;
+}
+
+.terms-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #444;
   cursor: pointer;
-
-  box-shadow: 0px 4px 9px rgba(23, 107, 75, 0.28);
-
-  transition: 0.2s;
+  margin: 2px 0;
 }
 
-.create-account-btn:hover {
-  background: #12583e;
+.primary-btn {
+  width: 100%;
+  height: 40px;
+  background: #1b7a42;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-/* ================= OR DIVIDER ================= */
+.primary-btn:hover {
+  background: #156234;
+}
 
 .or-divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-
-  margin: 20px 0 17px;
-}
-
-.or-divider div {
-  flex: 1;
-  height: 1px;
-  background: #d7dddc;
+  width: 100%;
+  text-align: center;
+  border-bottom: 1px solid #e8e8e8;
+  line-height: 0.1em;
+  margin: 16px 0;
 }
 
 .or-divider span {
+  background: #fff;
+  padding: 0 10px;
+  color: #8c8c8c;
   font-size: 11px;
-  color: #7c858b;
 }
 
-/* ================= SOCIAL BUTTONS ================= */
-
-.social-buttons {
-  display: flex;
-  gap: 12px;
+.social-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 
 .social-btn {
-  width: 50%;
-  height: 42px;
-
+  height: 38px;
+  border-radius: 20px;
+  border: 1px solid #dcdcdc;
+  background: #f4f8f5;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-
-  background: #ffffff;
-
-  border: 1px solid #d3d9d8;
-  border-radius: 21px;
-
+  gap: 6px;
   font-size: 11px;
-  font-weight: 500;
-
-  color: #374151;
-  cursor: pointer;
-
-  transition: 0.2s;
-}
-
-.social-btn:hover {
-  background: #f3f5f4;
-}
-
-/* Make Google and Apple SVG icons bigger */
-.social-btn svg {
-  width: 15px;
-  height: 15px;
-  flex-shrink: 0;
-}
-
-/* ================= FOOTER ================= */
-
-.login-text {
-  text-align: center;
-
-  margin: 20px 0 0;
-
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.login-text a {
-  color: #3e665a;
   font-weight: 600;
+  color: #222;
+  cursor: pointer;
+}
+
+.status-msg {
+  color: #d93025;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.bottom-link {
+  font-size: 12px;
+  color: #444;
+  margin-top: 16px;
+}
+
+.bottom-link a {
+  color: #1a1a1a;
+  font-weight: 700;
   text-decoration: none;
-}
-
-.login-text a:hover {
-  text-decoration: underline;
-}
-
-/* ================= RESPONSIVE ================= */
-
-@media (max-width: 500px) {
-  .register-card {
-    width: 90%;
-    padding: 28px 20px;
-  }
-
-  .social-buttons {
-    gap: 8px;
-  }
-
-  .social-btn {
-    font-size: 10px;
-  }
 }
