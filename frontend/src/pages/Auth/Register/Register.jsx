@@ -1,238 +1,204 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { User, Mail, Lock, Globe } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { User, Mail, Lock } from "lucide-react";
 import axios from "axios";
-import bgImage from "../../../assets/bg-image.jpeg";
+import { useGoogleLogin } from "@react-oauth/google";
+import background from "../../../assets/bg-image.jpeg";
 import "./Register.css";
 
 const Register = () => {
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    agreeTerms: false,
-  });
-
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  const navigate = useNavigate();
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  const handleSubmit = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
+    setMessage("");
 
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match!");
+    if (!agreeTerms) {
+      setMessage("Please accept Terms & Conditions.");
       return;
     }
 
-    if (!formData.agreeTerms) {
-      alert("Please agree to Terms & Conditions");
+    if (password !== confirmPassword) {
+      setMessage("Passwords do not match!");
       return;
     }
 
     setLoading(true);
 
     try {
-      // Backend Integration using Axios
       const response = await axios.post("http://localhost:5000/api/auth/register", {
-        fullName: formData.fullName,
-        email: formData.email,
-        password: formData.password,
-        agreeTerms: formData.agreeTerms,
+        fullName,
+        email,
+        password,
       });
 
-      alert(response.data.message || "Account created successfully!");
-      
-      // Reset form fields after successful registration
-      setFormData({
-        fullName: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-        agreeTerms: false,
-      });
-
+      setMessage(response.data.message || "Account created successfully!");
+      setTimeout(() => navigate("/login"), 1200);
     } catch (error) {
       console.error("Registration Error:", error);
-      alert(
-        error.response?.data?.message || "Registration failed! Please try again."
+      setMessage(
+        error.response?.data?.message || "Registration failed. Try again."
       );
     } finally {
       setLoading(false);
     }
   };
 
+  const handleGoogleSuccess = async (tokenResponse) => {
+    try {
+      const res = await axios.post("http://localhost:5000/api/auth/google", {
+        access_token: tokenResponse.access_token,
+      });
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      navigate("/profile");
+    } catch (err) {
+      setMessage("Google Auth failed.");
+    }
+  };
+
+  const loginWithGoogle = useGoogleLogin({
+    onSuccess: handleGoogleSuccess,
+    onError: () => setMessage("Google Sign-In failed"),
+  });
+
+  const handleAppleLogin = () => {
+    if (window.AppleID && window.AppleID.auth) {
+      window.AppleID.auth.signIn();
+    } else {
+      setMessage("Apple Sign-In is initializing. Please try again.");
+    }
+  };
+
   return (
     <div
-      className="register-page"
-      style={{ backgroundImage: `url(${bgImage})` }}
+      className="auth-container"
+      style={{ backgroundImage: `url(${background})` }}
     >
-      {/* Background Overlay */}
-      <div className="background-overlay"></div>
-
-      {/* Register Card */}
-      <div className="register-card">
-
-        {/* Logo */}
-        <div className="logo">
-          <Globe size={21} strokeWidth={1.8} />
-          <span>EcoTrack</span>
+      <div className="auth-card">
+        {/* Brand Logo */}
+        <div className="brand-logo">
+          <svg className="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z" />
+            <path d="M2 12h20" />
+          </svg>
+          <span className="brand-name">EcoTrack</span>
         </div>
 
-        {/* Header */}
-        <div className="register-header">
-          <h2>Register for EcoTrack</h2>
-          <p>AI-Powered Platform</p>
-        </div>
+        <h2 className="auth-title">Register for EcoTrack</h2>
+        <p className="auth-subtitle">AI-Powered Platform</p>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit}>
-
+        <form onSubmit={handleRegister} className="auth-form">
           {/* Full Name */}
-          <div className="input-group">
-            <User className="input-icon" size={14} />
-
+          <div className="input-wrapper">
+            <User className="field-icon" size={16} />
             <input
               type="text"
-              name="fullName"
               placeholder="Full Name"
-              value={formData.fullName}
-              onChange={handleChange}
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
               required
             />
           </div>
 
           {/* Email */}
-          <div className="input-group">
-            <Mail className="input-icon" size={14} />
-
+          <div className="input-wrapper">
+            <Mail className="field-icon" size={16} />
             <input
               type="email"
-              name="email"
               placeholder="Email Address"
-              value={formData.email}
-              onChange={handleChange}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
 
-          {/* Password Row */}
-          <div className="password-row">
-
-            <div className="password-group">
-              <Lock className="input-icon" size={13} />
-
+          {/* Password Fields Row */}
+          <div className="form-row">
+            <div className="input-wrapper">
+              <Lock className="field-icon" size={16} />
               <input
                 type="password"
-                name="password"
                 placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>
 
-            <div className="password-group">
-              <Lock className="input-icon" size={13} />
-
+            <div className="input-wrapper">
+              <Lock className="field-icon" size={16} />
               <input
                 type="password"
-                name="confirmPassword"
                 placeholder="Confirm Password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
             </div>
-
           </div>
 
-          {/* Terms */}
-          <div className="terms">
+          {/* Terms Checkbox */}
+          <label className="terms-checkbox">
             <input
               type="checkbox"
-              name="agreeTerms"
-              checked={formData.agreeTerms}
-              onChange={handleChange}
-              required
+              checked={agreeTerms}
+              onChange={(e) => setAgreeTerms(e.target.checked)}
             />
+            <span>I agree to Terms & Conditions</span>
+          </label>
 
-            <span>
-              I agree to <b>Terms & Conditions</b>
-            </span>
-          </div>
-
-          {/* Create Account */}
-          <button type="submit" className="create-account-btn" disabled={loading}>
+          <button type="submit" className="primary-btn" disabled={loading}>
             {loading ? "Creating Account..." : "Create Account"}
           </button>
-
         </form>
 
-        {/* OR Divider */}
+        {message && <p className="status-msg">{message}</p>}
+
         <div className="or-divider">
-          <div></div>
           <span>OR</span>
-          <div></div>
         </div>
 
-        {/* Social Buttons */}
-        <div className="social-buttons">
-
-          {/* Google */}
-          <button type="button" className="social-btn">
-            <svg width="11" height="11" viewBox="0 0 24 24">
-              <path
-                fill="#4285F4"
-                d="M23.49 12.27c0-.79-.07-1.55-.2-2.27H12v4.3h6.45a5.52 5.52 0 01-2.39 3.62v2.79h3.87c2.27-2.09 3.56-5.17 3.56-8.44z"
-              />
-              <path
-                fill="#34A853"
-                d="M12 24c3.24 0 5.96-1.07 7.94-2.91l-3.87-2.79c-1.07.72-2.44 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.95H1.27A12 12 0 0012 24z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M5.27 14.5A7.2 7.2 0 014.9 12c0-.87.15-1.71.42-2.5V6.62H1.27A12 12 0 000 12c0 1.94.46 3.77 1.27 5.38l4-2.88z"
-              />
-              <path
-                fill="#EA4335"
-                d="M12 4.55c1.77 0 3.35.61 4.6 1.8l3.45-3.45C17.95.96 15.24 0 12 0A12 12 0 001.27 6.62l4.05 2.88C6.27 6.66 8.88 4.55 12 4.55z"
-              />
+        {/* Social Register */}
+        <div className="social-row">
+          <button
+            type="button"
+            className="social-btn"
+            onClick={() => loginWithGoogle()}
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
             </svg>
-
-            Register with Google
+            <span>Google</span>
           </button>
 
-          {/* Apple */}
-          <button type="button" className="social-btn">
-            <svg
-              width="11"
-              height="11"
-              viewBox="0 0 384 512"
-              fill="#000000"
-            >
-              <path d="M318.7 268.7c-.2-36.7 16.4-64.3 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5 4 299.7 8.8 326.8 18.4 354c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.9-17.9 31.9 0 48.3 17.9 76.5 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.3-30.8-61.9-89.3-61.9-91.2zm-56-163.8c27.3-32.4 24.8-61.9 24-72.9-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 50.3-11.4 69.5-33.9z" />
+          <button
+            type="button"
+            className="social-btn"
+            onClick={handleAppleLogin}
+          >
+            <svg viewBox="0 0 170 170" width="16" height="16" fill="currentColor">
+              <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.33.13-9.13-1.9-14.4-6.08-3.81-3.1-7.84-7.96-12.1-14.58-6.1-9.46-10.8-19.8-14.1-31.02-3.3-11.22-4.95-21.72-4.95-31.5 0-14.28 3.53-25.92 10.58-34.92 7.06-9 16.12-13.58 27.2-13.75 4.8 0 9.87 1.25 15.22 3.75 5.35 2.5 9.17 3.75 11.45 3.75 2.13 0 6.02-1.25 11.68-3.75 5.66-2.5 10.56-3.67 14.7-3.5 10.74.52 19.38 4.39 25.92 11.61-9.53 5.76-14.17 13.78-13.92 24.06.25 8.1 3.27 14.93 9.06 20.5 5.79 5.57 12.8 8.76 21.03 9.57-2.3 6.83-5.22 13.56-8.76 20.19zM119.22 31.84c0-6.75 2.45-13.1 7.35-19.05 4.9-5.95 11.02-9.55 18.37-10.79.25.88.38 1.75.38 2.63 0 6.78-2.55 13.23-7.65 19.35-5.1 6.12-11.29 9.7-18.57 10.74-.13-.96-.19-1.92-.19-2.88z" />
             </svg>
-
-            Register with Apple
+            <span>Apple</span>
           </button>
-
         </div>
 
-        {/* Footer */}
-        <p className="login-text">
-          Already have an account?{" "}
-          <Link to="/login">Log in</Link>
+        <p className="bottom-link">
+          Already have an account? <Link to="/login">Log in</Link>
         </p>
-
       </div>
     </div>
   );
