@@ -1,44 +1,23 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Auth/login/login";
 import Register from "./pages/Auth/Register/Register";
 import ForgotPassword from "./pages/Auth/ForgotPassword/ForgotPassword";
 import ResetPassword from "./pages/Auth/ResetPassword/ResetPassword";
-import Profile from "./pages/Profile/Profile";
+import Profile from "./pages/Auth/Profile/Profile"; 
 
 function App() {
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
-
-        {/* Login */}
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
-
-        {/* Register */}
         <Route path="/register" element={<Register />} />
-
-        {/* Forgot Password */}
-        <Route
-          path="/forgot-password"
-          element={<ForgotPassword />}
-        />
-
-        {/* Reset Password */}
-        <Route
-          path="/reset-password"
-          element={<ResetPassword />}
-        />
-
-        {/* Profile */}
-        <Route
-          path="/profile"
-          element={<Profile />}
-        />
-
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
-    </BrowserRouter>
+    </Router>
   );
 }
 

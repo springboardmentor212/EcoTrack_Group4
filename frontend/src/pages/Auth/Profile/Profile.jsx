@@ -8,8 +8,12 @@ function Profile() {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    if (storedUser && storedUser !== "undefined") {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (err) {
+        console.error("User JSON parse error:", err);
+      }
     }
   }, []);
 
@@ -41,8 +45,8 @@ function Profile() {
           <div className="left-column">
             <div className="card profile-card">
               <div className="avatar">👤</div>
-              <h2>{user?.fullName || "Eco User"}</h2>
-              <p className="email">{user?.email || "user@ecotrack.io"}</p>
+              <h2>{user?.fullName || user?.name || "Eco Tracker User"}</h2>
+              <p className="email">{user?.email || "No email available"}</p>
               <span className="badge">ECO TRACKER MEMBER</span>
 
               <button

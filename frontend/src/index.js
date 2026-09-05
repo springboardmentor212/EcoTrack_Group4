@@ -6,7 +6,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
-// Google Cloud Console Client ID
+
 const GOOGLE_CLIENT_ID = "818650396288-6s2ba3aqf306cejbgvip393qreb2ef1i.apps.googleusercontent.com";
 
 root.render(
