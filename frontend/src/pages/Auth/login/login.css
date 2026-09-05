@@ -226,3 +226,7 @@
   font-weight: 700;
   text-decoration: none;
 }
+input::-ms-reveal,
+input::-ms-clear {
+  display: none !important;
+}

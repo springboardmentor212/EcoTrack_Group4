@@ -28,14 +28,19 @@ const Login = () => {
         password,
       });
 
+      
+      localStorage.removeItem("user");
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("user", JSON.stringify(response.data.user));
+
       navigate("/profile");
     } catch (error) {
       console.error("Login Error:", error);
-      setMessage(
-        error.response?.data?.message || "Login failed. Check your credentials."
-      );
+       if (error.response && error.response.data && error.response.data.message) {
+      setMessage(error.response.data.message);
+    } else {
+      setMessage("Login failed. Check your credentials or internet connection.");
+    }
     } finally {
       setLoading(false);
     }
@@ -45,12 +50,15 @@ const Login = () => {
   const handleGoogleSuccess = async (tokenResponse) => {
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/google", {
+      // FIXED ROUTE ENDPOINT HERE (/google-login)
+      const res = await axios.post("http://localhost:5000/api/auth/google-login", {
         access_token: tokenResponse.access_token,
       });
 
+      localStorage.removeItem("user");
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
+
       navigate("/profile");
     } catch (err) {
       console.error("Google Auth Error:", err);
@@ -65,38 +73,25 @@ const Login = () => {
     onError: () => setMessage("Google Sign-In failed"),
   });
 
-  // 3. Apple Sign In Handler
-  const handleAppleLogin = () => {
-    if (window.AppleID && window.AppleID.auth) {
-      window.AppleID.auth.signIn();
-    } else {
-      setMessage("Apple Sign-In is initializing. Please try again.");
-    }
-  };
-
   return (
     <div
       className="auth-container"
       style={{ backgroundImage: `url(${background})` }}
     >
       <div className="auth-card">
-        {/* Brand Header */}
         <div className="brand-logo">
           <svg className="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="12" cy="12" r="10" />
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z" />
             <path d="M2 12h20" />
           </svg>
           <span className="brand-name">EcoTrack</span>
         </div>
 
-        {/* Title */}
         <h2 className="auth-title">Welcome Back</h2>
         <p className="auth-subtitle">Sign in to continue to EcoTrack</p>
 
-        {/* Login Form */}
         <form onSubmit={handleSignIn} className="auth-form">
-          {/* Email Field */}
           <div className="form-group">
             <label>Email</label>
             <div className="input-wrapper">
@@ -111,7 +106,6 @@ const Login = () => {
             </div>
           </div>
 
-          {/* Password Field */}
           <div className="form-group">
             <label>Password</label>
             <div className="input-wrapper">
@@ -133,7 +127,6 @@ const Login = () => {
             </div>
           </div>
 
-          {/* Options */}
           <div className="form-options">
             <label className="remember-checkbox">
               <input
@@ -149,7 +142,6 @@ const Login = () => {
             </Link>
           </div>
 
-          {/* Submit Button */}
           <button type="submit" className="primary-btn" disabled={loading}>
             {loading ? "Signing in..." : "Sign In"}
           </button>
@@ -157,14 +149,11 @@ const Login = () => {
 
         {message && <p className="status-msg">{message}</p>}
 
-        {/* Divider */}
         <div className="or-divider">
           <span>OR</span>
         </div>
 
-        {/* Social Buttons Section */}
         <div className="social-group">
-          {/* Google Button */}
           <button
             type="button"
             className="social-btn"
@@ -178,21 +167,8 @@ const Login = () => {
             </svg>
             <span>Sign in with Google</span>
           </button>
-
-          {/* Apple Button (Custom Styled to Match Figma) */}
-          <button
-            type="button"
-            className="social-btn"
-            onClick={handleAppleLogin}
-          >
-            <svg viewBox="0 0 170 170" width="16" height="16" fill="currentColor">
-              <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.33.13-9.13-1.9-14.4-6.08-3.81-3.1-7.84-7.96-12.1-14.58-6.1-9.46-10.8-19.8-14.1-31.02-3.3-11.22-4.95-21.72-4.95-31.5 0-14.28 3.53-25.92 10.58-34.92 7.06-9 16.12-13.58 27.2-13.75 4.8 0 9.87 1.25 15.22 3.75 5.35 2.5 9.17 3.75 11.45 3.75 2.13 0 6.02-1.25 11.68-3.75 5.66-2.5 10.56-3.67 14.7-3.5 10.74.52 19.38 4.39 25.92 11.61-9.53 5.76-14.17 13.78-13.92 24.06.25 8.1 3.27 14.93 9.06 20.5 5.79 5.57 12.8 8.76 21.03 9.57-2.3 6.83-5.22 13.56-8.76 20.19zM119.22 31.84c0-6.75 2.45-13.1 7.35-19.05 4.9-5.95 11.02-9.55 18.37-10.79.25.88.38 1.75.38 2.63 0 6.78-2.55 13.23-7.65 19.35-5.1 6.12-11.29 9.7-18.57 10.74-.13-.96-.19-1.92-.19-2.88z" />
-            </svg>
-            <span>Sign in with Apple</span>
-          </button>
         </div>
 
-        {/* Footer Link */}
         <p className="bottom-link">
           Don't have an account? <Link to="/register">Register here</Link>
         </p>

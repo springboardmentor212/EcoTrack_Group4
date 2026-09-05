@@ -1,20 +1,20 @@
 const express = require("express");
 const router = express.Router();
+
 const {
   register,
   login,
   forgotPassword,
+  verifyOTP,
+  resetPasswordWithOTP,
   googleLogin,
-  appleLogin,
 } = require("../controllers/authController");
 
-// Standard Auth Endpoints
 router.post("/register", register);
 router.post("/login", login);
 router.post("/forgot-password", forgotPassword);
-
-// OAuth Endpoints (Google & Apple)
-router.post("/google", googleLogin);
-router.post("/apple", appleLogin);
+router.post("/verify-otp", verifyOTP);
+router.post("/reset-password-otp", resetPasswordWithOTP);
+router.post("/google-login", googleLogin);
 
 module.exports = router;

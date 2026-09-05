@@ -1,238 +1,113 @@
 import React, { useState } from "react";
-import "./ResetPassword.css";
-import bgImage from "../../../assets/bg-image.jpeg";
-import { Globe } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Lock, Eye, EyeOff } from "lucide-react";
+import axios from "axios";
+import background from "../../../assets/bg-image.jpeg";
+import "../login/login.css";
 
 const ResetPassword = () => {
+  const { token } = useParams();
+  const navigate = useNavigate();
+
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // FIXED: Confirm Password state
+  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
     setError("");
-    setSubmitted(false);
+    setMessage("");
 
-    if (!newPassword || !confirmPassword) {
-      setError("Please fill in both password fields.");
+    if (newPassword.trim() !== confirmPassword.trim()) {
+      setError("Passwords do not match!");
       return;
     }
 
-    if (newPassword.length < 8) {
-      setError("Password must be at least 8 characters long.");
-      return;
+    setLoading(true);
+
+    try {
+      const response = await axios.post(
+        `http://localhost:5000/api/auth/reset-password/${token}`,
+        { newPassword: newPassword.trim() }
+      );
+      setMessage(response.data.message);
+      
+      
+      setTimeout(() => navigate("/login"), 2000);
+    } catch (err) {
+      setError(err.response?.data?.message || "Invalid or expired link.");
+    } finally {
+      setLoading(false);
     }
-
-    if (!/\d/.test(newPassword)) {
-      setError("Password must contain at least one number.");
-      return;
-    }
-
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(newPassword)) {
-      setError("Password must contain at least one special character.");
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-
-    // Backend API will be connected here later.
-    console.log("New password:", newPassword);
-
-    setSubmitted(true);
   };
 
   return (
-    <div className="reset-page">
-
-      {/* Background Image */}
-      <div
-        className="reset-background"
-        style={{ backgroundImage: `url(${bgImage})` }}
-      ></div>
-
-      {/* Main Card */}
-      <main className="reset-card">
-
-        {/* Logo */}
-        <div className="logo">
-          <Globe size={21} strokeWidth={1.8} />
-          <span>EcoTrack</span>
+    <div className="auth-container" style={{ backgroundImage: `url(${background})` }}>
+      <div className="auth-card">
+        <div className="brand-logo">
+          <span className="brand-name">EcoTrack</span>
         </div>
 
-        {/* Heading */}
-        <h1>Reset Password</h1>
+        <h2 className="auth-title">Reset Password</h2>
+        <p className="auth-subtitle">Enter your new password below</p>
 
-        <p className="reset-subtitle">
-          Create a new password for your EcoTrack account
-        </p>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit}>
-
-          {/* New Password */}
-          <div className="password-field">
-
-            <label htmlFor="new-password">
-              New Password
-            </label>
-
-            <div
-              className={`reset-input-wrapper ${
-                error ? "reset-input-error" : ""
-              }`}
-            >
-              <span className="password-icon">
-                🔒
-              </span>
-
+        <form onSubmit={handleSubmit} className="auth-form">
+          
+          <div className="form-group">
+            <label>New Password</label>
+            <div className="input-wrapper">
+              <Lock className="field-icon" size={16} />
               <input
-                id="new-password"
-                type={showNewPassword ? "text" : "password"}
-                placeholder="Password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter new password"
                 value={newPassword}
-                onChange={(e) => {
-                  setNewPassword(e.target.value);
-                  setError("");
-                  setSubmitted(false);
-                }}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
               />
-
               <button
                 type="button"
-                className="password-toggle"
-                onClick={() =>
-                  setShowNewPassword(!showNewPassword)
-                }
-                aria-label={
-                  showNewPassword
-                    ? "Hide password"
-                    : "Show password"
-                }
+                className="eye-toggle"
+                onClick={() => setShowPassword(!showPassword)}
               >
-                {showNewPassword ? "◉" : "◌"}
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
-
             </div>
-
           </div>
 
-          {/* Confirm Password */}
-          <div className="password-field">
-
-            <label htmlFor="confirm-password">
-              Confirm Password
-            </label>
-
-            <div
-              className={`reset-input-wrapper ${
-                error ? "reset-input-error" : ""
-              }`}
-            >
-
-              <span className="password-icon">
-                🔒
-              </span>
-
+          
+          <div className="form-group">
+            <label>Confirm Password</label>
+            <div className="input-wrapper">
+              <Lock className="field-icon" size={16} />
               <input
-                id="confirm-password"
-                type={
-                  showConfirmPassword ? "text" : "password"
-                }
-                placeholder="Confirm Password"
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirm new password"
                 value={confirmPassword}
-                onChange={(e) => {
-                  setConfirmPassword(e.target.value);
-                  setError("");
-                  setSubmitted(false);
-                }}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
               />
-
               <button
                 type="button"
-                className="password-toggle"
-                onClick={() =>
-                  setShowConfirmPassword(!showConfirmPassword)
-                }
-                aria-label={
-                  showConfirmPassword
-                    ? "Hide password"
-                    : "Show password"
-                }
+                className="eye-toggle"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               >
-                {showConfirmPassword ? "◉" : "◌"}
+                {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
-
             </div>
-
           </div>
 
-          {/* Password Requirements */}
-          <div className="password-instructions">
-
-            <strong>
-              Password requirements
-            </strong>
-
-            <span>
-              Must be at least 8 characters long.
-            </span>
-
-            <span>
-              Include at least one number and one special character.
-            </span>
-
-          </div>
-
-          {/* Error */}
-          {error && (
-            <div className="reset-error">
-              {error}
-            </div>
-          )}
-
-          {/* Success */}
-          {submitted && (
-            <div className="reset-success">
-              Password has been reset successfully.
-            </div>
-          )}
-
-          {/* Button */}
-          <button
-            type="submit"
-            className="reset-password-button"
-          >
-            Reset Password
+          <button type="submit" className="primary-btn" disabled={loading}>
+            {loading ? "Resetting..." : "Update Password"}
           </button>
-
         </form>
 
-        {/* Bottom Links */}
-        <div className="reset-auth-links">
-
-          <p>
-            Remembered password?
-            <a href="/"> Sign In</a>
-          </p>
-
-          <p>
-            Don't have an account?
-            <a href="/register"> Register here</a>
-          </p>
-
-        </div>
-
-      </main>
-
+        {message && <p style={{ color: "#1b7a42", fontSize: "12px", marginTop: "10px", textAlign: "center" }}>{message}</p>}
+        {error && <p className="status-msg" style={{ color: "#d9534f", fontSize: "12px", marginTop: "10px", textAlign: "center" }}>{error}</p>}
+      </div>
     </div>
   );
 };
