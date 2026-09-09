@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const apiRoutes = require("./routes/apiRoutes");
 require("dotenv").config();
 
 // Routes Imports
@@ -27,6 +28,7 @@ app.get("/", (req, res) => {
 
 // API Routes
 app.use("/api/auth", authRoutes);
+app.use("/api", apiRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
 // Database Connection & Server Startup
