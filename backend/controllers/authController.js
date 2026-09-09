@@ -28,8 +28,11 @@ exports.register = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password.trim(), salt);
 
+    // Fallback name if fullName is empty/missing
+    const safeName = fullName && fullName.trim() !== "" ? fullName.trim() : "EcoTrack User";
+
     user = new User({
-      fullName: fullName ? fullName.trim() : "",
+      fullName: safeName,
       email: cleanEmail,
       password: hashedPassword,
       agreeTerms: agreeTerms !== undefined ? agreeTerms : true,
@@ -39,7 +42,7 @@ exports.register = async (req, res) => {
     res.status(201).json({ message: "User registered successfully!" });
   } catch (error) {
     console.error("Register Error:", error);
-    res.status(500).json({ message: "Server error during registration." });
+    res.status(500).json({ message: "Server error during registration.", error: error.message });
   }
 };
 

@@ -1,35 +1,37 @@
-const mongoose = require("mongoose");
-const CarbonEntry = require("../models/CarbonEntry");
+const Activity = require("../models/Activity");
 const Goal = require("../models/Goal");
-const User = require("../models/User");
+const mongoose = require("mongoose");
 
 exports.getDashboardData = async (req, res) => {
   try {
-    const userId = req.user.id; // Comes from Auth Middleware
+    const userId = req.user.id;
 
-    const user = await User.findById(userId).select("-password");
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    const goals = await Goal.find({ userId });
-    const recentActivities = await CarbonEntry.find({ userId })
-      .sort({ createdAt: -1 })
-      .limit(5);
-
-    // Aggregate total carbon footprint (Converted userId to ObjectId)
-    const totalEmissions = await CarbonEntry.aggregate([
+    const totalEmissionsResult = await Activity.aggregate([
       { $match: { userId: new mongoose.Types.ObjectId(userId) } },
-      { $group: { _id: null, total: { $sum: "$carbonEmitted" } } },
+      { $group: { _id: null, total: { $sum: "$carbonOutput" } } },
     ]);
+    const totalEmissions = totalEmissionsResult[0]?.total || 0;
+
+    const ecoScore = Math.max(0, Math.min(100, Math.round(100 - totalEmissions / 10)));
+
+    const goals = await Goal.find({ userId, status: "in progress" }).limit(4);
+    const recentActivities = await Activity.find({ userId }).sort({ activityDate: -1 }).limit(5);
+
+    const recommendations = [
+      { text: "Try biking to work on Tuesdays", potentialSaving: "0.2 tons CO2e" },
+      { text: "Optimize home heating schedule", potentialSaving: "0.3 tons CO2e" },
+    ];
 
     res.json({
-      user,
-      totalCarbonEmissions: totalEmissions[0]?.total || 0,
-      goals,
-      recentActivities,
+      carbonFootprint: {
+        ecoScore,
+        totalEmissions: `${(totalEmissions / 1000).toFixed(1)} tons CO2e`,
+      },
+      goalProgress: goals,
+      recentActivity: recentActivities,
+      aiRecommendations: recommendations,
     });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching dashboard data", error: error.message });
   }
 };
