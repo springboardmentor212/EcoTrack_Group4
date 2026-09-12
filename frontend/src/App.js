@@ -4,8 +4,13 @@ import Login from "./pages/Auth/login/login";
 import Register from "./pages/Auth/Register/Register";
 import ForgotPassword from "./pages/Auth/ForgotPassword/ForgotPassword";
 import ResetPassword from "./pages/Auth/ResetPassword/ResetPassword";
+<<<<<<< HEAD
 import Profile from "./pages/Auth/Profile/Profile";
 import Home from "./pages/Home/home";
+=======
+import Profile from "./pages/Auth/Profile/Profile"; 
+import CarbonFootprint from "./pages/CarbonFootprint/CarbonFootprint";
+>>>>>>> feature/carbon-footprint-calculate-demonstration
 
 function App() {
   return (
@@ -17,8 +22,12 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/profile" element={<Profile />} />
+<<<<<<< HEAD
 
         <Route path="/home" element={<Home />} />
+=======
+        <Route path="/carbon-footprint" element={<CarbonFootprint/>}/>
+>>>>>>> feature/carbon-footprint-calculate-demonstration
       </Routes>
     </Router>
   );
