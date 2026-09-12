@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import {
   Globe,
   Home as HomeIcon,
@@ -31,10 +32,10 @@ function Home() {
 
           <nav className="sidebar-menu">
 
-            <a href="/home" className="menu-item active">
-              <HomeIcon size={15} />
+           <Link to="/home" className="menu-item active">
+             <HomeIcon size={15}/>
               <span>Home</span>
-            </a>
+           </Link>
 
             <a href="#" className="menu-item">
               <Leaf size={15} />
