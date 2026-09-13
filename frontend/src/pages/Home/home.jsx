@@ -10,223 +10,214 @@ import {
   FileText,
   User,
   Info,
-  ArrowLeft,
+  ChevronUp,
 } from "lucide-react";
 
+import treeImage from "../../assets/tree.jpeg";
 import "./home.css";
 
 function Home() {
   return (
     <div className="home-page">
-
-
       <div className="home-layout">
-
-        {/* Sidebar */}
+        {/* ================= SIDEBAR ================= */}
         <aside className="sidebar">
-
           <div className="brand">
             <Globe size={18} strokeWidth={2} />
             <span>EcoTrack</span>
           </div>
 
           <nav className="sidebar-menu">
-
-           <Link to="/home" className="menu-item active">
-             <HomeIcon size={15}/>
+            <Link to="/home" className="menu-item active">
+              <HomeIcon size={16} />
               <span>Home</span>
-           </Link>
+            </Link>
 
-            <a href="#" className="menu-item">
-              <Leaf size={15} />
+            <Link to="/carbon-footprint" className="menu-item">
+              <Leaf size={16} />
               <span>Carbon Tracker</span>
-            </a>
+            </Link>
 
             <a href="#" className="menu-item">
-              <Target size={15} />
+              <Target size={16} />
               <span>Goals</span>
             </a>
 
             <a href="#" className="menu-item">
-              <ShieldCheck size={15} />
+              <ShieldCheck size={16} />
               <span>Challenges</span>
             </a>
 
             <a href="#" className="menu-item">
-              <LayoutDashboard size={15} />
+              <LayoutDashboard size={16} />
               <span>Dashboard</span>
             </a>
 
             <a href="#" className="menu-item">
-              <FileText size={15} />
+              <FileText size={16} />
               <span>Reports</span>
             </a>
 
-            <a href="/profile" className="menu-item">
-              <User size={15} />
+            <Link to="/profile" className="menu-item">
+              <User size={16} />
               <span>Profile</span>
-            </a>
-
+            </Link>
           </nav>
         </aside>
 
-        {/* Main content */}
-        <main className="main-content">
-
-          <div className="welcome">
-            <h2>Home</h2>
-            <p>
-              Welcome back! Ready to track your green impact today?
-            </p>
-          </div>
-
-          {/* Carbon footprint banner */}
-          <section className="carbon-banner">
-            <span className="help-text">HOW TO HELP</span>
-
-            <h1>Calculate Your Carbon Footprint</h1>
-
-            <p>
-              Understand your environmental impact and take simple,
-              measurable steps toward reducing emissions.
-            </p>
-          </section>
-
-          {/* Statistics */}
-          <section className="stats">
-
-            <div className="stat-card">
-              <span>US AVERAGE</span>
-              <strong>16</strong>
-              <small>tons/yr</small>
+        {/* ================= MAIN CONTENT AREA ================= */}
+        <div className="main-viewport">
+          <main className="main-content">
+            {/* ================= WELCOME HEADER ================= */}
+            <div className="welcome">
+              <h2>Home</h2>
+              <p>Welcome back! Ready to track your green impact today?</p>
             </div>
 
-            <div className="stat-card">
-              <span>GLOBAL AVERAGE</span>
-              <strong>4</strong>
-              <small>tons/yr</small>
-            </div>
-
-            <div className="stat-card target">
-              <span>2050 TARGET</span>
-              <strong>&lt; 2</strong>
-              <small>tons/yr</small>
-            </div>
-
-            <div className="stat-card">
-              <span>TODAY'S SAVINGS</span>
-              <strong>4.2</strong>
-              <small>kg CO₂</small>
-            </div>
-
-          </section>
-
-          {/* Information section */}
-          <section className="info-card">
-
-            <div className="tree-box">
-              <div className="sun"></div>
-
-              <div className="tree">
-                <div className="tree-top one"></div>
-                <div className="tree-top two"></div>
-                <div className="tree-top three"></div>
-                <div className="tree-trunk"></div>
-                <div className="tree-ground"></div>
-              </div>
-
-              <Info className="info-icon" size={13} />
-            </div>
-
-            <div className="info-content">
-
-              <h2>What is a carbon footprint?</h2>
-
+            {/* ================= CARBON BANNER ================= */}
+            <section className="carbon-banner">
+              <span className="help-text">HOW TO HELP</span>
+              <h1>Calculate Your Carbon Footprint</h1>
               <p>
-                A carbon footprint is the total amount of greenhouse gases
-                (including CO₂ and methane) generated by our actions.
+                Understand your environmental impact and take simple, measurable
+                steps toward reducing emissions.
               </p>
+            </section>
 
-              <p>
-                The average US footprint is 16 tons, while global average is
-                4 tons. To avoid a 2°C temperature rise, we must lower the
-                global average to under 2 tons per year by 2050.
-              </p>
-
-              <div className="tip-box">
-                <strong>How you can make an immediate difference:</strong>
-
-                <ul>
-                  <li>Lowering carbon footprints from 10 to 2 tons doesn't happen overnight.</li>
-                  <li>Make small changes at least, make fewer commuting, flights, and drive less.</li>
-                </ul>
+            {/* ================= STATISTICS ================= */}
+            <section className="stats">
+              <div className="stat-card">
+                <span>US AVERAGE</span>
+                <div>
+                  <strong>16</strong>
+                  <small>tons/yr</small>
+                </div>
               </div>
 
-            </div>
-
-          </section>
-
-          {/* Footer */}
-          <footer className="footer">
-
-            <div className="footer-brand">
-              <div className="footer-logo">
-                <Globe size={17} />
-                <strong>EcoTrack</strong>
+              <div className="stat-card">
+                <span>GLOBAL AVERAGE</span>
+                <div>
+                  <strong>4</strong>
+                  <small>tons/yr</small>
+                </div>
               </div>
 
-              <p>Empowering sustainable daily living.</p>
-
-              <span className="active-badge">
-                ● Carbon Analysis Active
-              </span>
-
-              <small>© 2026 EcoTrack. All rights reserved.</small>
-            </div>
-
-            <div className="footer-column">
-              <h4>PLATFORM</h4>
-              <span>Emission Calculator</span>
-              <span>Personal Goals & Streaks</span>
-              <span>Community Challenges</span>
-              <span>Analytics & Reports</span>
-            </div>
-
-            <div className="footer-column">
-              <h4>RESOURCES</h4>
-              <span>Sustainability Guides</span>
-              <span>Offset Methodology</span>
-              <span>API Documentation</span>
-              <span>Help & Support</span>
-            </div>
-
-            <div className="milestone">
-              <h4>COMMUNITY MILESTONE</h4>
-              <strong>142.8 Tons</strong>
-              <span>CO₂ saved</span>
-
-              <div className="progress">
-                <div></div>
+              <div className="stat-card target">
+                <span>2050 TARGET</span>
+                <div>
+                  <strong>&lt; 2</strong>
+                  <small>tons/yr</small>
+                </div>
               </div>
 
-              <small>Target: 200 Tons this month (71%)</small>
+              <div className="stat-card">
+                <span>TODAY'S SAVINGS</span>
+                <div>
+                  <strong>4.2</strong>
+                  <small>kg CO₂</small>
+                </div>
+              </div>
+            </section>
 
-              <button>
-                <ArrowLeft size={11} />
-                BACK TO TOP
-              </button>
-            </div>
+            {/* ================= INFORMATION CARD ================= */}
+            <section className="info-card">
+              {/* REALISTIC TREE IMAGE */}
+              <div className="tree-box">
+                <img
+                  src={treeImage}
+                  alt="Realistic tree"
+                  className="tree-image"
+                    />"
+            
+                <div className="image-info">
+                  <Info size={13} />
+                </div>
+              </div>
 
-          </footer>
+              {/* INFORMATION CONTENT */}
+              <div className="info-content">
+                <h2>What is a carbon footprint?</h2>
+                <p>
+                  A carbon footprint is the <strong>total amount of greenhouse gases</strong> (including CO₂ and methane) generated by our actions.
+                </p>
+                <p>
+                  The average US footprint is 16 tons, while global average is 4 tons. To avoid a 2°C temperature rise, we must lower the global average to <strong>under 2 tons per year by 2050</strong>.
+                </p>
 
-          <div className="footer-bottom">
-            <span>Privacy Policy</span>
-            <span>Terms of Service</span>
-            <span>Security</span>
-            <span>Support</span>
-          </div>
+                {/* ================= CALCULATION BOX (INSIDE SAME CARD) ================= */}
+                <div className="calculate-box">
+                  <h3>How We Calculate Your Impact</h3>
+                  <p>
+                    Curious about how your carbon footprint is calculated? We use standardized formulas based on your daily activities, energy usage, and travel habits.
+                  </p>
+                  <Link to="/carbon-footprint" className="learn-more">
+                    Learn More →
+                  </Link>
+                </div>
+              </div>
+            </section>
 
-        </main>
+            {/* ================= FOOTER ================= */}
+            <footer className="footer">
+              <div className="footer-grid">
+                <div className="footer-brand">
+                  <div className="footer-logo">
+                    <Globe size={18} />
+                    <span>EcoTrack</span>
+                  </div>
+                  <p>Empowering sustainable daily living.</p>
+                  <span className="active-badge">• Carbon Analytics Active</span>
+                </div>
+
+                <div className="footer-column">
+                  <h4>PLATFORM</h4>
+                  <span>Emission Calculator</span>
+                  <span>Personal Goals & Streaks</span>
+                  <span>Community Challenges</span>
+                  <span>Analytics & Reports</span>
+                </div>
+
+                <div className="footer-column">
+                  <h4>RESOURCES</h4>
+                  <span>Sustainability Guides</span>
+                  <span>Offset Methodology</span>
+                  <span>API Documentation</span>
+                  <span>Help & Support</span>
+                </div>
+
+                {/* ================= MILESTONE ================= */}
+                <div className="milestone">
+                  <h4>COMMUNITY MILESTONE</h4>
+                  <strong>
+                    142.8 Tons <span className="milestone-sub">CO₂ saved</span>
+                  </strong>
+                  <div className="progress">
+                    <div></div>
+                  </div>
+                  <small>Target: 200 Tons this month (71%)</small>
+                </div>
+              </div>
+
+              {/* ================= FOOTER BOTTOM ================= */}
+              <div className="footer-bottom-bar">
+                <small className="copyright">
+                  © 2026 EcoTrack. All rights reserved.
+                </small>
+                <div className="footer-bottom-links">
+                  <span>Privacy Policy</span>
+                  <span>Terms of Service</span>
+                  <span>Security</span>
+                </div>
+                <button
+                  className="back-to-top"
+                  onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                >
+                  <ChevronUp size={12} /> BACK TO TOP
+                </button>
+              </div>
+            </footer>
+          </main>
+        </div>
       </div>
     </div>
   );
