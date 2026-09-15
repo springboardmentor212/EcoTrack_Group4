@@ -30,7 +30,12 @@ function Profile() {
           <span>EcoTrack</span>
         </div>
         <nav className="sidebar-nav">
-          <Link to="/">Home</Link>
+          <Link to="/home">Home</Link>
+          <Link to="/carbon-footprint">Carbon Tracker</Link>
+          <Link to="/goals">Goals</Link>
+          <Link to="/challenges">Challenges</Link>
+          <Link to="/dashboard">Dashboard</Link>
+          <Link to="/reports" >Reports</Link>
           <Link to="/profile" className="active">Profile</Link>
         </nav>
       </aside>
