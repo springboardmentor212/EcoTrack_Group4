@@ -123,10 +123,10 @@ export default function GoalsPage() {
             <span>Home</span>
           </Link>
 
-          <Link to="/carbon-footprint" className="menu-item">
+          <a href="#" className="menu-item">
             <Leaf size={16} />
             <span>Carbon Tracker</span>
-          </Link>
+          </a>
 
           <Link to="/goals" className="menu-item active">
             <Target size={16} />
