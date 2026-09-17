@@ -11,7 +11,8 @@ import Register from "./pages/Auth/Register/Register";
 import ForgotPassword from "./pages/Auth/ForgotPassword/ForgotPassword";
 import ResetPassword from "./pages/Auth/ResetPassword/ResetPassword";
 import Profile from "./pages/Auth/Profile/Profile"; 
-import Dashboard from "./dashboard/dashboard"; 
+import Profile from "./pages/Auth/Profile/Profile";
+
 import Goal from "./pages/Goal/goal";
 import Home from "./pages/Home/home";
 import CarbonFootprint from "./pages/CarbonFootprint/CarbonFootprint";
@@ -29,6 +30,7 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/goals" element={<Goal />} />
+
         <Route path="/home" element={<Home />} />
         <Route path="/carbon-footprint" element={<CarbonFootprint />} />
         
