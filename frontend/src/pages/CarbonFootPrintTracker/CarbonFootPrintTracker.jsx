@@ -330,7 +330,54 @@ function CarbonFootPrintTracker() {
                   </div>
                 </div>
               )}
-
+              {/* FOOD */}
+              {activeCategory === "Food" && (
+                <div className="single-form">
+                  <div className="form-group">
+                    <label>Number of Meals</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={meals}
+                      onChange={(e) =>
+                        setMeals(e.target.value)
+                      }
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Food Type</label>
+                    <div className="select-wrap">
+                      <select
+                        value={foodType}
+                        onChange={(e) =>
+                          setFoodType(e.target.value)
+                        }
+                      >
+                        <option>
+                          Vegetarian
+                        </option>
+                        <option>
+                          Mixed
+                        </option>
+                        <option>
+                          Non-Vegetarian
+                        </option>
+                      </select>
+                      <ChevronDown size={15} />
+                    </div>
+                  </div>
+                  <div className="category-info food-info">
+                    <Utensils size={20} />
+                    <div>
+                      <strong>Food & Diet</strong>
+                      <p>
+                        Record your meals to estimate the
+                        associated food-related emissions.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* WASTE */}
               {activeCategory === "Waste" && (
