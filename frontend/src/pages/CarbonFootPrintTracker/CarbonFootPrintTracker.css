@@ -1,7 +1,4 @@
-/* =========================================================
-   CARBON TRACKER
-   Same visual language as the existing Goals page
-   ========================================================= */
+
 .carbon-tracker-app {
   --carbon-bg-white: #ffffff;
   --carbon-border-light: #eef0f2;
@@ -195,6 +192,7 @@
   align-items: start;
   min-width: 0;
 }
+
 /* =========================================================
    PANELS
    ========================================================= */
