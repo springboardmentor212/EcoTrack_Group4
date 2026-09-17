@@ -145,10 +145,10 @@ function CarbonFootPrintTracker() {
             <Leaf size={16} />
             <span>Carbon Tracker</span>
           </Link>
-          <a href="#" className="menu-item">
+          <Link to="/goals" className="menu-item">
             <Target size={16} />
             <span>Goals</span>
-          </a>
+          </Link>
           <a href="#" className="menu-item">
             <ShieldCheck size={16} />
             <span>Challenges</span>
