@@ -378,7 +378,6 @@ function CarbonFootPrintTracker() {
                   </div>
                 </div>
               )}
-
               {/* WASTE */}
               {activeCategory === "Waste" && (
                 <div className="single-form">
