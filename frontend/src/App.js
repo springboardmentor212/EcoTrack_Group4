@@ -16,6 +16,7 @@ import Goal from "./pages/Goal/goal";
 
 import Home from "./pages/Home/home";
 import CarbonFootprint from "./pages/CarbonFootprint/CarbonFootprint";
+import CarbonFootPrintTracker from "./pages/CarbonFootPrintTracker/CarbonFootPrintTracker";
 
 function App() {
   return (
@@ -32,6 +33,8 @@ function App() {
 
         <Route path="/home" element={<Home />} />
         <Route path="/carbon-footprint" element={<CarbonFootprint />} />
+        
+        <Route path="/carbon-footprint-tracker" element={<CarbonFootPrintTracker />} />
       </Routes>
     </Router>
   );
