@@ -1,768 +1,801 @@
-import React from "react";
-import "./dashboard.css";
+import { Link } from "react-router-dom";  
+import React, { useState } from "react";
+import "./Dashboard.css";
 
-const stats = [
-  {
-    label: "Carbon Footprint",
-    value: "2.84",
-    unit: "tCO₂e",
-    change: "-12.4%",
-    positive: true,
-    icon: "🌱",
-  },
-  {
-    label: "Eco Score",
-    value: "84",
-    unit: "/100",
-    change: "+8.2%",
-    positive: true,
-    icon: "✦",
-  },
-  {
-    label: "Goals Progress",
-    value: "72",
-    unit: "%",
-    change: "+14.5%",
-    positive: true,
-    icon: "◎",
-  },
-  {
-    label: "Eco Points",
-    value: "2,480",
-    unit: "pts",
-    change: "+320",
-    positive: true,
-    icon: "◆",
-  },
-];
+/* =========================================
+   ICONS
+========================================= */
 
-const emissions = [
-  { name: "Transportation", value: 38, icon: "🚗" },
-  { name: "Electricity", value: 26, icon: "⚡" },
-  { name: "Food", value: 18, icon: "🍃" },
-  { name: "Waste", value: 11, icon: "♻️" },
-  { name: "Water", value: 7, icon: "💧" },
+const icons = {
+  home: "⌂",
+  leaf: "♧",
+  target: "◎",
+  trophy: "♜",
+  grid: "▦",
+  chart: "▥",
+  user: "♙",
+  bell: "♧",
+  plus: "+",
+  arrow: "↗",
+  check: "✓",
+  bolt: "ϟ",
+  water: "♧",
+  transport: "▣",
+  energy: "▤",
+  tree: "♧",
+  more: "•••",
+  sun: "☀",
+  calendar: "▣",
+  trend: "↗",
+};
+
+/* =========================================
+   DATA
+   Replace mock values with backend data
+   when your API integration is ready.
+========================================= */
+
+const navigation = [
+  { label: "Home", icon: "home", path: "/home" },
+  { label: "Carbon Tracker", icon: "leaf", path: "/carbon-footprint-tracker" },
+  { label: "Goals", icon: "target", path: "/goals" },
+  { label: "Challenges", icon: "trophy", path: "/home" }, 
+  { label: "Dashboard", icon: "grid", path: "/dashboard", active: true },
+  { label: "Reports", icon: "chart", path: "/home" },
+  { label: "Profile", icon: "user", path: "/profile" },
 ];
 
 const goals = [
   {
-    title: "Reduce transportation emissions",
-    progress: 78,
-    current: "156 kg",
-    target: "200 kg",
-    icon: "🚲",
+    title: "Reduce Water Usage",
+    subtitle: "Goal: 20L/day",
+    progress: 65,
   },
   {
-    title: "Reduce electricity consumption",
-    progress: 64,
-    current: "320 kWh",
-    target: "500 kWh",
-    icon: "⚡",
+    title: "Use Public Transport",
+    subtitle: "Goal: 3 days/week",
+    progress: 65,
   },
   {
-    title: "Reduce plastic usage",
-    progress: 52,
-    current: "24 items",
-    target: "50 items",
-    icon: "♻️",
+    title: "Reduce Electricity Usage",
+    subtitle: "Goal: 1 bag/day",
+    progress: 30,
+  },
+  {
+    title: "Reduce Water Usage",
+    subtitle: "Goal: 3 days/week",
+    progress: 20,
+  },
+];
+
+const recommendations = [
+  {
+    icon: "transport",
+    title: "Try biking to work on Tuesdays",
+    subtitle: "Potential saving: 0.2 tons CO₂e",
+  },
+  {
+    icon: "energy",
+    title: "Optimize home heating schedule",
+    subtitle: "Potential saving: 0.3 tons CO₂e",
+  },
+  {
+    icon: "water",
+    title: "Optimize shower habits",
+    subtitle: "Potential saving: 0.2 tons CO₂e",
+  },
+  {
+    icon: "leaf",
+    title: "Optimize thermostat settings",
+    subtitle: "Potential saving: 1.2 tons CO₂e",
+  },
+];
+
+const challenges = [
+  {
+    icon: "flag",
+    title: "Plastic-Free Week",
+    subtitle: "Active, Rank: 14/150",
+    status: "Active",
+  },
+  {
+    icon: "bolt",
+    title: "Energy Saving Challenge",
+    subtitle: "Join now and earn rewards",
+    status: "Join now",
+  },
+  {
+    icon: "shield",
+    title: "Energy Saving Challenge",
+    subtitle: "Active, Rank: 14/150",
+    status: "Active",
+  },
+  {
+    icon: "shield",
+    title: "Energy-Free Week",
+    subtitle: "Active, Rank: 13/150",
+    status: "Active",
   },
 ];
 
 const activities = [
   {
-    title: "Used public transport",
-    category: "Transportation",
-    value: "-4.8 kg CO₂",
-    time: "Today, 9:42 AM",
-    icon: "🚌",
+    icon: "transport",
+    title: "Public Transport (Bus)",
+    subtitle: "Today, 9:30 AM",
+    result: "- 2.1 tons CO₂e saved",
+    type: "positive",
   },
   {
-    title: "Reduced electricity usage",
-    category: "Energy",
-    value: "-2.3 kg CO₂",
-    time: "Yesterday, 7:20 PM",
-    icon: "⚡",
+    icon: "bolt",
+    title: "Electricity Usage",
+    subtitle: "Daily update",
+    result: "Updated",
+    type: "points",
   },
   {
-    title: "Completed recycling goal",
-    category: "Waste",
-    value: "+50 pts",
-    time: "Yesterday, 4:15 PM",
-    icon: "♻️",
+    icon: "energy",
+    title: "Electricity Usage",
+    subtitle: "Daily update",
+    result: "Updated",
+    type: "points",
   },
   {
-    title: "Cycle to work",
-    category: "Transportation",
-    value: "-6.2 kg CO₂",
-    time: "Sep 4, 8:05 AM",
-    icon: "🚲",
+    icon: "bolt",
+    title: "Electricity Usage",
+    subtitle: "Daily update",
+    result: "Updated",
+    type: "points",
+  },
+  {
+    icon: "energy",
+    title: "Electricity Usage",
+    subtitle: "Daily update",
+    result: "Updated",
+    type: "points",
   },
 ];
 
-function dashboard() {
+/* =========================================
+   REUSABLE COMPONENTS
+========================================= */
+
+function Icon({ name, size = "normal" }) {
+  const icon = icons[name] || "•";
+
   return (
-    <div className="dashboard">
-
-      {/* ================= SIDEBAR ================= */}
-      <aside className="sidebar">
-
-        <div className="brand">
-          <div className="brand-mark">E</div>
-
-          <div>
-            <h2>EcoTrack</h2>
-            <span>Sustainability OS</span>
-          </div>
-        </div>
-
-        <div className="nav-section">
-          <p className="nav-label">OVERVIEW</p>
-
-          <a className="nav-item active" href="#">
-            <span>⌂</span>
-            dashboard
-          </a>
-
-          <a className="nav-item" href="#">
-            <span>◉</span>
-            Carbon Tracker
-          </a>
-
-          <a className="nav-item" href="#">
-            <span>◷</span>
-            Activity History
-          </a>
-        </div>
-
-        <div className="nav-section">
-          <p className="nav-label">IMPROVE</p>
-
-          <a className="nav-item" href="#">
-            <span>◎</span>
-            Goals
-          </a>
-
-          <a className="nav-item" href="#">
-            <span>✦</span>
-            AI Insights
-            <span className="nav-badge">3</span>
-          </a>
-
-          <a className="nav-item" href="#">
-            <span>♧</span>
-            Challenges
-          </a>
-
-          <a className="nav-item" href="#">
-            <span>♛</span>
-            Leaderboard
-          </a>
-        </div>
-
-        <div className="nav-section">
-          <p className="nav-label">ACHIEVEMENTS</p>
-
-          <a className="nav-item" href="#">
-            <span>◆</span>
-            Rewards
-          </a>
-
-          <a className="nav-item" href="#">
-            <span>▥</span>
-            Analytics
-          </a>
-
-          <a className="nav-item" href="#">
-            <span>▤</span>
-            Reports
-          </a>
-        </div>
-
-        <div className="sidebar-bottom">
-
-          <a className="nav-item" href="#">
-            <span>⚙</span>
-            Settings
-          </a>
-
-          <div className="profile-mini">
-            <div className="avatar">J</div>
-
-            <div className="profile-info">
-              <strong>Jesin</strong>
-              <span>Eco Warrior</span>
-            </div>
-
-            <span className="profile-more">•••</span>
-          </div>
-
-        </div>
-      </aside>
-
-
-      {/* ================= MAIN CONTENT ================= */}
-      <main className="main-content">
-
-        {/* TOP BAR */}
-        <header className="topbar">
-
-          <div>
-            <p className="eyebrow">MONDAY, SEPTEMBER 7</p>
-
-            <h1>
-              Good morning, Jesin <span>👋</span>
-            </h1>
-
-            <p className="subtitle">
-              Here's how your sustainability journey is going.
-            </p>
-          </div>
-
-          <div className="topbar-actions">
-
-            <button className="icon-button">
-              🔔
-              <span className="notification-dot"></span>
-            </button>
-
-            <button className="add-activity">
-              <span>+</span>
-              Add Activity
-            </button>
-
-          </div>
-
-        </header>
-
-
-        {/* ================= KPI CARDS ================= */}
-        <section className="stats-grid">
-
-          {stats.map((stat) => (
-            <div className="stat-card" key={stat.label}>
-
-              <div className="stat-top">
-                <div className="stat-icon">
-                  {stat.icon}
-                </div>
-
-                <span className="stat-change positive">
-                  {stat.change}
-                </span>
-              </div>
-
-              <p className="stat-label">
-                {stat.label}
-              </p>
-
-              <div className="stat-value">
-                {stat.value}
-                <small>{stat.unit}</small>
-              </div>
-
-            </div>
-          ))}
-
-        </section>
-
-
-        {/* ================= MAIN ANALYTICS ================= */}
-        <section className="dashboard-grid">
-
-          {/* CARBON CHART */}
-          <div className="card carbon-card">
-
-            <div className="card-header">
-
-              <div>
-                <p className="card-eyebrow">
-                  YOUR IMPACT
-                </p>
-
-                <h2>
-                  Carbon Footprint
-                </h2>
-
-                <p className="card-description">
-                  Your emissions over the last 30 days
-                </p>
-              </div>
-
-              <select className="period-select">
-                <option>Last 30 days</option>
-                <option>Last 7 days</option>
-                <option>Last 3 months</option>
-              </select>
-
-            </div>
-
-
-            <div className="chart-summary">
-              <strong>2.84 tCO₂e</strong>
-              <span className="chart-positive">
-                ↓ 12.4% vs previous period
-              </span>
-            </div>
-
-
-            <div className="chart-container">
-
-              <div className="chart-y-axis">
-                <span>4t</span>
-                <span>3t</span>
-                <span>2t</span>
-                <span>1t</span>
-                <span>0</span>
-              </div>
-
-              <svg
-                viewBox="0 0 700 240"
-                preserveAspectRatio="none"
-                className="line-chart"
-              >
-
-                <defs>
-
-                  <linearGradient
-                    id="chartGradient"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop
-                      offset="0%"
-                      stopOpacity="0.22"
-                    />
-
-                    <stop
-                      offset="100%"
-                      stopOpacity="0"
-                    />
-                  </linearGradient>
-
-                </defs>
-
-
-                {/* AREA */}
-                <path
-                  d="
-                    M0 170
-                    C50 160 70 150 110 158
-                    C150 165 175 125 220 138
-                    C270 150 290 105 335 120
-                    C380 138 400 92 445 108
-                    C490 122 520 70 555 90
-                    C600 110 620 62 650 78
-                    C675 88 690 65 700 58
-                    L700 240
-                    L0 240
-                    Z
-                  "
-                  className="chart-fill"
-                  fill="url(#chartGradient)"
-                />
-
-
-                {/* LINE */}
-                <path
-                  d="
-                    M0 170
-                    C50 160 70 150 110 158
-                    C150 165 175 125 220 138
-                    C270 150 290 105 335 120
-                    C380 138 400 92 445 108
-                    C490 122 520 70 555 90
-                    C600 110 620 62 650 78
-                    C675 88 690 65 700 58
-                  "
-                  className="chart-line"
-                />
-
-              </svg>
-
-            </div>
-
-
-            <div className="chart-x-axis">
-              <span>Aug 10</span>
-              <span>Aug 17</span>
-              <span>Aug 24</span>
-              <span>Aug 31</span>
-              <span>Sep 7</span>
-            </div>
-
-          </div>
-
-
-          {/* AI INSIGHT */}
-          <div className="ai-card">
-
-            <div className="ai-header">
-              <div className="ai-icon">✦</div>
-
-              <div>
-                <span>AI INSIGHT</span>
-                <h2>Your biggest opportunity</h2>
-              </div>
-            </div>
-
-            <p className="ai-description">
-              Your transportation emissions are 38% of your
-              total footprint. Switching two weekly car trips
-              to public transport could reduce your footprint
-              by approximately <strong>48 kg CO₂</strong> per month.
-            </p>
-
-            <div className="ai-impact">
-              <div>
-                <span>Potential reduction</span>
-                <strong>48 kg CO₂</strong>
-              </div>
-
-              <div>
-                <span>Estimated impact</span>
-                <strong>12%</strong>
-              </div>
-            </div>
-
-            <button className="ai-button">
-              View personalized recommendations
-              <span>→</span>
-            </button>
-
-          </div>
-
-        </section>
-
-
-        {/* ================= SECOND ROW ================= */}
-        <section className="dashboard-grid secondary-grid">
-
-          {/* EMISSIONS */}
-          <div className="card emissions-card">
-
-            <div className="card-header">
-
-              <div>
-                <p className="card-eyebrow">
-                  BREAKDOWN
-                </p>
-
-                <h2>
-                  Emissions by Category
-                </h2>
-              </div>
-
-              <button className="text-button">
-                View details →
-              </button>
-
-            </div>
-
-
-            <div className="emissions-content">
-
-              <div className="donut-wrapper">
-
-                <div className="donut-chart">
-                  <div className="donut-center">
-                    <strong>2.84</strong>
-                    <span>tCO₂e</span>
-                  </div>
-                </div>
-
-              </div>
-
-
-              <div className="emission-list">
-
-                {emissions.map((item) => (
-
-                  <div
-                    className="emission-item"
-                    key={item.name}
-                  >
-
-                    <div className="emission-name">
-                      <span className="emission-icon">
-                        {item.icon}
-                      </span>
-
-                      <span>
-                        {item.name}
-                      </span>
-                    </div>
-
-                    <strong>
-                      {item.value}%
-                    </strong>
-
-                  </div>
-
-                ))}
-
-              </div>
-
-            </div>
-
-          </div>
-
-
-          {/* ECO SCORE */}
-          <div className="card eco-score-card">
-
-            <div className="card-header">
-
-              <div>
-                <p className="card-eyebrow">
-                  YOUR SCORE
-                </p>
-
-                <h2>
-                  Eco Score
-                </h2>
-              </div>
-
-              <span className="score-trend">
-                ↑ 8.2%
-              </span>
-
-            </div>
-
-
-            <div className="score-content">
-
-              <div className="score-ring">
-
-                <div className="score-inner">
-                  <strong>84</strong>
-                  <span>/ 100</span>
-                </div>
-
-              </div>
-
-
-              <div className="score-info">
-
-                <div className="score-level">
-                  <span className="status-dot"></span>
-                  Excellent
-                </div>
-
-                <p>
-                  You're performing better than
-                  <strong> 78%</strong> of EcoTrack users.
-                </p>
-
-                <button className="text-button">
-                  Improve your score →
-                </button>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </section>
-
-
-        {/* ================= GOALS + CHALLENGE ================= */}
-        <section className="dashboard-grid tertiary-grid">
-
-          {/* GOALS */}
-          <div className="card goals-card">
-
-            <div className="card-header">
-
-              <div>
-                <p className="card-eyebrow">
-                  PROGRESS
-                </p>
-
-                <h2>
-                  Active Goals
-                </h2>
-              </div>
-
-              <button className="text-button">
-                View all →
-              </button>
-
-            </div>
-
-
-            <div className="goals-list">
-
-              {goals.map((goal) => (
-
-                <div
-                  className="goal-item"
-                  key={goal.title}
-                >
-
-                  <div className="goal-icon">
-                    {goal.icon}
-                  </div>
-
-                  <div className="goal-main">
-
-                    <div className="goal-title-row">
-
-                      <strong>
-                        {goal.title}
-                      </strong>
-
-                      <span>
-                        {goal.progress}%
-                      </span>
-
-                    </div>
-
-                    <div className="progress-track">
-                      <div
-                        className="progress-value"
-                        style={{
-                          width: `${goal.progress}%`,
-                        }}
-                      ></div>
-                    </div>
-
-                    <div className="goal-meta">
-                      <span>
-                        {goal.current}
-                      </span>
-
-                      <span>
-                        Target: {goal.target}
-                      </span>
-                    </div>
-
-                  </div>
-
-                </div>
-
-              ))}
-
-            </div>
-
-          </div>
-
-
-          {/* CHALLENGE */}
-          <div className="challenge-card">
-
-            <div className="challenge-label">
-              FEATURED CHALLENGE
-            </div>
-
-            <div className="challenge-icon">
-              🚲
-            </div>
-
-            <h2>
-              Cycle To Work
-            </h2>
-
-            <p>
-              Replace short car trips with cycling
-              and help reduce transportation emissions.
-            </p>
-
-            <div className="challenge-stats">
-
-              <div>
-                <strong>1,284</strong>
-                <span>Participants</span>
-              </div>
-
-              <div>
-                <strong>7 days</strong>
-                <span>Remaining</span>
-              </div>
-
-            </div>
-
-            <button className="challenge-button">
-              Join Challenge
-              <span>→</span>
-            </button>
-
-          </div>
-
-        </section>
-
-
-        {/* ================= RECENT ACTIVITY ================= */}
-        <section className="card activity-card">
-
-          <div className="card-header">
-
-            <div>
-              <p className="card-eyebrow">
-                ACTIVITY
-              </p>
-
-              <h2>
-                Recent Activity
-              </h2>
-            </div>
-
-            <button className="text-button">
-              View history →
-            </button>
-
-          </div>
-
-
-          <div className="activity-list">
-
-            {activities.map((activity) => (
-
-              <div
-                className="activity-item"
-                key={`${activity.title}-${activity.time}`}
-              >
-
-                <div className="activity-icon">
-                  {activity.icon}
-                </div>
-
-                <div className="activity-main">
-
-                  <strong>
-                    {activity.title}
-                  </strong>
-
-                  <span>
-                    {activity.category}
-                  </span>
-
-                </div>
-
-                <div className="activity-value">
-                  <strong>
-                    {activity.value}
-                  </strong>
-
-                  <span>
-                    {activity.time}
-                  </span>
-                </div>
-
-              </div>
-
-            ))}
-
-          </div>
-
-        </section>
-
-      </main>
-
+    <span
+      className={`icon icon-${size}`}
+      aria-hidden="true"
+    >
+      {icon}
+    </span>
+  );
+}
+
+function CardHeader({
+  kicker,
+  title,
+  subtitle,
+  action,
+  icon,
+}) {
+  return (
+    <div className="card-heading">
+      <div className="heading-copy">
+        {kicker && (
+          <span className="section-kicker">{kicker}</span>
+        )}
+
+        <h2>{title}</h2>
+
+        {subtitle && <p>{subtitle}</p>}
+      </div>
+
+      {action || (
+        <span className="heading-icon">
+          <Icon name={icon || "chart"} />
+        </span>
+      )}
     </div>
   );
 }
 
-export default dashboard;
+function ProgressBar({ value, className = "" }) {
+  return (
+    <div className={`progress-track ${className}`}>
+      <div
+        className="progress-fill"
+        style={{ width: `${value}%` }}
+      />
+    </div>
+  );
+}
+
+/* =========================================
+   SIDEBAR
+========================================= */
+
+function Sidebar({ activePage, setActivePage }) {
+  return (
+    <aside className="dashboard-sidebar">
+      <div className="sidebar-brand">
+        <div className="brand-mark">
+          <Icon name="leaf" size="large" />
+        </div>
+
+        <div>
+          <div className="brand-name">EcoTrack</div>
+          <div className="brand-subtitle">
+            SUSTAINABILITY PLATFORM
+          </div>
+        </div>
+      </div>
+
+          <nav className="sidebar-nav">
+    <div className="nav-heading">MAIN MENU</div>
+
+    {navigation.map((item) => (
+      <Link
+        key={item.label}
+        to={item.path}
+        className={`nav-item ${
+          item.label === "Dashboard" ? "active" : ""
+        }`}
+      >
+        <span className="nav-icon">
+          <Icon name={item.icon} />
+        </span>
+
+        <span>{item.label}</span>
+
+        {item.label === "Challenges" && (
+          <span className="nav-count">3</span>
+        )}
+      </Link>
+    ))}
+  </nav>
+
+
+      <div className="sidebar-bottom">
+        <div className="sidebar-tip">
+          <div className="tip-icon">
+            <Icon name="leaf" />
+          </div>
+
+          <div>
+            <strong>Keep it green</strong>
+            <p>Small actions make a difference.</p>
+          </div>
+        </div>
+
+        <div className="sidebar-profile">
+          <div className="profile-avatar">MS</div>
+
+          <div className="profile-text">
+            <strong>Manpreet Sodhi</strong>
+            <span>Eco Explorer</span>
+          </div>
+
+          <button
+            type="button"
+            className="profile-more"
+            aria-label="Open profile menu"
+          >
+            <Icon name="more" />
+          </button>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+/* =========================================
+   HEADER
+========================================= */
+
+function DashboardHeader({
+  onNotification,
+  notificationsOpen,
+  onPrimaryAction,
+}) {
+  return (
+    <header className="dashboard-header">
+      <div className="header-copy">
+        <div className="header-date">
+          OVERVIEW / DASHBOARD
+        </div>
+
+        <h1>
+          Welcome back, <span>Manpreet</span>
+          <span className="header-wave"> 👋</span>
+        </h1>
+
+        <p>
+          Track your sustainability journey and make a
+          positive impact on the planet.
+        </p>
+      </div>
+
+      <div className="header-actions">
+        <div className="notification-wrap">
+          <button
+            type="button"
+            className="notification-button"
+            onClick={onNotification}
+            aria-label="View notifications"
+            aria-expanded={notificationsOpen}
+          >
+            <Icon name="bell" />
+            <span className="notification-dot" />
+          </button>
+
+          {notificationsOpen && (
+            <div className="notification-popover">
+              <strong>Notifications</strong>
+              <span>
+                You have 3 new sustainability updates.
+              </span>
+              <span>
+                Your weekly goal progress is ready.
+              </span>
+            </div>
+          )}
+        </div>
+
+        <button
+          type="button"
+          className="user-menu"
+          aria-label="Open user menu"
+        >
+          <span className="user-avatar">MS</span>
+          <span className="user-menu-name">Manpreet</span>
+          <span className="user-chevron">⌄</span>
+        </button>
+
+        <button
+          type="button"
+          className="primary-action"
+          onClick={onPrimaryAction}
+        >
+          <Icon name="plus" />
+          Log Activity
+        </button>
+      </div>
+    </header>
+  );
+}
+
+/* =========================================
+   CARBON FOOTPRINT CARD
+========================================= */
+
+function CarbonFootprintCard() {
+  return (
+    <section className="dashboard-card carbon-card">
+      <CardHeader
+        kicker="YOUR CARBON FOOTPRINT"
+        title="Carbon Overview"
+        subtitle="Sustainability tracking system"
+        icon="chart"
+      />
+
+      <div className="carbon-content">
+        <div className="carbon-donut">
+          <div className="carbon-donut-inner">
+            <span className="donut-label">Eco Score</span>
+            <strong>72</strong>
+            <span className="donut-status">Good</span>
+          </div>
+        </div>
+
+        <div className="carbon-legend">
+          <div className="legend-item">
+            <span className="legend-dot transport-color" />
+            <span>Transport</span>
+            <strong>38%</strong>
+          </div>
+
+          <div className="legend-item">
+            <span className="legend-dot energy-color" />
+            <span>Energy</span>
+            <strong>26%</strong>
+          </div>
+
+          <div className="legend-item">
+            <span className="legend-dot food-color" />
+            <span>Food</span>
+            <strong>18%</strong>
+          </div>
+
+          <div className="legend-item">
+            <span className="legend-dot waste-color" />
+            <span>Waste</span>
+            <strong>11%</strong>
+          </div>
+        </div>
+      </div>
+
+      <div className="emissions-summary">
+        <div>
+          <span>Total emissions</span>
+          <strong>4.8 tons CO₂e</strong>
+        </div>
+
+        <span className="summary-arrow">↗</span>
+      </div>
+    </section>
+  );
+}
+
+/* =========================================
+   GOAL PROGRESS
+========================================= */
+
+function GoalProgressCard() {
+  return (
+    <section className="dashboard-card goal-progress-card">
+      <CardHeader
+        kicker="GOAL MANAGEMENT"
+        title="Goal Progress"
+        subtitle="Sustainability goal management"
+        icon="target"
+      />
+
+      <div className="goal-progress-list">
+        {goals.map((goal, index) => (
+          <div className="goal-progress-item" key={`${goal.title}-${index}`}>
+            <div className="goal-progress-top">
+              <div>
+                <strong>{goal.title}</strong>
+                <span>{goal.subtitle}</span>
+              </div>
+
+              <b>{goal.progress}%</b>
+            </div>
+
+            <ProgressBar value={goal.progress} />
+            <span className="progress-caption">
+              {goal.progress}% Complete
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* =========================================
+   AI RECOMMENDATIONS
+========================================= */
+
+function RecommendationsCard() {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <section className="dashboard-card ai-card">
+      <CardHeader
+        kicker="RECOMMENDATION FACTORS"
+        title="AI-Powered Recommendations"
+        subtitle="Personalized sustainability insights"
+        icon="chart"
+      />
+
+      <div className="recommendation-list">
+        {recommendations
+          .slice(0, expanded ? 4 : 3)
+          .map((recommendation, index) => (
+            <div className="recommendation-item" key={index}>
+              <div className="recommendation-icon">
+                <Icon name={recommendation.icon} />
+              </div>
+
+              <div className="recommendation-copy">
+                <strong>{recommendation.title}</strong>
+                <span>{recommendation.subtitle}</span>
+              </div>
+
+              <span className="recommendation-arrow">↗</span>
+            </div>
+          ))}
+      </div>
+
+      <button
+        type="button"
+        className="secondary-action full"
+        onClick={() => setExpanded((current) => !current)}
+      >
+        {expanded ? "Show Less" : "View All Recommendations"}
+        <Icon name="arrow" />
+      </button>
+    </section>
+  );
+}
+
+/* =========================================
+   COMMUNITY CHALLENGES
+========================================= */
+
+function CommunityChallengesCard() {
+  const [joined, setJoined] = useState(false);
+
+  return (
+    <section className="dashboard-card challenge-list-card">
+      <CardHeader
+        kicker="CHALLENGE CATEGORIES"
+        title="Community Challenges"
+        subtitle="Connect, compete and make an impact"
+        icon="chart"
+      />
+
+      <div className="challenge-list">
+        {challenges.map((challenge, index) => (
+          <div className="challenge-row" key={index}>
+            <div className="challenge-row-icon">
+              <Icon name={challenge.icon} />
+            </div>
+
+            <div className="challenge-row-copy">
+              <strong>{challenge.title}</strong>
+              <span>{challenge.subtitle}</span>
+            </div>
+
+            {index === 1 ? (
+              <button
+                type="button"
+                className={`join-button ${
+                  joined ? "joined" : ""
+                }`}
+                onClick={() => setJoined((current) => !current)}
+              >
+                {joined ? "Joined" : "Join now"}
+              </button>
+            ) : (
+              <span className="challenge-status">
+                {challenge.status}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* =========================================
+   RECENT ACTIVITY
+========================================= */
+
+function RecentActivityCard() {
+  return (
+    <section className="dashboard-card activity-card">
+      <CardHeader
+        kicker="HISTORICAL ACTIVITY RECORDS"
+        title="Recent Activity"
+        subtitle="Your latest sustainability actions"
+        icon="chart"
+      />
+
+      <div className="activity-list">
+        {activities.map((activity, index) => (
+          <div className="activity-row" key={index}>
+            <div className="activity-icon">
+              <Icon name={activity.icon} />
+            </div>
+
+            <div className="activity-main">
+              <strong>{activity.title}</strong>
+              <span>{activity.subtitle}</span>
+            </div>
+
+            <div className="activity-result">
+              <strong className={activity.type}>
+                {activity.result}
+              </strong>
+              <span>Completed</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <button type="button" className="text-action">
+        View all activity <Icon name="arrow" />
+      </button>
+    </section>
+  );
+}
+
+/* =========================================
+   IMPACT AND GAMIFICATION
+========================================= */
+
+function ImpactGamificationCard() {
+  return (
+    <section className="dashboard-card impact-card">
+      <CardHeader
+        kicker="BADGES & ACHIEVEMENT LEVELS"
+        title="Your Impact & Gamification"
+        subtitle="Your achievements and progress"
+        icon="target"
+      />
+
+      <div className="badge-list">
+        <div className="achievement-badge">
+          <div className="badge-shape green-badge">
+            <Icon name="leaf" size="large" />
+          </div>
+          <strong>Eco Warrior</strong>
+          <span>Badge earned</span>
+        </div>
+
+        <div className="achievement-badge">
+          <div className="badge-shape blue-badge">
+            <Icon name="water" size="large" />
+          </div>
+          <strong>Water Saver</strong>
+          <span>Badge earned</span>
+        </div>
+      </div>
+
+      <div className="next-level">
+        <div className="next-level-header">
+          <strong>Next Level</strong>
+          <span>68%</span>
+        </div>
+
+        <ProgressBar value={68} />
+
+        <div className="level-label">
+          <strong>Green Beginner to Eco Hero</strong>
+          <span>120 points needed</span>
+        </div>
+      </div>
+
+      <div className="impact-stats">
+        <div>
+          <strong>240</strong>
+          <span>Points earned</span>
+        </div>
+        <div>
+          <strong>12</strong>
+          <span>Actions completed</span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* =========================================
+   DASHBOARD
+========================================= */
+
+export default function Dashboard() {
+  const [activePage, setActivePage] = useState("Dashboard");
+  const [notificationsOpen, setNotificationsOpen] =
+    useState(false);
+  const [showActivityModal, setShowActivityModal] =
+    useState(false);
+
+  const handlePageChange = (page) => {
+    setActivePage(page);
+  };
+
+  const handlePrimaryAction = () => {
+    setShowActivityModal(true);
+  };
+
+  return (
+    <div className="dashboard-shell">
+      <Sidebar
+        activePage={activePage}
+        setActivePage={handlePageChange}
+      />
+
+      <main className="dashboard-main">
+        <DashboardHeader
+          onNotification={() =>
+            setNotificationsOpen((current) => !current)
+          }
+          notificationsOpen={notificationsOpen}
+          onPrimaryAction={handlePrimaryAction}
+        />
+
+        <div className="dashboard-overview">
+          <div className="overview-label">
+            <span>PERSONAL OVERVIEW</span>
+            <span>Updated today</span>
+          </div>
+
+          <div className="overview-line" />
+        </div>
+
+        <div className="dashboard-grid top-grid">
+          <CarbonFootprintCard />
+          <GoalProgressCard />
+          <RecommendationsCard />
+        </div>
+
+        <div className="dashboard-grid bottom-grid">
+          <CommunityChallengesCard />
+          <RecentActivityCard />
+          <ImpactGamificationCard />
+        </div>
+
+        <footer className="dashboard-footer">
+          <span>© 2026 EcoTrack. Sustainability at a glance.</span>
+          <span>Made for a greener tomorrow 🌱</span>
+        </footer>
+      </main>
+
+      {showActivityModal && (
+        <div
+          className="modal-overlay"
+          role="presentation"
+          onClick={() => setShowActivityModal(false)}
+        >
+          <div
+            className="activity-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="activity-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="modal-header">
+              <div>
+                <span className="section-kicker">
+                  SUSTAINABILITY TRACKER
+                </span>
+                <h2 id="activity-modal-title">
+                  Log Activity
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                className="modal-close"
+                onClick={() => setShowActivityModal(false)}
+                aria-label="Close activity form"
+              >
+                ×
+              </button>
+            </div>
+
+            <p>
+              Record a sustainability action to keep your
+              EcoTrack dashboard up to date.
+            </p>
+
+            <label htmlFor="activity-type">Activity Type</label>
+            <select id="activity-type" defaultValue="transport">
+              <option value="transport">Public Transport</option>
+              <option value="energy">Energy Saving</option>
+              <option value="water">Water Conservation</option>
+              <option value="waste">Waste Reduction</option>
+            </select>
+
+            <label htmlFor="activity-value">Activity Details</label>
+            <input
+              id="activity-value"
+              type="text"
+              placeholder="Enter activity details"
+            />
+
+            <button
+              type="button"
+              className="primary-action modal-submit"
+              onClick={() => setShowActivityModal(false)}
+            >
+              <Icon name="check" />
+              Save Activity
+            </button>
+
+            <p className="modal-note">
+              Demo form: connect this button to your backend
+              activity endpoint to persist records.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

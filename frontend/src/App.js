@@ -11,7 +11,8 @@ import Register from "./pages/Auth/Register/Register";
 import ForgotPassword from "./pages/Auth/ForgotPassword/ForgotPassword";
 import ResetPassword from "./pages/Auth/ResetPassword/ResetPassword";
 import Profile from "./pages/Auth/Profile/Profile"; 
-import Profile from "./pages/Auth/Profile/Profile";
+import Dashboard from "./dashboard/Dashboard"; 
+
 
 import Goal from "./pages/Goal/goal";
 import Home from "./pages/Home/home";
