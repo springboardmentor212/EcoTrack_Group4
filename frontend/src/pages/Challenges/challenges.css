@@ -6,8 +6,8 @@
   --chal-border-light: #eef0f2;
   --chal-border-input: #e2e5e9;
   --chal-text-primary: #1a1d1f;
-  --chal-text-secondary: #484b4f;
-  --chal-text-muted: #969ca4;
+  --chal-text-secondary: #3e3f42;
+  --chal-text-muted: #a2a7ae;
 
   --chal-green-50: #eaf5ee;
   --chal-green-100: #dcefe3;
@@ -39,7 +39,6 @@
   display: grid;
   grid-template-columns: 224px 1fr;
   min-height: 100vh;
-  /* background: var(--chal-bg-page); */
   background: linear-gradient(to right, rgb(184, 211, 184),rgb(241, 247, 238));
   font-family: var(--chal-font);
   color: var(--chal-text-primary);
@@ -52,6 +51,7 @@
   box-sizing: border-box;
 }
 
+/* ---------- Sidebar ---------- */
 .challenges-app .sidebar {
   background: var(--chal-bg-white);
   border-right: 1px solid var(--chal-border-light);
@@ -74,7 +74,6 @@
   font-weight: 650;
   font-size: 18px;
   color: var(--chal-text-primary);
-  /* color: #059669; */
 }
 
 .challenges-app .sidebar-menu {
@@ -90,9 +89,8 @@
   padding: 9px 12px;
   border-radius: var(--chal-radius-md);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 550;
   color: var(--chal-text-secondary);
-  /* color: #52635a; */
   text-decoration: none;
   transition: background-color 0.15s ease;
 }
@@ -102,7 +100,7 @@
 }
 
 .challenges-app .menu-item svg {
-  color: #64666b;
+  color: #4d5054;
   flex-shrink: 0;
 }
 
@@ -132,7 +130,7 @@
 
 .challenges-app .page-header h1 {
   margin: 0;
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 700;
   line-height: 1.3;
 }
@@ -335,6 +333,7 @@
 .challenges-app .right-rail {
   display: grid;
   gap: 20px;
+  margin-top: 52px; /* aligns "My Eco Rewards" with the first challenge card, below the tab bar */
 }
 
 .challenges-app .panel {
@@ -539,6 +538,9 @@
   .challenges-app .content-grid {
     grid-template-columns: 1fr;
   }
+  .challenges-app .right-rail {
+    margin-top: 0; /* only needed to align beside the challenge list; full-width stack doesn't need it */
+  }
 }
 
 @media (max-width: 720px) {
@@ -547,5 +549,73 @@
   }
   .challenges-app .sidebar {
     display: none;
+  }
+  .challenges-app .main-content {
+    padding: 16px;
+    gap: 16px;
+  }
+  .challenges-app .page-header {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .challenges-app .page-header h1 {
+    font-size: 19px;
+  }
+  .challenges-app .header-actions {
+    justify-self: start;
+  }
+  .challenges-app .tab-bar {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+  .challenges-app .tab-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 560px) {
+  .challenges-app .challenge-card {
+    grid-template-columns: 1fr;
+    padding: 14px;
+  }
+  .challenges-app .challenge-icon {
+    width: 36px;
+    height: 36px;
+  }
+  .challenges-app .challenge-top {
+    grid-template-columns: 1fr;
+  }
+  .challenges-app .challenge-percent {
+    justify-self: start;
+  }
+  .challenges-app .challenge-progress-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .challenges-app .progress-label {
+    justify-self: end;
+  }
+  .challenges-app .panel {
+    padding: 16px;
+  }
+  .challenges-app .score-box {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .challenges-app .badges-row {
+    flex-wrap: wrap;
+  }
+  .challenges-app .leaderboard-row {
+    grid-template-columns: auto auto 1fr;
+    row-gap: 2px;
+  }
+  .challenges-app .lb-points {
+    grid-column: 3;
+    justify-self: end;
+    font-size: 12px;
   }
 }
