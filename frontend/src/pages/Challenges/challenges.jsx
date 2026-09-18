@@ -90,7 +90,7 @@ const badges = [
 ];
 
 const leaderboard = [
-    { rank: 1, name: "Khushnood Khan", title: "Climate Hero", initials: "KK", points: "3,420 pts", highlight: "top" },
+    { rank: 1, name: "Khushnood Khan", title: "Climate Elite", initials: "KK", points: "3,420 pts", highlight: "top" },
     { rank: 2, name: "Manpreet Sodhi", title: "Eco Warrior", initials: "MS", points: "2,980 pts" },
     { rank: 3, name: "Moazzam Husain", title: "Eco Warrior", initials: "MH", points: "2,540 pts" },
     { rank: 7, name: "Meenakshi", title: "Sustainability Champion", initials: "M", points: "1,850 pts", highlight: "me" },
