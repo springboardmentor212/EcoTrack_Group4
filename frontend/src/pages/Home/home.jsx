@@ -43,20 +43,17 @@ function Home() {
               <span>Goals</span>
             </Link>
 
-            <Link to="/dashboard" className="menu-item">
-                 <LayoutDashboard size={16} />
-                  <span>Dashboard</span>
-            </Link>
-
             <a href="#" className="menu-item">
               <ShieldCheck size={16} />
               <span>Challenges</span>
             </a>
 
-            <a href="#" className="menu-item">
-              <LayoutDashboard size={16} />
-              <span>Dashboard</span>
-            </a>
+            <Link to="/dashboard" className="menu-item">
+                 <LayoutDashboard size={16} />
+                  <span>Dashboard</span>
+            </Link>
+
+           
 
             <a href="#" className="menu-item">
               <FileText size={16} />
