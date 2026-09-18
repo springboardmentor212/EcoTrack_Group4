@@ -43,10 +43,10 @@ function Home() {
               <span>Goals</span>
             </Link>
 
-            <a href="#" className="menu-item">
+            <Link to="/challenges" className="menu-item">
               <ShieldCheck size={16} />
               <span>Challenges</span>
-            </a>
+            </Link>
 
             <a href="#" className="menu-item">
               <LayoutDashboard size={16} />

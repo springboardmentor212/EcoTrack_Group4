@@ -14,6 +14,8 @@ import Profile from "./pages/Auth/Profile/Profile";
 
 import Goal from "./pages/Goal/goal";
 
+import Challenges from "./pages/Challenges/challenges";
+
 import Home from "./pages/Home/home";
 import CarbonFootprint from "./pages/CarbonFootprint/CarbonFootprint";
 import CarbonFootPrintTracker from "./pages/CarbonFootPrintTracker/CarbonFootPrintTracker";
@@ -30,6 +32,8 @@ function App() {
         <Route path="/profile" element={<Profile />} />
 
         <Route path="/goals" element={<Goal />} />
+
+        <Route path="/challenges" element={<Challenges />} />
 
         <Route path="/home" element={<Home />} />
         <Route path="/carbon-footprint" element={<CarbonFootprint />} />

@@ -113,7 +113,7 @@ export default function GoalsPage() {
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <Globe className="w-5 h-5" strokeWidth={2} />
+          <Globe size={19} className="w-4 h-4" strokeWidth={2} />
           <span>EcoTrack</span>
         </div>
 
@@ -133,10 +133,10 @@ export default function GoalsPage() {
             <span>Goals</span>
           </Link>
 
-          <a href="#" className="menu-item">
+          <Link to="/challenges" className="menu-item">
             <ShieldCheck size={16} />
             <span>Challenges</span>
-          </a>
+          </Link>
 
           <a href="#" className="menu-item">
             <LayoutDashboard size={16} />

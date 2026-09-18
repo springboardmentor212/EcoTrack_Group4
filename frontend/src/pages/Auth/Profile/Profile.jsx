@@ -31,8 +31,7 @@ function Profile() {
         </div>
         <nav className="sidebar-nav">
           <Link to="/home">Home</Link>
-          <a href="#">Carbon Tracker</a>
-          {/* <Link to="/carbon-footprint">Carbon Tracker</Link> */}
+          <Link to="/carbon-footprint-tracker">Carbon Tracker</Link>
           <Link to="/goals">Goals</Link>
           <Link to="/challenges">Challenges</Link>
           <Link to="/dashboard">Dashboard</Link>
