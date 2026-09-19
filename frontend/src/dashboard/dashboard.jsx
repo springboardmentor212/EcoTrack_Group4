@@ -1,32 +1,67 @@
 import { Link } from "react-router-dom";  
-import React, { useState } from "react";
+import React, { useState, useEffect } from 'react';
 import "./dashboard.css";
 
 /* =========================================
    ICONS
 ========================================= */
+import {
+  Globe,
+  Home as HomeIcon,
+  Leaf,
+  Target,
+  ShieldCheck,
+  LayoutDashboard,
+  FileText,
+  User,
+  Bell,
+  ChevronDown,
+  CircleDot,
+  CheckCircle2,
+  Flame,
+  TrendingUp,
+  Sparkles,
+  Zap,
+  MoveHorizontal,
+  Sprout,
+  Ban,
+  Trophy,
+  Plus,
+  ArrowUpRight,
+  Droplets,
+  Bus,
+  Plug,
+  Sun,
+  Calendar,
+  MoreHorizontal,
+  Flag,
+  BarChart3,
+  X,
+} from "lucide-react";
 
 const icons = {
-  home: "⌂",
-  leaf: "♧",
-  target: "◎",
-  trophy: "♜",
-  grid: "▦",
-  chart: "▥",
-  user: "♙",
-  bell: "♧",
-  plus: "+",
-  arrow: "↗",
-  check: "✓",
-  bolt: "ϟ",
-  water: "♧",
-  transport: "▣",
-  energy: "▤",
-  tree: "♧",
-  more: "•••",
-  sun: "☀",
-  calendar: "▣",
-  trend: "↗",
+  home: HomeIcon,
+  leaf: Leaf,
+  target: Target,
+  trophy: Trophy,
+  grid: LayoutDashboard,
+  chart: BarChart3,
+  user: User,
+  bell: Bell,
+  plus: Plus,
+  arrow: ArrowUpRight,
+  check: CheckCircle2,
+  bolt: Zap,
+  water: Droplets,
+  transport: Bus,
+  energy: Plug,
+  tree: Sprout,
+  more: MoreHorizontal,
+  sun: Sun,
+  calendar: Calendar,
+  trend: TrendingUp,
+  flag: Flag,
+  shield: ShieldCheck,
 };
 
 /* =========================================
@@ -36,13 +71,13 @@ const icons = {
 ========================================= */
 
 const navigation = [
-  { label: "Home", icon: "home", path: "/home" },
-  { label: "Carbon Tracker", icon: "leaf", path: "/carbon-footprint-tracker" },
-  { label: "Goals", icon: "target", path: "/goals" },
-  { label: "Challenges", icon: "trophy", path: "/home" }, 
-  { label: "Dashboard", icon: "grid", path: "/dashboard", active: true },
-  { label: "Reports", icon: "chart", path: "/home" },
-  { label: "Profile", icon: "user", path: "/profile" },
+  { label: "Home", icon: "Home", path: "/home" },
+  { label: "Carbon Tracker", icon: "Leaf", path: "/carbon-footprint-tracker" },
+  { label: "Goals", icon: "Target", path: "/goals" },
+  { label: "Challenges", icon: "Trophy", path: "/home" }, 
+  { label: "Dashboard", icon: "Grid", path: "/dashboard", active: true },
+  { label: "Reports", icon: "Chart", path: "/home" },
+  { label: "Profile", icon: "User", path: "/profile" },
 ];
 
 const goals = [
@@ -161,14 +196,14 @@ const activities = [
 ========================================= */
 
 function Icon({ name, size = "normal" }) {
-  const icon = icons[name] || "•";
+  const LucideIcon = icons[name] || CircleDot;
 
   return (
     <span
       className={`icon icon-${size}`}
       aria-hidden="true"
     >
-      {icon}
+      <LucideIcon size="1em" />
     </span>
   );
 }
@@ -194,7 +229,7 @@ function CardHeader({
 
       {action || (
         <span className="heading-icon">
-          <Icon name={icon || "chart"} />
+          <FileText />
         </span>
       )}
     </div>
@@ -217,77 +252,51 @@ function ProgressBar({ value, className = "" }) {
 ========================================= */
 
 function Sidebar({ activePage, setActivePage }) {
-  return (
-    <aside className="dashboard-sidebar">
-      <div className="sidebar-brand">
-        <div className="brand-mark">
-          <Icon name="leaf" size="large" />
-        </div>
-
-        <div>
-          <div className="brand-name">EcoTrack</div>
-          <div className="brand-subtitle">
-            SUSTAINABILITY PLATFORM
+  return ( <aside className="sidebar">
+          <div className="sidebar-brand">
+            <Globe size={18} strokeWidth={2} />
+            <span>EcoTrack</span>
           </div>
-        </div>
-      </div>
-
-          <nav className="sidebar-nav">
-    <div className="nav-heading">MAIN MENU</div>
-
-    {navigation.map((item) => (
-      <Link
-        key={item.label}
-        to={item.path}
-        className={`nav-item ${
-          item.label === "Dashboard" ? "active" : ""
-        }`}
-      >
-        <span className="nav-icon">
-          <Icon name={item.icon} />
-        </span>
-
-        <span>{item.label}</span>
-
-        {item.label === "Challenges" && (
-          <span className="nav-count">3</span>
-        )}
-      </Link>
-    ))}
-  </nav>
-
-
-      <div className="sidebar-bottom">
-        <div className="sidebar-tip">
-          <div className="tip-icon">
-            <Icon name="leaf" />
-          </div>
-
-          <div>
-            <strong>Keep it green</strong>
-            <p>Small actions make a difference.</p>
-          </div>
-        </div>
-
-        <div className="sidebar-profile">
-          <div className="profile-avatar">MS</div>
-
-          <div className="profile-text">
-            <strong>Manpreet Sodhi</strong>
-            <span>Eco Explorer</span>
-          </div>
-
-          <button
-            type="button"
-            className="profile-more"
-            aria-label="Open profile menu"
-          >
-            <Icon name="more" />
-          </button>
-        </div>
-      </div>
-    </aside>
-  );
+  
+          <nav className="sidebar-menu">
+            <Link to="/home" className="menu-item">
+              <HomeIcon size={16} />
+              <span>Home</span>
+            </Link>
+  
+            <Link to="/carbon-footprint-tracker" className="menu-item">
+              <Leaf size={16} />
+              <span>Carbon Tracker</span>
+            </Link>
+  
+            <Link to="/goals" className="menu-item ">
+              <Target size={16} />
+              <span>Goals</span>
+            </Link>
+  
+            <a href="#" className="menu-item">
+              <ShieldCheck size={16} />
+              <span>Challenges</span>
+            </a>
+  
+            <a href="/dashboard" className="menu-item active">
+              <LayoutDashboard size={16} />
+              <span>Dashboard</span>
+            </a>
+  
+            <a href="#" className="menu-item">
+              <FileText size={16} />
+              <span>Reports</span>
+            </a>
+  
+            <Link to="/profile" className="menu-item">
+              <User size={16} />
+              <span>Profile</span>
+            </Link>
+          </nav>
+        </aside>
+  
+);
 }
 
 /* =========================================
@@ -298,7 +307,9 @@ function DashboardHeader({
   onNotification,
   notificationsOpen,
   onPrimaryAction,
+  loggeduser
 }) {
+  
   return (
     <header className="dashboard-header">
       <div className="header-copy">
@@ -307,7 +318,7 @@ function DashboardHeader({
         </div>
 
         <h1>
-          Welcome back, <span>Manpreet</span>
+          Dashboard <span></span>
           <span className="header-wave"> 👋</span>
         </h1>
 
@@ -348,9 +359,9 @@ function DashboardHeader({
           className="user-menu"
           aria-label="Open user menu"
         >
-          <span className="user-avatar">MS</span>
-          <span className="user-menu-name">Manpreet</span>
-          <span className="user-chevron">⌄</span>
+          <span className="user-avatar">{loggeduser.substring(0,2).toUpperCase()}</span>
+          <p className="user-menu-name">{loggeduser}</p>
+          <span className="user-chevron"><ChevronDown size={16} /></span>
         </button>
 
         <button
@@ -373,7 +384,7 @@ function DashboardHeader({
 function CarbonFootprintCard() {
   return (
     <section className="dashboard-card carbon-card">
-      <CardHeader
+     <CardHeader
         kicker="YOUR CARBON FOOTPRINT"
         title="Carbon Overview"
         subtitle="Sustainability tracking system"
@@ -422,7 +433,7 @@ function CarbonFootprintCard() {
           <strong>4.8 tons CO₂e</strong>
         </div>
 
-        <span className="summary-arrow">↗</span>
+        <span className="summary-arrow"><Icon name="arrow" /></span>
       </div>
     </section>
   );
@@ -495,7 +506,7 @@ function RecommendationsCard() {
                 <span>{recommendation.subtitle}</span>
               </div>
 
-              <span className="recommendation-arrow">↗</span>
+              <span className="recommendation-arrow"><Icon name="arrow" /></span>
             </div>
           ))}
       </div>
@@ -675,7 +686,21 @@ export default function Dashboard() {
     useState(false);
   const [showActivityModal, setShowActivityModal] =
     useState(false);
+    const [loggeduser, setLoggeduser] = useState(null);
 
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser && storedUser !== "undefined") {
+      try {
+        setLoggeduser(JSON.parse(storedUser));
+        console.log(loggeduser.fullName)
+      } catch (err) {
+        console.error("User JSON parse error:", err);
+      }
+    }
+  }, []);
+
+    
   const handlePageChange = (page) => {
     setActivePage(page);
   };
@@ -693,6 +718,7 @@ export default function Dashboard() {
 
       <main className="dashboard-main">
         <DashboardHeader
+        loggeduser={loggeduser?.fullName || loggeduser?.name || "User"}
           onNotification={() =>
             setNotificationsOpen((current) => !current)
           }
@@ -756,7 +782,7 @@ export default function Dashboard() {
                 onClick={() => setShowActivityModal(false)}
                 aria-label="Close activity form"
               >
-                ×
+                <X size={18} />
               </button>
             </div>
 
