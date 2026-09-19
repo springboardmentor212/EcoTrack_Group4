@@ -205,7 +205,7 @@ function CarbonFootPrintTracker() {
             <span>Challenges</span>
           </Link>
 
-          <a href="#" className="menu-item">
+          <a href="/dashboard" className="menu-item">
             <LayoutDashboard size={16} />
             <span>Dashboard</span>
           </a>

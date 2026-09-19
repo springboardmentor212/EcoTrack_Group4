@@ -138,7 +138,7 @@ export default function GoalsPage() {
             <span>Challenges</span>
           </a>
 
-          <a href="#" className="menu-item">
+          <a href="/dashboard" className="menu-item">
             <LayoutDashboard size={16} />
             <span>Dashboard</span>
           </a>

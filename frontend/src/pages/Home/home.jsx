@@ -84,10 +84,12 @@ function Home() {
               <span>Challenges</span>
             </Link>
 
-            <a href="#" className="menu-item">
-              <LayoutDashboard size={16} />
-              <span>Dashboard</span>
-            </a>
+            <Link to="/dashboard" className="menu-item">
+                 <LayoutDashboard size={16} />
+                  <span>Dashboard</span>
+            </Link>
+
+           
 
             <a href="#" className="menu-item">
               <FileText size={16} />
