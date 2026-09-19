@@ -123,11 +123,62 @@ function CarbonFootPrintTracker() {
   const handleCategoryChange = (category) => {
     setActiveCategory(category);
   };
-  const handleLogActivity = () => {
-    alert(
-      `${activeCategory} activity logged successfully.\nEstimated emission: ${formattedEmission} kg CO₂e`
+  const handleLogActivity = async () => {
+  try {
+    const token = localStorage.getItem("token");
+
+    let activityType = "";
+    let value = 0;
+
+    if (activeCategory === "Transport") {
+      activityType = transportType;
+      value = Number(distance);
+    } else if (activeCategory === "Energy") {
+      activityType = "Electricity";
+      value = Number(electricity);
+    } else if (activeCategory === "Food") {
+      activityType = foodType;
+      value = Number(meals);
+    } else if (activeCategory === "Waste") {
+      activityType = wasteType;
+      value = Number(wasteAmount);
+    } else if (activeCategory === "Water Usage") {
+      activityType = "Water Consumption";
+      value = Number(waterAmount);
+    }
+
+    const response = await fetch(
+      "http://localhost:5000/api/tracker/log",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          category: activeCategory,
+          activityType,
+          value,
+          passengers: Number(passengers) || 1,
+          activityDate: new Date(),
+        }),
+      }
     );
-  };
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to log activity");
+    }
+
+    alert(
+      `${activeCategory} activity logged successfully.\nEstimated emission: ${data.activity.carbonOutput} kg CO₂e`
+    );
+  } catch (error) {
+    console.error("Error logging activity:", error);
+    alert("Failed to log activity.");
+  }
+};
   return (
     <div className="carbon-tracker-app">
       {/* ================= SIDEBAR ================= */}
@@ -149,10 +200,10 @@ function CarbonFootPrintTracker() {
             <Target size={16} />
             <span>Goals</span>
           </Link>
-          <a href="#" className="menu-item">
+          <Link to="/challenges" className="menu-item">
             <ShieldCheck size={16} />
             <span>Challenges</span>
-          </a>
+          </Link>
 
           <a href="#" className="menu-item">
             <LayoutDashboard size={16} />

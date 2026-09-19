@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Globe,
@@ -17,6 +17,42 @@ import treeImage from "../../assets/tree.jpeg";
 import "./home.css";
 
 function Home() {
+  const [summary, setSummary] = useState({
+    today: 0,
+    thisMonth: 0,
+    total: 0,
+    categoryTotals: [],
+  });
+
+  useEffect(() => {
+    const fetchSummary = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+
+        const response = await fetch(
+          "http://localhost:5000/api/tracker/summary",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to fetch summary");
+        }
+
+        setSummary(data);
+      } catch (error) {
+        console.error("Error fetching summary:", error);
+      }
+    };
+
+    fetchSummary();
+  }, []);
   return (
     <div className="home-page">
       <div className="home-layout">
@@ -43,10 +79,10 @@ function Home() {
               <span>Goals</span>
             </Link>
 
-            <a href="#" className="menu-item">
+            <Link to="/challenges" className="menu-item">
               <ShieldCheck size={16} />
               <span>Challenges</span>
-            </a>
+            </Link>
 
             <a href="#" className="menu-item">
               <LayoutDashboard size={16} />
@@ -111,12 +147,14 @@ function Home() {
               </div>
 
               <div className="stat-card">
-                <span>TODAY'S SAVINGS</span>
+                <span>TODAY'S EMISSIONS</span>
+
                 <div>
-                  <strong>4.2</strong>
-                  <small>kg CO₂</small>
+                  <strong>{summary.today}</strong>
+                  <small>kg CO₂e</small>
                 </div>
               </div>
+
             </section>
 
             {/* ================= INFORMATION CARD ================= */}
@@ -127,7 +165,7 @@ function Home() {
                   src={treeImage}
                   alt="Realistic tree"
                   className="tree-image"
-                />"
+                />
 
                 <div className="image-info">
                   <Info size={13} />

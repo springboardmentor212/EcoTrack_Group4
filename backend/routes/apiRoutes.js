@@ -9,7 +9,7 @@ const dashboardController = require("../controllers/dashboardController");
 // Tracker Routes
 router.post("/tracker/log", authMiddleware, trackerController.logActivity);
 router.get("/tracker/history", authMiddleware, trackerController.getHistoricalActivities);
-
+router.get("/tracker/summary",  authMiddleware,trackerController.getSummary);
 // Goals Routes
 router.post("/goals/create", authMiddleware, goalController.createGoal);
 router.get("/goals", authMiddleware, goalController.getGoals);
