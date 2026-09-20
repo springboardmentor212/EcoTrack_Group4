@@ -29,7 +29,6 @@ function Home() {
       try {
         const token = localStorage.getItem("token");
 
-
         const response = await fetch(
           "http://localhost:5000/api/tracker/summary",
           {
@@ -53,6 +52,7 @@ function Home() {
 
     fetchSummary();
   }, []);
+
   return (
     <div className="home-page">
       <div className="home-layout">
@@ -84,15 +84,15 @@ function Home() {
               <span>Challenges</span>
             </Link>
 
-            <a href="#" className="menu-item">
+            <Link to="/dashboard" className="menu-item">
               <LayoutDashboard size={16} />
               <span>Dashboard</span>
-            </a>
+            </Link>
 
-            <a href="#" className="menu-item">
+            <Link to="/reports" className="menu-item">
               <FileText size={16} />
               <span>Reports</span>
-            </a>
+            </Link>
 
             <Link to="/profile" className="menu-item">
               <User size={16} />
@@ -148,18 +148,15 @@ function Home() {
 
               <div className="stat-card">
                 <span>TODAY'S EMISSIONS</span>
-
                 <div>
                   <strong>{summary.today}</strong>
                   <small>kg CO₂e</small>
                 </div>
               </div>
-
             </section>
 
             {/* ================= INFORMATION CARD ================= */}
             <section className="info-card">
-              {/* REALISTIC TREE IMAGE */}
               <div className="tree-box">
                 <img
                   src={treeImage}
@@ -172,7 +169,6 @@ function Home() {
                 </div>
               </div>
 
-              {/* INFORMATION CONTENT */}
               <div className="info-content">
                 <h2>What is a carbon footprint?</h2>
                 <p>
@@ -182,13 +178,12 @@ function Home() {
                   The average US footprint is 16 tons, while global average is 4 tons. To avoid a 2°C temperature rise, we must lower the global average to <strong>under 2 tons per year by 2050</strong>.
                 </p>
 
-                {/* ================= CALCULATION BOX (INSIDE SAME CARD) ================= */}
                 <div className="calculate-box">
                   <h3>How We Calculate Your Impact</h3>
                   <p>
                     Curious about how your carbon footprint is calculated? We use standardized formulas based on your daily activities, energy usage, and travel habits.
                   </p>
-                  <Link to="/carbon-footprint" className="learn-more">
+                  <Link to="/carbon-footprint-tracker" className="learn-more">
                     Learn More →
                   </Link>
                 </div>
@@ -223,7 +218,6 @@ function Home() {
                   <span>Help & Support</span>
                 </div>
 
-                {/* ================= MILESTONE ================= */}
                 <div className="milestone">
                   <h4>COMMUNITY MILESTONE</h4>
                   <strong>
@@ -236,7 +230,6 @@ function Home() {
                 </div>
               </div>
 
-              {/* ================= FOOTER BOTTOM ================= */}
               <div className="footer-bottom-bar">
                 <small className="copyright">
                   © 2026 EcoTrack. All rights reserved.

@@ -1,177 +1,145 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import axios from "axios";
-import { useGoogleLogin } from "@react-oauth/google";
-import background from "../../../assets/bg-image.jpeg";
-import "./login.css";
+import { useNavigate } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
 
 const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-
   const navigate = useNavigate();
-
-  // 1. Standard Email/Password Sign In
-  const handleSignIn = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage("");
-
-    try {
-      const response = await axios.post("http://localhost:5000/api/auth/login", {
-        email,
-        password,
-      });
-
-      
-      localStorage.removeItem("user");
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
-
-      navigate("/profile");
-    } catch (error) {
-      console.error("Login Error:", error);
-       if (error.response && error.response.data && error.response.data.message) {
-      setMessage(error.response.data.message);
-    } else {
-      setMessage("Login failed. Check your credentials or internet connection.");
-    }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 2. Google OAuth Sign In
-  const handleGoogleSuccess = async (tokenResponse) => {
-    setLoading(true);
-    try {
-      // FIXED ROUTE ENDPOINT HERE (/google-login)
-      const res = await axios.post("http://localhost:5000/api/auth/google-login", {
-        access_token: tokenResponse.access_token,
-      });
-
-      localStorage.removeItem("user");
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
-
-      navigate("/profile");
-    } catch (err) {
-      console.error("Google Auth Error:", err);
-      setMessage("Google authentication failed.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loginWithGoogle = useGoogleLogin({
-    onSuccess: handleGoogleSuccess,
-    onError: () => setMessage("Google Sign-In failed"),
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
   });
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // 1. Standard Email & Password Login
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMessage("");
+
+    try {
+      const res = await axios.post("http://localhost:5000/api/auth/login", formData);
+
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
+        alert("Login Successful!");
+        
+        // Direct Redirection to Home Page
+        navigate("/home");
+      }
+    } catch (err) {
+      console.error("Login Error:", err);
+      setErrorMessage(
+        err.response?.data?.message || "Invalid Email or Password!"
+      );
+    }
+  };
+
+  // 2. Google OAuth Login Success Handler
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const token = credentialResponse.credential;
+      
+      // Store Google ID token in localStorage
+      localStorage.setItem("token", token);
+
+      // Backend optional verification endpoint call
+      try {
+        await axios.post("http://localhost:5000/api/auth/google", { token });
+      } catch (backendErr) {
+        console.warn("Backend auth route skipped/missing, proceeding with token");
+      }
+
+      alert("Google Sign-In Successful!");
+      
+      // Direct Redirection to Home Page
+      navigate("/home");
+    } catch (error) {
+      console.error("Google Auth Error:", error);
+      setErrorMessage("Google Authentication Failed!");
+    }
+  };
+
+  // 3. Google OAuth Login Failure Handler
+  const handleGoogleError = () => {
+    console.error("Google Sign-In Failed");
+    setErrorMessage("Google Sign-In was unsuccessful. Try again.");
+  };
 
   return (
-    <div
-      className="auth-container"
-      style={{ backgroundImage: `url(${background})` }}
-    >
-      <div className="auth-card">
-        <div className="brand-logo">
-          <svg className="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z" />
-            <path d="M2 12h20" />
-          </svg>
-          <span className="brand-name">EcoTrack</span>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4 font-sans">
+      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+        <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">
+          Welcome to EcoTrack
+        </h2>
+        <p className="text-sm text-center text-gray-500 mb-6">
+          Sign in to continue to your dashboard
+        </p>
 
-        <h2 className="auth-title">Welcome Back</h2>
-        <p className="auth-subtitle">Sign in to continue to EcoTrack</p>
-
-        <form onSubmit={handleSignIn} className="auth-form">
-          <div className="form-group">
-            <label>Email</label>
-            <div className="input-wrapper">
-              <Mail className="field-icon" size={16} />
-              <input
-                type="email"
-                placeholder="Email Address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
+        {errorMessage && (
+          <div className="bg-red-50 text-red-600 text-xs p-3 rounded-lg mb-4 text-center border border-red-200">
+            {errorMessage}
           </div>
+        )}
 
-          <div className="form-group">
-            <label>Password</label>
-            <div className="input-wrapper">
-              <Lock className="field-icon" size={16} />
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              <button
-                type="button"
-                className="eye-toggle"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-          </div>
-
-          <div className="form-options">
-            <label className="remember-checkbox">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={() => setRememberMe(!rememberMe)}
-              />
-              <span>Remember me</span>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">
+              Email Address
             </label>
-
-            <Link to="/forgot-password" className="forgot-link">
-              Forgot Password?
-            </Link>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="name@example.com"
+              required
+              className="w-full p-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600"
+            />
           </div>
 
-          <button type="submit" className="primary-btn" disabled={loading}>
-            {loading ? "Signing in..." : "Sign In"}
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">
+              Password
+            </label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="••••••••"
+              required
+              className="w-full p-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-sm rounded-lg transition-colors shadow-sm"
+          >
+            Sign In
           </button>
         </form>
 
-        {message && <p className="status-msg">{message}</p>}
-
-        <div className="or-divider">
-          <span>OR</span>
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200"></div>
+          </div>
+          <div className="relative flex justify-center text-xs">
+            <span className="bg-white px-2 text-gray-400">Or continue with</span>
+          </div>
         </div>
 
-        <div className="social-group">
-          <button
-            type="button"
-            className="social-btn"
-            onClick={() => loginWithGoogle()}
-          >
-            <svg viewBox="0 0 24 24" width="18" height="18">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-            </svg>
-            <span>Sign in with Google</span>
-          </button>
+        {/* Google OAuth Login Button */}
+        <div className="flex justify-center">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+          />
         </div>
-
-        <p className="bottom-link">
-          Don't have an account? <Link to="/register">Register here</Link>
-        </p>
       </div>
     </div>
   );

@@ -1,354 +1,447 @@
-* {
+.profile-app {
+  --p-bg-main: #f8fafc;
+  --p-bg-white: #ffffff;
+  --p-border: #e2e8f0;
+  --p-text-dark: #0f172a;
+  --p-text-muted: #64748b;
+  --p-green-600: #16a34a;
+  --p-green-700: #15803d;
+  --p-green-800: #166534;
+  --p-green-50: #f0fdf4;
+
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: 100vh;
+  background: var(--p-bg-main);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--p-text-dark);
+}
+
+.profile-app * {
   box-sizing: border-box;
 }
 
-.profile-page {
+/* Sidebar Navigation */
+.profile-app .sidebar {
+  background: var(--p-bg-white);
+  border-right: 1px solid var(--p-border);
+  padding: 24px 16px;
   display: flex;
-  min-height: 100vh;
-  font-family: Arial, sans-serif;
-  background: #f4f6f5;
-  color: #1f2937;
+  flex-direction: column;
+  gap: 28px;
 }
 
-/* ================= SIDEBAR ================= */
-
-.sidebar {
-  width: 220px;
-  background: #ffffff;
-  border-right: 1px solid #e5e7eb;
-  padding: 20px 16px;
-  flex-shrink: 0;
-}
-
-.sidebar .logo {
+.profile-app .sidebar-brand {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-
-  background: #dceee5;
-  color: #0f4d38;
-
-  padding: 10px 14px;
-  border-radius: 10px;
-
-  font-family: Georgia, serif;
-  font-size: 16px;
+  gap: 10px;
   font-weight: 700;
-
-  margin-bottom: 28px;
+  font-size: 18px;
+  color: var(--p-green-700);
+  padding-left: 8px;
 }
 
-.sidebar-nav {
+.profile-app .sidebar-menu {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.sidebar-nav a {
+.profile-app .menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--p-text-muted);
   text-decoration: none;
-  font-size: 13px;
   font-weight: 500;
-  color: #59616b;
-  transition: 0.2s;
+  transition: all 0.15s ease;
 }
 
-.sidebar-nav a:hover {
-  background: #f3f5f4;
+.profile-app .menu-item:hover {
+  background: #f1f5f9;
+  color: var(--p-text-dark);
 }
 
-.sidebar-nav a.active {
-  background: #dceee5;
-  color: #0f4d38;
-  font-weight: 700;
+.profile-app .menu-item.active {
+  background: var(--p-green-50);
+  color: var(--p-green-700);
+  font-weight: 600;
 }
 
-/* ================= MAIN ================= */
-
-.profile-main {
-  flex: 1;
+/* Main Container */
+.profile-app .main-content {
   padding: 32px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.profile-header h1 {
+.profile-app .page-header h1 {
   margin: 0;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
-  color: #29313a;
 }
 
-.profile-header p {
-  margin: 6px 0 24px;
+.profile-app .page-header p {
+  margin: 4px 0 0;
   font-size: 13px;
-  color: #6b7280;
+  color: var(--p-text-muted);
 }
 
-/* ================= CARD BASE ================= */
-
-.card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 18px;
-  padding: 22px;
-  box-shadow: 0px 4px 14px rgba(0, 0, 0, 0.05);
+/* Figma 2-Column Main Grid Alignment */
+.profile-app .profile-figma-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
+  align-items: start;
 }
 
-/* ================= TWO COLUMN LAYOUT ================= */
-
-.content-columns {
-  display: flex;
-  gap: 20px;
-  align-items: flex-start;
-}
-
-.left-column {
-  width: 300px;
-  flex-shrink: 0;
+.profile-app .left-column,
+.profile-app .right-column {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
-.right-column {
-  flex: 1;
+/* Left: Profile Card */
+.profile-app .profile-card {
+  background: var(--p-bg-white);
+  border: 1px solid var(--p-border);
+  border-radius: 14px;
+  padding: 24px 20px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-}
-
-/* ================= PROFILE CARD ================= */
-
-.profile-card {
+  align-items: center;
   text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
 }
 
-.avatar {
-  width: 72px;
-  height: 72px;
-  margin: 0 auto 12px;
+.profile-app .avatar-wrapper {
+  margin-bottom: 12px;
+}
+
+.profile-app .avatar {
+  width: 76px;
+  height: 76px;
   border-radius: 50%;
-  background: #dceee5;
+  background: #e2e8f0;
+  color: #64748b;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 30px;
-  color: #0f4d38;
 }
 
-.profile-card h2 {
+.profile-app .user-name {
   margin: 0;
   font-size: 17px;
   font-weight: 700;
 }
 
-.profile-card .email {
-  margin: 4px 0 10px;
+.profile-app .user-email {
+  margin: 2px 0 10px;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--p-text-muted);
 }
 
-.badge {
-  display: inline-block;
-  background: #0f4d38;
-  color: #ffffff;
+.profile-app .user-badge {
+  background: var(--p-green-50);
+  color: var(--p-green-700);
   font-size: 10px;
   font-weight: 700;
   padding: 4px 10px;
-  border-radius: 12px;
-  margin-bottom: 16px;
+  border-radius: 999px;
+  margin-bottom: 20px;
 }
 
-.info-list {
-  text-align: left;
-  border-top: 1px solid #eef0ef;
-  padding-top: 14px;
-  margin-bottom: 16px;
+.profile-app .info-details {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 1px dashed var(--p-border);
+  padding-top: 16px;
+  margin-bottom: 20px;
 }
 
-.info-row {
+.profile-app .info-row {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  margin-bottom: 10px;
-  color: #6b7280;
 }
 
-.info-row strong {
-  color: #29313a;
+.profile-app .info-row span {
+  color: var(--p-text-muted);
 }
 
-.edit-btn,
-.settings-btn {
-  width: 100%;
-  height: 40px;
-  border: none;
-  border-radius: 20px;
-  background: #f3f5f4;
-  color: #29313a;
-  font-size: 12px;
+.profile-app .info-row strong {
+  color: var(--p-text-dark);
   font-weight: 600;
-  cursor: pointer;
-  transition: 0.2s;
 }
 
-.settings-btn {
-  background: #0f4d38;
-  color: #ffffff;
-  margin-top: 12px;
-  box-shadow: 0px 4px 9px rgba(15, 77, 56, 0.28);
+/* Settings Card Below Profile Card */
+.profile-app .settings-card {
+  background: var(--p-bg-white);
+  border: 1px solid var(--p-border);
+  border-radius: 14px;
+  padding: 20px;
 }
 
-.edit-btn:hover {
-  background: #e9ebea;
-}
-
-.settings-btn:hover {
-  background: #0b3c2a;
-}
-
-.settings-card h4 {
+.profile-app .settings-card h4 {
   margin: 0 0 6px;
   font-size: 14px;
   font-weight: 700;
 }
 
-.settings-card p {
+.profile-app .settings-card p {
+  margin: 0 0 16px;
   font-size: 12px;
-  color: #6b7280;
-  margin-bottom: 16px;
+  color: var(--p-text-muted);
+  line-height: 1.4;
 }
 
-/* ================= STATS ================= */
-
-.stats-row {
-  display: flex;
-  gap: 20px;
+/* Right Side: Metrics Grid Row */
+.profile-app .metrics-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
 }
 
-.stat-card {
-  flex: 1;
-  text-align: left;
+.profile-app .metric-card {
+  background: var(--p-bg-white);
+  border: 1px solid var(--p-border);
+  border-radius: 14px;
+  padding: 18px 20px;
 }
 
-.stat-label {
+.profile-app .metric-label {
+  margin: 0 0 6px;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--p-text-muted);
 }
 
-.stat-card h3 {
-  margin: 6px 0 4px;
-  font-size: 24px;
+.profile-app .metric-value {
+  margin: 0;
+  font-size: 22px;
   font-weight: 700;
-  color: #0f4d38;
 }
 
-.stat-sub {
+.profile-app .metric-sub {
   font-size: 11px;
-  color: #8a9399;
+  font-weight: 500;
+  display: inline-block;
+  margin-top: 4px;
 }
 
-/* ================= ACHIEVEMENTS ================= */
+.profile-app .text-green { color: var(--p-green-600); }
+.profile-app .text-gray { color: var(--p-text-muted); }
 
-.achievements-card h4 {
-  margin: 0 0 6px;
-  font-size: 14px;
+/* Right Side: Achievements & Activities Panels */
+.profile-app .panel-card {
+  background: var(--p-bg-white);
+  border: 1px solid var(--p-border);
+  border-radius: 14px;
+  padding: 22px;
+}
+
+.profile-app .panel-card h3 {
+  margin: 0 0 18px;
+  font-size: 15px;
   font-weight: 700;
 }
 
-.achievements-list {
-  list-style: none;
-  padding: 0;
-  margin: 12px 0 0;
-}
-
-.achievements-list li {
+.profile-app .item-list {
   display: flex;
-  gap: 10px;
-  margin-bottom: 14px;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.achievements-list li:last-child {
-  margin-bottom: 0;
+.profile-app .achievement-item,
+.profile-app .activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  justify-content: space-between;
 }
 
-.achievements-list strong {
-  font-size: 13px;
+.profile-app .achievement-item {
+  justify-content: flex-start;
 }
 
-.achievements-list p {
-  margin: 2px 0 0;
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.check {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
+.profile-app .icon-box {
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  background: #0f4d38;
-  color: #ffffff;
-  font-size: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
-.check.pending {
-  background: #e5e7eb;
-  color: #9ca3af;
+.profile-app .icon-box.green {
+  background: var(--p-green-50);
+  color: var(--p-green-600);
 }
 
-/* ================= ACTIVITY ================= */
-
-.activity-card h4 {
-  margin: 0 0 6px;
-  font-size: 14px;
-  font-weight: 700;
+.profile-app .icon-box.gray {
+  background: #f1f5f9;
+  color: var(--p-text-muted);
 }
 
-.activity-row {
+.profile-app .item-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.profile-app .item-sub {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--p-text-muted);
+}
+
+.profile-app .tag-saved {
+  background: #f1f5f9;
+  color: var(--p-text-dark);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* Action Buttons */
+.profile-app .btn-primary,
+.profile-app .btn-secondary,
+.profile-app .btn-logout,
+.profile-app .btn-settings {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: 0.15s;
+  border: none;
+}
+
+.profile-app .btn-primary {
+  background: var(--p-green-700);
+  color: #fff;
+}
+
+.profile-app .btn-primary:hover {
+  background: var(--p-green-800);
+}
+
+.profile-app .btn-secondary {
+  background: #f1f5f9;
+  color: var(--p-text-dark);
+}
+
+.profile-app .btn-secondary:hover {
+  background: #e2e8f0;
+}
+
+.profile-app .btn-logout {
+  background: #fee2e2;
+  color: #dc2626;
+  margin-top: 10px;
+}
+
+.profile-app .btn-logout:hover {
+  background: #fca5a5;
+}
+
+.profile-app .btn-settings {
+  background: var(--p-green-700);
+  color: #fff;
+}
+
+.profile-app .btn-settings:hover {
+  background: var(--p-green-800);
+}
+
+/* Edit Modal */
+.profile-app .modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.profile-app .modal-content {
+  background: #fff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 400px;
+  padding: 24px;
+}
+
+.profile-app .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid #eef0ef;
+  margin-bottom: 18px;
 }
 
-.activity-row:last-child {
-  border-bottom: none;
+.profile-app .modal-header h3 {
+  margin: 0;
+  font-size: 16px;
 }
 
-.activity-row strong {
+.profile-app .modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--p-text-muted);
+}
+
+.profile-app .modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.profile-app .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profile-app .form-group label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.profile-app .form-group input {
+  padding: 10px 12px;
+  border: 1px solid var(--p-border);
+  border-radius: 8px;
   font-size: 13px;
 }
 
-.activity-row p {
-  margin: 2px 0 0;
-  font-size: 11px;
-  color: #8a9399;
+.profile-app .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
 }
 
-.activity-value {
-  font-size: 13px;
-  font-weight: 700;
-  color: #0f4d38;
-}
-
-/* ================= RESPONSIVE ================= */
-
-@media (max-width: 900px) {
-  .content-columns {
-    flex-direction: column;
-  }
-
-  .left-column {
-    width: 100%;
-  }
-
-  .stats-row {
-    flex-direction: column;
-  }
+.profile-app .btn-cancel {
+  background: #f1f5f9;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
 }

@@ -3,9 +3,8 @@ const mongoose = require("mongoose");
 const goalSchema = new mongoose.Schema(
   {
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
+      type: String,
+      default: "guest",
     },
     title: {
       type: String,
@@ -13,28 +12,27 @@ const goalSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      required: true,
+      default: "General",
     },
     targetValue: {
       type: Number,
-      required: true,
+      default: 0,
+    },
+    targetUnit: {
+      type: String,
+      default: "kg CO2e / mo",
     },
     currentProgress: {
       type: Number,
       default: 0,
     },
-    unit: {
-      type: String,
-      default: "kg CO2e / mo",
-    },
     targetCompletionDate: {
-      type: Date,
-      required: true,
-    },
-    status: {
       type: String,
-      enum: ["in progress", "completed"],
-      default: "in progress",
+      default: "",
+    },
+    isCompleted: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

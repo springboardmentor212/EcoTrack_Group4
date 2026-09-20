@@ -1,6 +1,4 @@
-
 .goals-app {
-  /* --goal-bg-page: linear gradient(to right, rgb(84, 207, 84), rgb(215, 222, 207)); */
   --goal-bg-white: #ffffff;
   --goal-border-light: #eef0f2;
   --goal-border-input: #e2e5e9;
@@ -35,10 +33,11 @@
   display: grid;
   grid-template-columns: 224px 1fr;
   min-height: 100vh;
-  background: linear-gradient(to right, rgb(184, 211, 184),rgb(241, 247, 238));
+  background: linear-gradient(to right, rgb(184, 211, 184), rgb(241, 247, 238));
   font-family: var(--goal-font);
   color: var(--goal-text-primary);
 }
+
 .goals-app,
 .goals-app *,
 .goals-app *::before,
@@ -64,7 +63,6 @@
 }
 
 .goals-app .sidebar-brand svg {
-  /* color: var(--goal-green-600); */
   color: #059669;
 }
 
@@ -112,7 +110,7 @@
   color: var(--goal-green-700);
 }
 
-/* ---------- Main content: header row / stats row / body row ---------- */
+/* ---------- Main Content ---------- */
 .goals-app .main-content {
   display: grid;
   grid-template-rows: auto auto 1fr;
@@ -181,7 +179,7 @@
   justify-content: center;
 }
 
-/* ---------- Stat cards row ---------- */
+/* ---------- Stat Cards Row ---------- */
 .goals-app .stat-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -235,12 +233,12 @@
 .goals-app .stat-icon.bg-orange { background: var(--goal-orange-50); color: var(--goal-orange-500); }
 .goals-app .stat-icon.bg-blue { background: var(--goal-blue-50); color: var(--goal-blue-600); }
 
-/* ---------- Body: form column + progress column, divided vertically ---------- */
+/* ---------- Body Grid ---------- */
 .goals-app .content-grid {
   display: grid;
   grid-template-columns: 380px 1fr;
   gap: 20px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .goals-app .panel {
@@ -248,6 +246,8 @@
   border: 1px solid var(--goal-border-light);
   border-radius: var(--goal-radius-lg);
   padding: 20px;
+  display:flex;
+  flex-direction: column;
 }
 
 .goals-app .panel h2 {
@@ -339,13 +339,19 @@
   cursor: not-allowed;
 }
 
-/* ---------- AI recommendation callout ---------- */
+/* ---------- AI Recommendation Callout ---------- */
 .goals-app .ai-callout {
   background: var(--goal-green-50);
   border-radius: var(--goal-radius-md);
   padding: 14px;
   display: grid;
-  gap: 6px;
+  gap: 8px;
+}
+
+.goals-app .ai-callout-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .goals-app .ai-callout-title {
@@ -355,6 +361,23 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--goal-green-700);
+}
+
+.goals-app .ai-refresh-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--goal-green-700);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.15s ease, opacity 0.2s ease;
+}
+
+.goals-app .ai-refresh-btn:hover {
+  background: rgba(31, 107, 64, 0.1);
 }
 
 .goals-app .ai-callout p {
@@ -379,12 +402,57 @@
   text-decoration: underline;
 }
 
-/* ---------- Active goal progress list ---------- */
-.goals-app .goal-list {
-  display: grid;
-  gap: 12px;
+/* Spinning Animation for Refresh Icon */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
+.goals-app .spin-animation {
+  animation: spin 1s linear infinite;
+}
+
+/* ---------- Active Goal List ---------- */
+.goals-app .goal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  height: 0;
+  max-height: 520px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 6px;
+
+  /* Firefox scrollbar support */
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f3f5;
+}
+
+/* Custom Webkit Scrollbar */
+.goals-app .goal-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.goals-app .goal-list::-webkit-scrollbar-track {
+  background: #f1f3f5;
+  border-radius: 6px;
+}
+
+.goals-app .goal-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+}
+
+.goals-app .goal-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Goal Item Cards */
 .goals-app .goal-item {
   border: 1px solid var(--goal-border-light);
   border-radius: var(--goal-radius-lg);
@@ -458,7 +526,7 @@
   color: var(--goal-text-muted);
 }
 
-/* Color utility classes shared across icons / bars / percent text */
+/* Color Utilities */
 .goals-app .text-green { color: var(--goal-green-600); }
 .goals-app .text-blue { color: var(--goal-blue-600); }
 .goals-app .text-amber { color: var(--goal-amber-500); }
@@ -473,18 +541,6 @@
 .goals-app .fill-blue { background: var(--goal-blue-600); }
 .goals-app .fill-amber { background: var(--goal-amber-400); }
 .goals-app .fill-teal { background: var(--goal-teal-600); }
-
-/* ---------- Loading / error states ---------- */
-.goals-app .state-message {
-  font-size: 13px;
-  color: var(--goal-text-muted);
-  padding: 24px 0;
-  text-align: center;
-}
-
-.goals-app .state-message.error {
-  color: #d93025;
-}
 
 /* ---------- Responsive ---------- */
 @media (max-width: 1024px) {

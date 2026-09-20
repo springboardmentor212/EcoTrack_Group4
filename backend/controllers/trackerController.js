@@ -1,172 +1,127 @@
-const Activity = require("../models/Activity");
-const mongoose = require("mongoose");
+const Tracker = require("../models/Tracker");
+const Goal = require("../models/Goal");
 
-const calculateEmission = (category, type, value, passengers = 1) => {
-  let factor = 0.192;
-  if (category === "Transport") factor = 0.192;
-  if (category === "Energy") factor = 0.385;
-  if (category === "Food") factor = 0.5;
-  if (category === "Water Usage") factor = 0.003;
-  if (category === "Waste") factor = 0.2;
-
-  return parseFloat(((value * factor) / passengers).toFixed(2));
+// Helper function to extract userId standardly
+const getUserId = (req) => {
+  return String(req.user?.id || req.user?._id || req.userId || req.user?.email || "guest");
 };
 
+// Map tracker categories to Goal categories safely
+const mapCategoryToGoal = (cat) => {
+  if (!cat) return "General";
+  const lower = String(cat).toLowerCase();
+  if (lower.includes("transport") || lower.includes("bus") || lower.includes("car")) return "Green Transportation";
+  if (lower.includes("energy") || lower.includes("electric") || lower.includes("lpg")) return "Energy Usage";
+  if (lower.includes("waste") || lower.includes("plastic")) return "Waste Reduction";
+  if (lower.includes("food") || lower.includes("meal")) return "Food Habit";
+  if (lower.includes("water")) return "Carbon Offset";
+  return cat;
+};
+
+// 1. Log Activity & Auto-Update Goal Progress Dynamic
 exports.logActivity = async (req, res) => {
   try {
-    const { category, activityType, value, passengers, activityDate } = req.body;
+    const { category, activityType, subType, value, carbonOutput, co2, activityDate, date } = req.body;
+    const currentUserId = getUserId(req);
 
-    const userId = req.user.id;
-    const carbonOutput = calculateEmission(
-      category,
-      activityType,
-      value,
-      passengers
+    const co2Value = Number(co2 !== undefined ? co2 : carbonOutput) || 0;
+    const usageValue = Number(value) || 0;
+    const cleanCategory = category || "General";
+    const mappedGoalCategory = mapCategoryToGoal(cleanCategory);
+
+    // Create & Save Log
+    const newLog = new Tracker({
+      userId: currentUserId,
+      category: cleanCategory,
+      subType: subType || activityType || "",
+      value: usageValue,
+      co2: co2Value,
+      date: date || activityDate || new Date().toISOString().split("T")[0],
+    });
+
+    await newLog.save();
+
+    // Flexible Category Goal Progress Update
+    await Goal.updateMany(
+      {
+        $or: [{ userId: currentUserId }, { userId: "guest" }],
+        $or: [
+          { category: cleanCategory },
+          { category: mappedGoalCategory },
+          { category: { $regex: cleanCategory, $options: "i" } },
+          { category: { $regex: mappedGoalCategory, $options: "i" } }
+        ]
+      },
+      { $inc: { currentProgress: co2Value } }
     );
 
-    const newActivity = await Activity.create({
-      userId,
-      category,
-      activityType,
-      value,
-      passengers: passengers || 1,
-      carbonOutput,
-      activityDate: activityDate || new Date(),
-    });
-
-
-    res.status(201).json({
-      message: "Activity logged successfully",
-      activity: newActivity,
-    });
-
+    return res.status(201).json({ message: "Activity logged and goals updated successfully", data: newLog });
   } catch (error) {
-
-    res.status(500).json({
-      message: "Error logging activity",
-      error: error.message,
-    });
+    console.error("Error in logActivity:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-exports.getHistoricalActivities = async (req, res) => {
+// 2. Get History (For Profile & Activity Logs)
+exports.getHistory = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const activities = await Activity.find({ userId }).sort({ activityDate: -1 }).limit(10);
+    const currentUserId = getUserId(req);
 
-    const categoryTotals = await Activity.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
-      { $group: { _id: "$category", totalOutput: { $sum: "$carbonOutput" } } },
-    ]);
+    // Fetch logs for current user OR guest
+    const history = await Tracker.find({
+      $or: [{ userId: currentUserId }, { userId: "guest" }]
+    }).sort({ createdAt: -1 }).lean();
 
-    res.json({ activities, categoryTotals });
+    const formattedHistory = (history || []).map((item) => ({
+      _id: item._id,
+      category: item.category,
+      activityType: item.subType || item.category,
+      value: item.value,
+      carbonOutput: item.co2,
+      activityDate: item.date || item.createdAt?.toISOString()?.split("T")[0],
+    }));
+
+    return res.status(200).json(formattedHistory);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching activities", error: error.message });
+    console.error("Error in getHistory:", error);
+    return res.status(200).json([]);
   }
 };
+
+// 3. Get Summary
 exports.getSummary = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const currentUserId = getUserId(req);
+    const history = await Tracker.find({
+      $or: [{ userId: currentUserId }, { userId: "guest" }]
+    }).lean();
 
+    let totalCarbon = 0;
+    const categoryBreakdown = {
+      Transport: 0,
+      Energy: 0,
+      Food: 0,
+      Waste: 0,
+      Water: 0,
+    };
 
-    const activities = await Activity.find({ userId });
-
-
-    const objectId = new mongoose.Types.ObjectId(userId);
-
-    // Today's emissions
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-
-    const todayEnd = new Date();
-    todayEnd.setHours(23, 59, 59, 999);
-
-    const todayResult = await Activity.aggregate([
-      {
-        $match: {
-          userId: objectId,
-          activityDate: {
-            $gte: todayStart,
-            $lte: todayEnd
-          }
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          total: { $sum: "$carbonOutput" }
-        }
+    (history || []).forEach((item) => {
+      const co2Val = Number(item.co2) || 0;
+      totalCarbon += co2Val;
+      if (categoryBreakdown[item.category] !== undefined) {
+        categoryBreakdown[item.category] += co2Val;
       }
-    ]);
-
-    // Current month's emissions
-    const monthStart = new Date(
-      new Date().getFullYear(),
-      new Date().getMonth(),
-      1
-    );
-
-    const monthResult = await Activity.aggregate([
-      {
-        $match: {
-          userId: objectId,
-          activityDate: {
-            $gte: monthStart,
-            $lte: todayEnd
-          }
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          total: { $sum: "$carbonOutput" }
-        }
-      }
-    ]);
-
-    // Total emissions
-    const totalResult = await Activity.aggregate([
-      {
-        $match: {
-          userId: objectId
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          total: { $sum: "$carbonOutput" }
-        }
-      }
-    ]);
-
-    // Category breakdown
-    const categoryTotals = await Activity.aggregate([
-      {
-        $match: {
-          userId: objectId
-        }
-      },
-      {
-        $group: {
-          _id: "$category",
-          total: { $sum: "$carbonOutput" }
-        }
-      }
-    ]);
-
-    res.json({
-      today: Number((todayResult[0]?.total || 0).toFixed(2)),
-      thisMonth: Number((monthResult[0]?.total || 0).toFixed(2)),
-      total: Number((totalResult[0]?.total || 0).toFixed(2)),
-      categoryTotals
     });
 
+    return res.status(200).json({
+      totalCarbon: totalCarbon.toFixed(1),
+      categoryBreakdown,
+    });
   } catch (error) {
-    console.error("Error fetching carbon summary:", error);
-
-    res.status(500).json({
-      message: "Error fetching carbon summary",
-      error: error.message
+    console.error("Error in getSummary:", error);
+    return res.status(200).json({
+      totalCarbon: "0.0",
+      categoryBreakdown: { Transport: 0, Energy: 0, Food: 0, Waste: 0, Water: 0 },
     });
   }
 };

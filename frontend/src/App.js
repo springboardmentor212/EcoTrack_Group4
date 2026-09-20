@@ -22,7 +22,10 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Project start aagumbozhudhu direct-a Login Page load aagum */}
         <Route path="/" element={<Navigate to="/login" replace />} />
+
+        {/* Standard Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -30,10 +33,8 @@ function App() {
         <Route path="/profile" element={<Profile />} />
 
         <Route path="/goals" element={<Goal />} />
-
         <Route path="/home" element={<Home />} />
         <Route path="/carbon-footprint" element={<CarbonFootprint />} />
-        
         <Route path="/carbon-footprint-tracker" element={<CarbonFootPrintTracker />} />
       </Routes>
     </Router>
