@@ -1,5 +1,31 @@
-body {
+/* =========================================
+   GLOBAL STYLES & RESET
+========================================= */
+* {
+  box-sizing: border-box;
   margin: 0;
+  padding: 0;
+}
+
+:root {
+  --primary-green: #10b981;
+  --dark-green: #065f46;
+  --bg-main: #f8fafc;
+  --card-bg: #ffffff;
+  --border-color: #e2e8f0;
+  
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+}
+
+body, html, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--bg-main);
+  color: var(--text-main);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
@@ -10,4 +36,89 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* =========================================
+   GLOBAL SIDEBAR FIX (ALL PAGES-KUM ORE MAADHIRI)
+========================================= */
+
+/* Main layout wrapper */
+.dashboard-shell, .app-shell, .page-layout, .goals-app, .carbon-tracker-app {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar height & structure fix */
+.sidebar {
+  width: 230px !important;
+  min-width: 230px !important;
+  height: 100vh !important;           /* Screen-oda full height-u fix aagum */
+  position: sticky !important;        /* Page scroll aanaalum sidebar same place-la irukkum */
+  top: 0 !important;
+  background: #ffffff !important;
+  border-right: 1px solid var(--border-color) !important;
+  padding-top: 24px !important;       /* Top padding standard-a irukkum */
+  padding-bottom: 24px !important;
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+  z-index: 50 !important;
+}
+
+/* EcoTrack Logo & Title Section (Gap Fix) */
+.sidebar-brand {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  color: #059669 !important;
+  font-weight: 700 !important;
+  font-size: 18px !important;
+  line-height: 1.2 !important;
+  
+  /* Intha margin-bottom thaan EcoTrack & Home gap-a ellam page-lum fix pannum */
+  margin-top: 0 !important;
+  margin-bottom: 24px !important;    /* Fixed exact gap between logo and Home */
+  padding-left: 8px !important;
+  height: 32px !important;            /* Fixed brand header height */
+  flex-shrink: 0 !important;
+}
+
+/* Menu Container */
+.sidebar-menu {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Base Menu Item (Exact same height and padding everywhere) */
+.menu-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  height: 42px !important;            /* Same item height for all pages */
+  padding: 0 14px !important;
+  border-radius: 8px !important;
+  color: #475569 !important;
+  text-decoration: none !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease-in-out !important;
+  box-sizing: border-box !important;
+}
+
+/* Uniform Hover State (Grey highlight) */
+.menu-item:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+/* Uniform Active State (Green highlight for current page) */
+.menu-item.active {
+  background-color: #d1fae5 !important;  /* Light Green */
+  color: #065f46 !important;            /* Dark Green Text */
+  font-weight: 600 !important;
 }

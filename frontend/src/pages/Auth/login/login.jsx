@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { GoogleLogin } from "@react-oauth/google";
+import { useNavigate, Link } from "react-router-dom";
+import { useGoogleLogin } from "@react-oauth/google";
+import { Eye, EyeOff } from "lucide-react";
+import "./login.css";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -10,12 +12,13 @@ const Login = () => {
     password: "",
   });
   const [errorMessage, setErrorMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // 1. Standard Email & Password Login
+  // Standard Login
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage("");
@@ -25,9 +28,14 @@ const Login = () => {
 
       if (res.data.token) {
         localStorage.setItem("token", res.data.token);
-        alert("Login Successful!");
         
-        // Direct Redirection to Home Page
+        if (res.data.user) {
+          localStorage.setItem("user", JSON.stringify(res.data.user));
+        } else {
+          localStorage.setItem("user", JSON.stringify({ email: formData.email }));
+        }
+
+        alert("Login Successful!");
         navigate("/home");
       }
     } catch (err) {
@@ -38,108 +46,141 @@ const Login = () => {
     }
   };
 
-  // 2. Google OAuth Login Success Handler
-  const handleGoogleSuccess = async (credentialResponse) => {
+  // Google OAuth Fixed Handler
+  const handleGoogleSuccess = async (tokenResponse) => {
     try {
-      const token = credentialResponse.credential;
-      
-      // Store Google ID token in localStorage
-      localStorage.setItem("token", token);
+      const accessToken = tokenResponse.access_token;
 
-      // Backend optional verification endpoint call
-      try {
-        await axios.post("http://localhost:5000/api/auth/google", { token });
-      } catch (backendErr) {
-        console.warn("Backend auth route skipped/missing, proceeding with token");
+      // 1. Send Google Access Token to Backend
+      const res = await axios.post("http://localhost:5000/api/auth/google", { 
+        access_token: accessToken 
+      });
+
+      if (res.data && res.data.token) {
+        // 2. Store Backend JWT Token & User Info
+        localStorage.setItem("token", res.data.token);
+        if (res.data.user) {
+          localStorage.setItem("user", JSON.stringify(res.data.user));
+        }
+
+        alert("Google Sign-In Successful!");
+        window.location.href = "/profile"; // Immediate refresh & sync to profile
       }
-
-      alert("Google Sign-In Successful!");
-      
-      // Direct Redirection to Home Page
-      navigate("/home");
     } catch (error) {
-      console.error("Google Auth Error:", error);
-      setErrorMessage("Google Authentication Failed!");
+      console.error("Google Auth Error:", error.response?.data || error);
+      setErrorMessage(
+        error.response?.data?.message || "Google Authentication Failed!"
+      );
     }
   };
 
-  // 3. Google OAuth Login Failure Handler
-  const handleGoogleError = () => {
-    console.error("Google Sign-In Failed");
-    setErrorMessage("Google Sign-In was unsuccessful. Try again.");
-  };
+  const loginWithGoogle = useGoogleLogin({
+    onSuccess: handleGoogleSuccess,
+    onError: () => setErrorMessage("Google Sign-In was unsuccessful. Try again."),
+  });
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4 font-sans">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">
-          Welcome to EcoTrack
-        </h2>
-        <p className="text-sm text-center text-gray-500 mb-6">
-          Sign in to continue to your dashboard
-        </p>
+    <div className="auth-container">
+      <div className="auth-card">
+        {/* Brand Header */}
+        <div className="brand-logo">
+          <svg className="logo-icon" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+          </svg>
+          <span className="brand-name">EcoTrack</span>
+        </div>
 
-        {errorMessage && (
-          <div className="bg-red-50 text-red-600 text-xs p-3 rounded-lg mb-4 text-center border border-red-200">
-            {errorMessage}
+        <h2 className="auth-title">Welcome Back</h2>
+        <p className="auth-subtitle">Sign in to continue to EcoTrack</p>
+
+        {errorMessage && <div className="status-msg">{errorMessage}</div>}
+
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-group">
+            <label>Email</label>
+            <div className="input-wrapper">
+              <span className="field-icon">
+                <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </span>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Email Address"
+                required
+              />
+            </div>
           </div>
-        )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">
-              Email Address
+          <div className="form-group">
+            <label>Password</label>
+            <div className="input-wrapper">
+              <span className="field-icon">
+                <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0110 0v4" />
+                </svg>
+              </span>
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Password"
+                required
+              />
+              <button
+                type="button"
+                className="eye-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#6b7280"
+                }}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </div>
+
+          <div className="form-options">
+            <label className="remember-checkbox">
+              <input type="checkbox" /> Remember me
             </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="name@example.com"
-              required
-              className="w-full p-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600"
-            />
+            <Link to="/forgot-password" className="forgot-link">
+              Forgot Password?
+            </Link>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="••••••••"
-              required
-              className="w-full p-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-sm rounded-lg transition-colors shadow-sm"
-          >
+          <button type="submit" className="primary-btn">
             Sign In
           </button>
         </form>
 
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-200"></div>
-          </div>
-          <div className="relative flex justify-center text-xs">
-            <span className="bg-white px-2 text-gray-400">Or continue with</span>
-          </div>
+        <div className="or-divider">
+          <span>OR</span>
         </div>
 
-        {/* Google OAuth Login Button */}
-        <div className="flex justify-center">
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={handleGoogleError}
-          />
+        {/* Custom Google Sign-In Button */}
+        <div className="social-group">
+          <button type="button" className="google-custom-btn" onClick={() => loginWithGoogle()}>
+            <span style={{ color: "#4285F4", fontWeight: "bold", fontSize: "15px" }}>G</span>
+            Sign in with Google
+          </button>
         </div>
+
+        <p className="bottom-link">
+          Don't have another account ? <Link to="/register">Register here</Link>
+        </p>
       </div>
     </div>
   );

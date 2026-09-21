@@ -3,8 +3,9 @@ const mongoose = require("mongoose");
 const trackerSchema = new mongoose.Schema(
   {
     userId: {
-      type: String,
+      type: mongoose.Schema.Types.Mixed, // String & ObjectId Both Accepted
       default: "guest",
+      index: true,
     },
     category: {
       type: String,

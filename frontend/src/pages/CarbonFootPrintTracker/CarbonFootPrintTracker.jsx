@@ -1,28 +1,39 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { Link, useLocation } from "react-router-dom";
 import axios from "axios";
+import {
+  Globe,
+  Home,
+  Leaf,
+  Target,
+  ShieldCheck,
+  LayoutDashboard,
+  FileText,
+  User,
+} from "lucide-react";
 import "./CarbonFootPrintTracker.css";
 
 const CATEGORY_OPTIONS = {
   Transport: [
-    { label: "Bus", factor: 0.1 },
-    { label: "Car (Petrol/Diesel)", factor: 0.21 },
+    { label: "Car (Petrol/Diesel)", factor: 0.192 },
+    { label: "Bus", factor: 0.089 },
     { label: "Bike / Scooter", factor: 0.05 },
-    { label: "Train", factor: 0.04 },
+    { label: "Electric Car", factor: 0.053 },
   ],
   Energy: [
     { label: "Electricity (kWh)", factor: 0.85 },
     { label: "LPG Gas Cylinder", factor: 2.98 },
   ],
   Food: [
-    { label: "Meat / Poultry", factor: 2.5 },
-    { label: "Vegetarian Meals", factor: 0.8 },
+    { label: "Non-Vegetarian Meals", factor: 2.5 },
+    { label: "Vegetarian Meals", factor: 0.5 },
   ],
   Waste: [
-    { label: "General Organic Waste (kg)", factor: 0.5 },
+    { label: "General Household Waste (kg)", factor: 0.5 },
     { label: "Plastic Waste (kg)", factor: 1.8 },
   ],
   Water: [
-    { label: "Water Consumption (Liters)", factor: 0.002 },
+    { label: "Water Consumption (Liters)", factor: 0.001 },
   ],
 };
 
@@ -35,13 +46,18 @@ const CATEGORY_COLORS = {
 };
 
 const CarbonFootPrintTracker = () => {
+  const location = useLocation();
   const [selectedCategory, setSelectedCategory] = useState("Transport");
-  const [selectedOption, setSelectedOption] = useState("Bus");
+  const [selectedOption, setSelectedOption] = useState("Car (Petrol/Diesel)");
   const [usageValue, setUsageValue] = useState("");
+  const [passengers, setPassengers] = useState(1);
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
   const [calculatedCO2, setCalculatedCO2] = useState(0.0);
+  const [currentFactor, setCurrentFactor] = useState(0.192);
+
+  const [loggeduser, setLoggeduser] = useState("User");
 
   const [historyRecords, setHistoryRecords] = useState([]);
   const [categoryBreakdown, setCategoryBreakdown] = useState({
@@ -52,6 +68,20 @@ const CarbonFootPrintTracker = () => {
     Water: 0,
   });
   const [loading, setLoading] = useState(false);
+
+  const isActive = (path) => location.pathname === path;
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser && storedUser !== "undefined") {
+      try {
+        const parsed = JSON.parse(storedUser);
+        setLoggeduser(parsed.fullName || parsed.name || parsed.username || parsed.email || "User");
+      } catch (e) {
+        setLoggeduser(storedUser);
+      }
+    }
+  }, []);
 
   const calculateBreakdown = useCallback((records) => {
     const breakdown = {
@@ -77,16 +107,20 @@ const CarbonFootPrintTracker = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
+      if (!token) return;
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
       const historyRes = await axios.get(
         "http://localhost:5000/api/tracker/history",
         config
       );
-      if (Array.isArray(historyRes.data)) {
-        setHistoryRecords(historyRes.data);
-        calculateBreakdown(historyRes.data);
-      }
+
+      const records = Array.isArray(historyRes.data)
+        ? historyRes.data
+        : historyRes.data?.logs || historyRes.data?.history || [];
+
+      setHistoryRecords(records);
+      calculateBreakdown(records);
     } catch (err) {
       console.error("Error fetching tracker data:", err);
     } finally {
@@ -101,10 +135,18 @@ const CarbonFootPrintTracker = () => {
   useEffect(() => {
     const options = CATEGORY_OPTIONS[selectedCategory] || [];
     const activeOption = options.find((opt) => opt.label === selectedOption);
-    const factor = activeOption ? activeOption.factor : 0.1;
+    const factor = activeOption ? activeOption.factor : 0.192;
+    setCurrentFactor(factor);
+
     const val = parseFloat(usageValue) || 0;
-    setCalculatedCO2((val * factor).toFixed(2));
-  }, [selectedCategory, selectedOption, usageValue]);
+
+    let total = val * factor;
+    if (selectedCategory === "Transport" && passengers > 0) {
+      total = total / Number(passengers);
+    }
+
+    setCalculatedCO2(total.toFixed(2));
+  }, [selectedCategory, selectedOption, usageValue, passengers]);
 
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
@@ -121,10 +163,16 @@ const CarbonFootPrintTracker = () => {
 
     try {
       const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Session expired. Please log in again.");
+        return;
+      }
+
       const payload = {
         category: selectedCategory,
         activityType: selectedOption,
         value: Number(usageValue),
+        passengers: Number(passengers),
         carbonOutput: Number(calculatedCO2),
         activityDate: selectedDate,
       };
@@ -138,15 +186,8 @@ const CarbonFootPrintTracker = () => {
       alert("Activity logged successfully!");
 
       const newRecord = res.data?.data
-        ? {
-            _id: res.data.data._id,
-            category: selectedCategory,
-            activityType: selectedOption,
-            value: usageValue,
-            carbonOutput: calculatedCO2,
-            activityDate: selectedDate,
-          }
-        : payload;
+        ? res.data.data
+        : { _id: Date.now(), ...payload };
 
       const updatedHistory = [newRecord, ...historyRecords];
       setHistoryRecords(updatedHistory);
@@ -164,33 +205,51 @@ const CarbonFootPrintTracker = () => {
     0
   );
 
+  const getFormulaText = () => {
+    const val = usageValue ? usageValue : "0";
+    if (selectedCategory === "Transport" && passengers > 1) {
+      return `Formula: (${val} × ${currentFactor}) ÷ ${passengers} passengers`;
+    }
+    return `Formula: ${val} × ${currentFactor} factor`;
+  };
+
   return (
     <div className="carbon-tracker-app">
-      {/* MATCHED SIDEBAR */}
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
-            <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
-          </svg>
+          <Globe size={22} color="#059669" strokeWidth={2.2} />
           <span>EcoTrack</span>
         </div>
 
         <nav className="sidebar-menu">
-          <a href="/home" className="menu-item">Home</a>
-          <a href="/carbon-footprint-tracker" className="menu-item active">Carbon Tracker</a>
-          <a href="/goals" className="menu-item">Goals</a>
-          <a href="/challenges" className="menu-item">Challenges</a>
-          <a href="/dashboard" className="menu-item">Dashboard</a>
-          <a href="/reports" className="menu-item">Reports</a>
-          <a href="/profile" className="menu-item">Profile</a>
+          <Link to="/home" className={`menu-item ${isActive("/home") ? "active" : ""}`}>
+            <Home size={16} />
+            <span>Home</span>
+          </Link>
+          <Link to="/carbon-footprint-tracker" className={`menu-item ${isActive("/carbon-footprint-tracker") ? "active" : ""}`}>
+            <Leaf size={16} />
+            <span>Carbon Tracker</span>
+          </Link>
+          <Link to="/goals" className={`menu-item ${isActive("/goals") ? "active" : ""}`}>
+            <Target size={16} />
+            <span>Goals</span>
+          </Link>
+          <Link to="/challenges" className={`menu-item ${isActive("/challenges") ? "active" : ""}`}>
+            <ShieldCheck size={16} />
+            <span>Challenges</span>
+          </Link>
+          <Link to="/dashboard" className={`menu-item ${isActive("/dashboard") ? "active" : ""}`}>
+            <LayoutDashboard size={16} />
+            <span>Dashboard</span>
+          </Link>
+          <Link to="/reports" className={`menu-item ${isActive("/reports") ? "active" : ""}`}>
+            <FileText size={16} />
+            <span>Reports</span>
+          </Link>
+          <Link to="/profile" className={`menu-item ${isActive("/profile") ? "active" : ""}`}>
+            <User size={16} />
+            <span>Profile</span>
+          </Link>
         </nav>
       </aside>
 
@@ -204,7 +263,7 @@ const CarbonFootPrintTracker = () => {
             <div className="icon-button">🔥</div>
             <div className="user-chip">
               <div className="user-chip-avatar">🌱</div>
-              <span>User</span>
+              <span>{loggeduser}</span>
             </div>
           </div>
         </header>
@@ -242,7 +301,7 @@ const CarbonFootPrintTracker = () => {
                     >
                       {CATEGORY_OPTIONS[selectedCategory]?.map((opt) => (
                         <option key={opt.label} value={opt.label}>
-                          {opt.label}
+                          {opt.label} (Factor: {opt.factor})
                         </option>
                       ))}
                     </select>
@@ -257,15 +316,29 @@ const CarbonFootPrintTracker = () => {
                       onChange={(e) => setUsageValue(e.target.value)}
                     />
                   </div>
-                </div>
 
-                <div className="form-group" style={{ marginTop: "14px" }}>
-                  <label>Activity Date</label>
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                  />
+                  {selectedCategory === "Transport" && (
+                    <div className="form-group">
+                      <label>Number of Passengers</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={passengers}
+                        onChange={(e) =>
+                          setPassengers(Math.max(1, Number(e.target.value)))
+                        }
+                      />
+                    </div>
+                  )}
+
+                  <div className="form-group">
+                    <label>Activity Date</label>
+                    <input
+                      type="date"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                    />
+                  </div>
                 </div>
 
                 <div className="emission-box">
@@ -274,7 +347,7 @@ const CarbonFootPrintTracker = () => {
                     <strong>{calculatedCO2} kg CO₂e</strong>
                   </div>
                   <span className="formula">
-                    Based on standard activity factors
+                    {getFormulaText()}
                   </span>
                 </div>
 
@@ -328,7 +401,7 @@ const CarbonFootPrintTracker = () => {
                 </p>
               ) : historyRecords.length === 0 ? (
                 <p style={{ fontSize: "12px", color: "var(--carbon-text-muted)" }}>
-                  No records logged yet. Start logging above!
+                  No records logged yet.
                 </p>
               ) : (
                 historyRecords.map((item, idx) => {
@@ -338,7 +411,9 @@ const CarbonFootPrintTracker = () => {
                       : item.co2 || 0;
                   const activityName =
                     item.activityType || item.category || "Activity";
-                  const displayDate = item.activityDate || item.date || "";
+                  const displayDate = item.activityDate
+                    ? item.activityDate.split("T")[0]
+                    : item.date || "";
 
                   return (
                     <div key={item._id || idx} className="history-item">

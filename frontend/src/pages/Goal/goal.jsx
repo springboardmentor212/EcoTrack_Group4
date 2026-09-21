@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import "./goal.css";
+
 import {
   Globe,
   Home as HomeIcon,
@@ -18,19 +19,19 @@ import {
   Flame,
   TrendingUp,
   Sparkles,
-  Zap,
-  MoveHorizontal,
-  Sprout,
-  Ban,
   RotateCw,
+  Droplet,
+  Zap,
 } from "lucide-react";
 
-export default function GoalsPage() {
+function GoalsPage() {
   const [goalTitle, setGoalTitle] = useState("Use Public Transport Weekly");
-  const [goalCategory, setGoalCategory] = useState("Green Transportation");
+  const [goalCategory, setGoalCategory] = useState("Transport");
   const [targetValue, setTargetValue] = useState("50");
   const [targetUnit, setTargetUnit] = useState("kg CO2e / mo");
   const [targetDate, setTargetDate] = useState("2026-09-30");
+
+  const [loggeduser, setLoggeduser] = useState("User");
 
   const [goals, setGoals] = useState([]);
   const [stats, setStats] = useState({
@@ -42,7 +43,7 @@ export default function GoalsPage() {
 
   const [aiData, setAiData] = useState({
     title: "Reduce Electricity Usage by 15%",
-    category: "Energy Usage",
+    category: "Energy",
     targetValue: "22",
     targetUnit: "kg CO2e / mo",
     targetDate: "2026-10-31",
@@ -51,31 +52,44 @@ export default function GoalsPage() {
   });
   const [loadingAi, setLoadingAi] = useState(false);
 
-  const getCategoryDetails = (cat) => {
-    switch (cat) {
-      case "Energy Usage":
-        return { icon: Zap, color: "green" };
-      case "Green Transportation":
-      case "Transportation":
-        return { icon: MoveHorizontal, color: "blue" };
-      case "Carbon Offset":
-        return { icon: Sprout, color: "amber" };
-      case "Waste Reduction":
-        return { icon: Ban, color: "teal" };
-      default:
-        return { icon: Target, color: "green" };
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser && storedUser !== "undefined") {
+      try {
+        const parsed = JSON.parse(storedUser);
+        setLoggeduser(parsed.fullName || parsed.name || parsed.username || parsed.email || "User");
+      } catch (e) {
+        setLoggeduser(storedUser);
+      }
     }
+  }, []);
+
+  const getCategoryDetails = (cat) => {
+    const cleanCat = String(cat || "").toLowerCase();
+    if (cleanCat.includes("energy") || cleanCat.includes("electric")) {
+      return { icon: Zap, color: "green" };
+    }
+    if (cleanCat.includes("transport")) {
+      return { icon: Leaf, color: "blue" };
+    }
+    if (cleanCat.includes("food")) {
+      return { icon: Globe, color: "amber" };
+    }
+    if (cleanCat.includes("waste")) {
+      return { icon: ShieldCheck, color: "teal" };
+    }
+    if (cleanCat.includes("water")) {
+      return { icon: Droplet, color: "blue" };
+    }
+    return { icon: Target, color: "green" };
   };
 
-  // Fetch Goals & Synchronize Stats
   const fetchGoals = async () => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) return;
+      const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
 
-      const res = await axios.get("http://localhost:5000/api/goals", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get("http://localhost:5000/api/goals", config);
 
       if (res.data) {
         const goalList = Array.isArray(res.data)
@@ -84,28 +98,15 @@ export default function GoalsPage() {
 
         setGoals(goalList);
 
-        const activeGoalsCount = goalList.filter(
-          (g) => g.status !== "Completed"
-        ).length;
-        const completedGoalsCount = goalList.filter(
-          (g) => g.status === "Completed"
-        ).length;
-
         setStats({
-          activeCount:
-            res.data.activeCount !== undefined
-              ? res.data.activeCount
-              : activeGoalsCount,
-          completedCount:
-            res.data.completedCount !== undefined
-              ? res.data.completedCount
-              : completedGoalsCount,
+          activeCount: res.data.activeCount || 0,
+          completedCount: res.data.completedCount || 0,
           streak: res.data.streak || 0,
           successRate: res.data.successRate || "0%",
         });
       }
     } catch (err) {
-      console.error("Fetch Goals Error:", err);
+      console.warn("Backend dynamic fetch issue, check API connection.");
     }
   };
 
@@ -113,21 +114,18 @@ export default function GoalsPage() {
     try {
       setLoadingAi(true);
       const token = localStorage.getItem("token");
-      if (!token) return;
-
+      const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
       const timestamp = new Date().getTime();
 
       const res = await axios.get(
         `http://localhost:5000/api/goals/ai-recommendation?t=${timestamp}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        config
       );
 
       if (res.data) {
         setAiData({
           title: res.data.title || "Reduce Electricity Usage by 15%",
-          category: res.data.category || "Energy Usage",
+          category: res.data.category || "Energy",
           targetValue: res.data.targetValue || "22",
           targetUnit: res.data.targetUnit || "kg CO2e / mo",
           targetDate: res.data.targetDate || "2026-10-31",
@@ -137,7 +135,7 @@ export default function GoalsPage() {
         });
       }
     } catch (err) {
-      console.error("AI Recommendation Fetch Error:", err);
+      console.warn("AI recommendation endpoint offline.");
     } finally {
       setLoadingAi(false);
     }
@@ -157,6 +155,8 @@ export default function GoalsPage() {
 
     try {
       const token = localStorage.getItem("token");
+      const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+
       const payload = {
         title: goalTitle,
         category: goalCategory,
@@ -165,9 +165,7 @@ export default function GoalsPage() {
         targetCompletionDate: targetDate,
       };
 
-      await axios.post("http://localhost:5000/api/goals", payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.post("http://localhost:5000/api/goals", payload, config);
 
       alert("New Goal Created Successfully!");
       setGoalTitle("");
@@ -175,7 +173,7 @@ export default function GoalsPage() {
       fetchGoals();
     } catch (err) {
       console.error("Create Goal Error:", err);
-      alert("Failed to create goal.");
+      alert("Failed to create goal. Make sure Node backend is running!");
     }
   };
 
@@ -276,7 +274,7 @@ export default function GoalsPage() {
               <span className="user-chip-avatar">
                 <User size={12} strokeWidth={2.5} />
               </span>
-              User
+              <span>{loggeduser}</span>
               <ChevronDown size={14} strokeWidth={2.5} />
             </div>
           </div>
@@ -324,17 +322,18 @@ export default function GoalsPage() {
                     value={goalCategory}
                     onChange={(e) => setGoalCategory(e.target.value)}
                   >
-                    <option>Green Transportation</option>
-                    <option>Energy Usage</option>
-                    <option>Waste Reduction</option>
-                    <option>Carbon Offset</option>
+                    <option value="Transport">Transport</option>
+                    <option value="Energy">Energy</option>
+                    <option value="Food">Food</option>
+                    <option value="Waste">Waste</option>
+                    <option value="Water">Water</option>
                   </select>
                   <ChevronDown size={16} />
                 </div>
               </div>
 
               <div className="form-group">
-                <label>Target Reduction / Value</label>
+                <label>Target Reduction / Value Limit</label>
                 <div className="form-row-split">
                   <input
                     type="text"
@@ -398,9 +397,9 @@ export default function GoalsPage() {
           </section>
 
           <section className="panel">
-            <h2>Active Goal Progress</h2>
+            <h2>Goal Allowance Progress</h2>
             <p className="panel-subtitle">
-              Track live achievements and update milestone values
+              Emissions reduce your remaining goal allowance budget
             </p>
 
             <div className="goal-list">
@@ -411,7 +410,15 @@ export default function GoalsPage() {
               ) : (
                 goals.map((item, idx) => {
                   const { icon: CatIcon, color } = getCategoryDetails(item.category);
-                  const percent = item.percent || 0;
+
+                  const targetVal = Number(item.targetValue) || 0;
+                  const currentEmitted = Number(item.currentProgress) || 0;
+                  const remainingBalance = Number(item.remainingBalance) || 0;
+                  const percent = Number(item.percent) || 0;
+                  
+                  const isExceeded = Boolean(item.isLimitExceeded);
+
+                  const deadlineDisplay = item.deadline || "2026-10-31";
 
                   return (
                     <div className="goal-item" key={item._id || idx}>
@@ -421,24 +428,39 @@ export default function GoalsPage() {
                       <div className="goal-item-body">
                         <div className="goal-item-top">
                           <p className="goal-item-title">{item.title}</p>
-                          <span className={`goal-item-percent text-${color}`}>
-                            {percent}% Done
+                          <span
+                            className={`goal-item-percent ${
+                              isExceeded ? "text-red" : `text-${color}`
+                            }`}
+                            style={{ color: isExceeded ? "#ef4444" : undefined }}
+                          >
+                            {isExceeded
+                              ? "0% Allowance (Limit Exceeded)"
+                              : `${percent}% Remaining`}
                           </span>
                         </div>
                         <p className="goal-item-meta">
-                          Category: {item.category} • Target: {item.target || `${item.targetValue} ${item.targetUnit}`}
+                          Category: {item.category} • Target Limit: {targetVal}{" "}
+                          {item.targetUnit || "kg CO2e / mo"}
                         </p>
 
                         <div className="progress-track">
                           <div
-                            className={`progress-fill fill-${color}`}
-                            style={{ width: `${percent}%` }}
+                            className={`progress-fill ${
+                              isExceeded ? "bg-red" : `fill-${color}`
+                            }`}
+                            style={{
+                              width: `${percent}%`,
+                              backgroundColor: isExceeded ? "#ef4444" : undefined,
+                            }}
                           />
                         </div>
 
                         <div className="goal-item-footer">
-                          <span>Progress: {item.progressLabel || "0%"}</span>
-                          <span>Deadline: {item.deadline || item.targetCompletionDate}</span>
+                          <span>
+                            Emitted: {currentEmitted} kg CO2e ({remainingBalance} kg balance)
+                          </span>
+                          <span>Deadline: {deadlineDisplay}</span>
                         </div>
                       </div>
                     </div>
@@ -452,3 +474,5 @@ export default function GoalsPage() {
     </div>
   );
 }
+
+export default GoalsPage;

@@ -29,12 +29,6 @@
   margin-bottom: 8px;
 }
 
-.logo-icon {
-  width: 26px;
-  height: 26px;
-  stroke: #2b3b36;
-}
-
 .brand-name {
   font-size: 22px;
   font-weight: 700;
@@ -61,46 +55,75 @@
   gap: 12px;
 }
 
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.form-group label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #444;
 }
 
 .input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 .field-icon {
   position: absolute;
   left: 12px;
   color: #8c8c8c;
+  pointer-events: none;
 }
 
 .input-wrapper input {
   width: 100%;
   height: 40px;
-  padding: 0 12px 0 36px;
+  padding: 0 36px 0 36px;
   border: 1px solid #d9d9d9;
   border-radius: 20px;
   font-size: 12px;
   outline: none;
+  transition: border-color 0.2s ease;
 }
 
 .input-wrapper input:focus {
   border-color: #1b7a42;
 }
 
-.terms-checkbox {
+.eye-toggle {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: #8c8c8c;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.form-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 4px 0;
+}
+
+.remember-checkbox {
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 12px;
   color: #444;
   cursor: pointer;
-  margin: 2px 0;
 }
 
 .primary-btn {
@@ -113,6 +136,7 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  transition: background 0.2s ease;
 }
 
 .primary-btn:hover {
@@ -124,7 +148,7 @@
   text-align: center;
   border-bottom: 1px solid #e8e8e8;
   line-height: 0.1em;
-  margin: 16px 0;
+  margin: 18px 0;
 }
 
 .or-divider span {
@@ -134,31 +158,39 @@
   font-size: 11px;
 }
 
-.social-row {
+/* GOOGLE BUTTON STYLES */
+.social-group {
   width: 100%;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  justify-content: center;
 }
 
 .social-btn {
   width: 100%;
-  height: 38px;
+  height: 40px;
   border-radius: 20px;
   border: 1px solid #dcdcdc;
-  background: #f4f8f5;
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  font-size: 12px;
+  gap: 10px;
+  font-size: 13px;
   font-weight: 600;
-  color: #222;
+  color: #333333;
   cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .social-btn:hover {
-  background: #ebf3ed;
+  background: #f8f9fa;
+  border-color: #c6c6c6;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.social-btn svg {
+  flex-shrink: 0;
 }
 
 .status-msg {

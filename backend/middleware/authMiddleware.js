@@ -17,14 +17,22 @@ module.exports = function (req, res, next) {
         tokenString,
         process.env.JWT_SECRET || "ecotrack_secret_key_123"
       );
-      req.user = decoded;
+
+      // Normal JWT Login Fix
+      req.user = {
+        id: decoded.id || decoded._id || decoded.userId || decoded.googleId,
+        googleId: decoded.googleId || decoded.sub,
+        email: decoded.email,
+        name: decoded.name
+      };
       return next();
     } catch (jwtErr) {
-      // 2. Fallback for Google Sign-In Tokens (Decode without secret key verification)
+      // 2. Fallback for Google Sign-In Tokens
       const decodedGoogleToken = jwt.decode(tokenString);
       if (decodedGoogleToken) {
         req.user = {
           id: decodedGoogleToken.sub || decodedGoogleToken.email,
+          googleId: decodedGoogleToken.sub,
           email: decodedGoogleToken.email,
           name: decodedGoogleToken.name,
         };

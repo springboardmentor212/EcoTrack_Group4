@@ -3,18 +3,16 @@ const mongoose = require("mongoose");
 const activitySchema = new mongoose.Schema(
   {
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type: String, // ObjectId-ku badhula String maathirukom (Google ID & ObjectId rendume support aaga)
       required: true,
     },
     category: {
       type: String,
-      enum: ["Transport", "Energy", "Food", "Waste", "Water Usage"],
-      required: true,
+      required: true, // Enum strict restriction-a remove panni dynamic-a maathiyachi
     },
     activityType: {
       type: String,
-      required: true,
+      default: "",
     },
     value: {
       type: Number,

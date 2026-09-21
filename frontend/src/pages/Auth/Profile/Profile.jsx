@@ -22,7 +22,11 @@ import "./Profile.css";
 export default function Profile() {
   const navigate = useNavigate();
 
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState({
+    name: "",
+    email: "",
+  });
+
   const [profileDetails, setProfileDetails] = useState({
     location: "",
     primaryTransport: "",
@@ -30,9 +34,8 @@ export default function Profile() {
   });
   const [isEditing, setIsEditing] = useState(false);
 
-  // Dynamic calculated stats
   const [stats, setStats] = useState({
-    co2Saved: 0,
+    co2Emitted: 0,
     treesEquivalent: 0,
     activeStreak: 0,
   });
@@ -43,12 +46,33 @@ export default function Profile() {
   const fetchProfileData = async () => {
     try {
       const token = localStorage.getItem("token");
-      const localUser = JSON.parse(localStorage.getItem("user") || "{}");
-      setUser(localUser);
+
+      if (!token) {
+        console.warn("No authentication token found.");
+        return;
+      }
 
       const headers = { Authorization: `Bearer ${token}` };
 
-      // 1. Fetch Saved Profile Details
+      // 1. Fetch User Info - FIX 4: Clean generic fallbacks
+      try {
+        const userRes = await axios.get("http://localhost:5000/api/auth/me", { headers });
+        if (userRes.data) {
+          const userData = userRes.data.user || userRes.data;
+          setUser({
+            name: userData.fullName || userData.name || userData.username || "User",
+            email: userData.email || "No email",
+          });
+        }
+      } catch (err) {
+        const localUser = JSON.parse(localStorage.getItem("user") || "{}");
+        setUser({
+          name: localUser.fullName || localUser.name || localUser.username || "User",
+          email: localUser.email || localUser.userEmail || "No email",
+        });
+      }
+
+      // 2. Fetch Profile Info
       try {
         const profileRes = await axios.get("http://localhost:5000/api/profile", { headers });
         if (profileRes.data) {
@@ -59,29 +83,25 @@ export default function Profile() {
           });
         }
       } catch (err) {
-        console.log("Profile info fetch note: using default state");
+        console.log("Using default profile details");
       }
 
-      // 2. Fetch Carbon Tracker Logs - FIX: Correct API URL to /api/tracker/history
+      // 3. Fetch Carbon Logs
       try {
         const trackerRes = await axios.get("http://localhost:5000/api/tracker/history", { headers });
         if (trackerRes.data) {
           const logs = Array.isArray(trackerRes.data) ? trackerRes.data : trackerRes.data.logs || [];
           
           if (logs.length > 0) {
-            // Set recent 3 logs
             setRecentLogs(logs.slice(0, 3));
 
-            // Dynamic Total CO2 Saved Calculation
             const totalCO2 = logs.reduce((sum, log) => {
               const val = Number(log.carbonOutput || log.co2 || log.co2Saved || 0);
               return sum + val;
             }, 0);
 
-            // Dynamic Trees Equivalent (1 Tree absorbs approx 21kg CO2/year)
             const trees = Math.round(totalCO2 / 21);
 
-            // Dynamic Active Streak (Count unique logging dates)
             const uniqueDates = new Set(
               logs.map((log) => {
                 const d = log.activityDate || log.date || log.createdAt;
@@ -90,7 +110,7 @@ export default function Profile() {
             );
 
             setStats({
-              co2Saved: Number(totalCO2.toFixed(1)),
+              co2Emitted: Number(totalCO2.toFixed(1)),
               treesEquivalent: trees,
               activeStreak: uniqueDates.size,
             });
@@ -100,7 +120,7 @@ export default function Profile() {
         console.error("Tracker Logs Fetch Error:", err);
       }
 
-      // 3. Fetch Goals for Recent Achievements
+      // 4. Fetch Goals
       try {
         const goalsRes = await axios.get("http://localhost:5000/api/goals", { headers });
         if (goalsRes.data) {
@@ -112,7 +132,7 @@ export default function Profile() {
       }
 
     } catch (err) {
-      console.error("General Fetch Profile Data Error:", err);
+      console.error("Fetch Data Error:", err);
     }
   };
 
@@ -138,8 +158,7 @@ export default function Profile() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    localStorage.clear();
     navigate("/login");
   };
 
@@ -147,7 +166,6 @@ export default function Profile() {
 
   return (
     <div className="profile-app">
-      {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-brand">
           <Globe size={20} className="brand-icon" />
@@ -164,7 +182,6 @@ export default function Profile() {
         </nav>
       </aside>
 
-      {/* Main Container */}
       <main className="main-content">
         <header className="page-header">
           <h1>User Profile</h1>
@@ -172,8 +189,6 @@ export default function Profile() {
         </header>
 
         <div className="profile-figma-grid">
-          
-          {/* Left Column */}
           <div className="left-column">
             <div className="profile-card">
               <div className="avatar-wrapper">
@@ -181,8 +196,8 @@ export default function Profile() {
                   <User size={38} />
                 </div>
               </div>
-              <h3 className="user-name">{user?.name || user?.username || "User"}</h3>
-              <p className="user-email">{user?.email || "user@ecotrack.io"}</p>
+              <h3 className="user-name">{user.name || "User"}</h3>
+              <p className="user-email">{user.email || "No email"}</p>
               <span className="user-badge">ECO HERO LEVEL 4</span>
 
               <div className="info-details">
@@ -224,14 +239,11 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Right Column */}
           <div className="right-column">
-            
-            {/* Metrics */}
             <div className="metrics-row">
               <div className="metric-card">
-                <p className="metric-label">CO₂ Saved</p>
-                <h2 className="metric-value">{stats.co2Saved} kg</h2>
+                <p className="metric-label">CO₂ Emitted</p>
+                <h2 className="metric-value">{stats.co2Emitted} kg</h2>
                 <span className="metric-sub text-green">Dynamic total impact</span>
               </div>
 
@@ -241,24 +253,26 @@ export default function Profile() {
                 <span className="metric-sub text-gray">Lifetime impact</span>
               </div>
 
+              {/* FIX 5: Accurate Label */}
               <div className="metric-card">
-                <p className="metric-label">Active Streak</p>
+                <p className="metric-label">Active Activity Days</p>
                 <h2 className="metric-value">{stats.activeStreak} Days</h2>
-                <span className="metric-sub text-gray">Active activity days</span>
+                <span className="metric-sub text-gray">Unique logged days</span>
               </div>
             </div>
 
-            {/* Achievements */}
             <div className="panel-card">
-              <h3>Recent Achievements</h3>
+              <h3>Recent Goals</h3>
               <div className="item-list">
                 {achievements.length === 0 ? (
                   <p className="item-sub" style={{ textAlign: "center", padding: "10px 0" }}>
-                    No goals created or completed yet.
+                    No goals created yet.
                   </p>
                 ) : (
                   achievements.map((item, idx) => {
-                    const isDone = item.percent === 100 || item.isCompleted;
+                    const isDone = Boolean(item.isCompleted);
+                    const isExceeded = Boolean(item.isLimitExceeded);
+
                     return (
                       <div className="achievement-item" key={item._id || idx}>
                         <div className={`icon-box ${isDone ? "green" : "gray"}`}>
@@ -266,7 +280,12 @@ export default function Profile() {
                         </div>
                         <div>
                           <p className="item-title">
-                            {item.title} {!isDone && "(In Progress)"}
+                            {item.title}{" "}
+                            {isDone
+                              ? "(Completed)"
+                              : isExceeded
+                              ? "(Limit Exceeded)"
+                              : "(In Progress)"}
                           </p>
                           <p className="item-sub">
                             Category: {item.category || "General"}
@@ -279,7 +298,6 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* Recent Activity Section */}
             <div className="panel-card">
               <h3>Recent Activity</h3>
               <div className="item-list">
@@ -290,7 +308,7 @@ export default function Profile() {
                 ) : (
                   recentLogs.map((log, idx) => {
                     const co2Val = log.carbonOutput || log.co2 || 0;
-                    const activityName = log.activityType || log.category || "Eco Activity";
+                    const activityName = log.activityType || log.subType || log.category || "Eco Activity";
                     const dateStr = log.activityDate || log.date || "Recent";
 
                     return (
@@ -313,7 +331,6 @@ export default function Profile() {
         </div>
       </main>
 
-      {/* Edit Modal */}
       {isEditing && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -328,7 +345,7 @@ export default function Profile() {
                 <label>Location</label>
                 <input
                   type="text"
-                  placeholder="e.g. Chennai, TN"
+                  placeholder="e.g. Tirunelveli, TN"
                   value={profileDetails.location}
                   onChange={(e) => setProfileDetails({ ...profileDetails, location: e.target.value })}
                   required

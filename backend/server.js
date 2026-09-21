@@ -7,6 +7,7 @@ require("dotenv").config();
 const authRoutes = require("./routes/authRoutes");
 const trackerRoutes = require("./routes/trackerRoutes");
 const goalRoutes = require("./routes/goalRoutes");
+const profileRoutes = require("./routes/profileRoutes"); // <-- ADD THIS LINE
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use("/api/tracker", trackerRoutes);
 if (goalRoutes) {
   app.use("/api/goals", goalRoutes);
 }
+app.use("/api/profile", profileRoutes); // <-- ADD THIS LINE
 
 // 404 Fallback
 app.use((req, res) => {

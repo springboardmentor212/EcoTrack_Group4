@@ -53,6 +53,12 @@ function Home() {
     fetchSummary();
   }, []);
 
+  // Gatii "Today's Emissions" sirriitti herreeguu fi safaruu
+  const formattedTodayEmission = 
+    typeof summary.today === "number" 
+      ? summary.today.toFixed(2) 
+      : parseFloat(summary.today || 0).toFixed(2);
+
   return (
     <div className="home-page">
       <div className="home-layout">
@@ -146,10 +152,11 @@ function Home() {
                 </div>
               </div>
 
+              {/* TODAY'S EMISSIONS CALCULATED VALUE */}
               <div className="stat-card">
                 <span>TODAY'S EMISSIONS</span>
                 <div>
-                  <strong>{summary.today}</strong>
+                  <strong>{formattedTodayEmission}</strong>
                   <small>kg CO₂e</small>
                 </div>
               </div>
@@ -183,7 +190,7 @@ function Home() {
                   <p>
                     Curious about how your carbon footprint is calculated? We use standardized formulas based on your daily activities, energy usage, and travel habits.
                   </p>
-                  <Link to="/carbon-footprint-tracker" className="learn-more">
+                  <Link to="/carbon-footprint" className="learn-more">
                     Learn More →
                   </Link>
                 </div>

@@ -5,6 +5,7 @@ const goalSchema = new mongoose.Schema(
     userId: {
       type: String,
       default: "guest",
+      index: true, // Faster query performance-kaaga
     },
     title: {
       type: String,
