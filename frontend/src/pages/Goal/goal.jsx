@@ -143,10 +143,10 @@ export default function GoalsPage() {
             <span>Dashboard</span>
           </a>
 
-          <a href="#" className="menu-item">
+          <Link to="/report" className="menu-item">
             <FileText size={16} />
             <span>Reports</span>
-          </a>
+          </Link>
 
           <Link to="/profile" className="menu-item">
             <User size={16} />
