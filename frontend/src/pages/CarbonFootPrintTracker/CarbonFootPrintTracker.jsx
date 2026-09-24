@@ -15,25 +15,31 @@ import "./CarbonFootPrintTracker.css";
 
 const CATEGORY_OPTIONS = {
   Transport: [
-    { label: "Car (Petrol/Diesel)", factor: 0.192 },
-    { label: "Bus", factor: 0.089 },
-    { label: "Bike / Scooter", factor: 0.05 },
-    { label: "Electric Car", factor: 0.053 },
+    { label: "Car (Petrol/Diesel)", factor: 0.192, type: "emission" },
+    { label: "Bus", factor: 0.089, type: "emission" },
+    { label: "Bike / Scooter", factor: 0.05, type: "emission" },
+    { label: "Electric Car", factor: 0.053, type: "emission" },
+    { label: "Cycling", factor: 0.192, type: "saving" },
+    { label: "Walking", factor: 0.192, type: "saving" },
   ],
   Energy: [
-    { label: "Electricity (kWh)", factor: 0.85 },
-    { label: "LPG Gas Cylinder", factor: 2.98 },
+    { label: "Electricity (kWh)", factor: 0.85, type: "emission" },
+    { label: "LPG Gas Cylinder", factor: 2.98, type: "emission" },
+    { label: "Energy Saving (kWh)", factor: 0.85, type: "saving" },
   ],
   Food: [
-    { label: "Non-Vegetarian Meals", factor: 2.5 },
-    { label: "Vegetarian Meals", factor: 0.5 },
+    { label: "Non-Vegetarian Meals", factor: 2.5, type: "emission" },
+    { label: "Vegetarian Meals", factor: 0.5, type: "emission" },
+    { label: "Plant-Based Meal", factor: 2.0, type: "saving" },
   ],
   Waste: [
-    { label: "General Household Waste (kg)", factor: 0.5 },
-    { label: "Plastic Waste (kg)", factor: 1.8 },
+    { label: "General Household Waste (kg)", factor: 0.5, type: "emission" },
+    { label: "Plastic Waste (kg)", factor: 1.8, type: "emission" },
+    { label: "Recycling (kg)", factor: 0.5, type: "saving" },
   ],
   Water: [
-    { label: "Water Consumption (Liters)", factor: 0.001 },
+    { label: "Water Consumption (Liters)", factor: 0.001, type: "emission" },
+    { label: "Water Saving (Liters)", factor: 0.001, type: "saving" },
   ],
 };
 
@@ -54,19 +60,28 @@ const CarbonFootPrintTracker = () => {
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
+  
   const [calculatedCO2, setCalculatedCO2] = useState(0.0);
   const [currentFactor, setCurrentFactor] = useState(0.192);
+  const [activeMode, setActiveMode] = useState("emission");
 
   const [loggeduser, setLoggeduser] = useState("User");
-
   const [historyRecords, setHistoryRecords] = useState([]);
+  
   const [categoryBreakdown, setCategoryBreakdown] = useState({
-    Transport: 0,
-    Energy: 0,
-    Food: 0,
-    Waste: 0,
-    Water: 0,
+    Transport: { emitted: 0, saved: 0 },
+    Energy: { emitted: 0, saved: 0 },
+    Food: { emitted: 0, saved: 0 },
+    Waste: { emitted: 0, saved: 0 },
+    Water: { emitted: 0, saved: 0 },
   });
+
+  const [summaryData, setSummaryData] = useState({
+    totalEmissions: 0,
+    totalSaved: 0,
+    netFootprint: 0,
+  });
+
   const [loading, setLoading] = useState(false);
 
   const isActive = (path) => location.pathname === path;
@@ -85,22 +100,37 @@ const CarbonFootPrintTracker = () => {
 
   const calculateBreakdown = useCallback((records) => {
     const breakdown = {
-      Transport: 0,
-      Energy: 0,
-      Food: 0,
-      Waste: 0,
-      Water: 0,
+      Transport: { emitted: 0, saved: 0 },
+      Energy: { emitted: 0, saved: 0 },
+      Food: { emitted: 0, saved: 0 },
+      Waste: { emitted: 0, saved: 0 },
+      Water: { emitted: 0, saved: 0 },
     };
+
+    let totalEmitted = 0;
+    let totalSaved = 0;
 
     records.forEach((rec) => {
       const cat = rec.category;
-      const co2 = parseFloat(rec.carbonOutput || rec.co2) || 0;
-      if (breakdown[cat] !== undefined) {
-        breakdown[cat] += co2;
+      const mode = rec.activityMode || (rec.carbonSaved > 0 ? "saving" : "emission");
+      const emitted = mode === "emission" ? (parseFloat(rec.carbonOutput || rec.co2) || 0) : 0;
+      const saved = mode === "saving" ? (parseFloat(rec.carbonSaved || rec.co2) || 0) : 0;
+
+      if (breakdown[cat]) {
+        breakdown[cat].emitted += emitted;
+        breakdown[cat].saved += saved;
       }
+
+      totalEmitted += emitted;
+      totalSaved += saved;
     });
 
     setCategoryBreakdown(breakdown);
+    setSummaryData({
+      totalEmissions: Number(totalEmitted.toFixed(2)),
+      totalSaved: Number(totalSaved.toFixed(2)),
+      netFootprint: Number(Math.max(0, totalEmitted - totalSaved).toFixed(2)),
+    });
   }, []);
 
   const fetchTrackerData = useCallback(async () => {
@@ -136,16 +166,25 @@ const CarbonFootPrintTracker = () => {
     const options = CATEGORY_OPTIONS[selectedCategory] || [];
     const activeOption = options.find((opt) => opt.label === selectedOption);
     const factor = activeOption ? activeOption.factor : 0.192;
+    const mode = activeOption ? activeOption.type : "emission";
+
     setCurrentFactor(factor);
+    setActiveMode(mode);
 
     const val = parseFloat(usageValue) || 0;
+    let carbonOutput = 0;
+    let carbonSaved = 0;
 
-    let total = val * factor;
-    if (selectedCategory === "Transport" && passengers > 0) {
-      total = total / Number(passengers);
+    if (mode === "saving") {
+      carbonSaved = val * factor;
+    } else {
+      carbonOutput = val * factor;
+      if (selectedCategory === "Transport" && passengers > 0) {
+        carbonOutput /= Number(passengers);
+      }
     }
 
-    setCalculatedCO2(total.toFixed(2));
+    setCalculatedCO2(mode === "saving" ? carbonSaved.toFixed(2) : carbonOutput.toFixed(2));
   }, [selectedCategory, selectedOption, usageValue, passengers]);
 
   const handleCategoryChange = (category) => {
@@ -168,12 +207,18 @@ const CarbonFootPrintTracker = () => {
         return;
       }
 
+      const options = CATEGORY_OPTIONS[selectedCategory] || [];
+      const activeOption = options.find((opt) => opt.label === selectedOption);
+      const mode = activeOption?.type || "emission";
+
       const payload = {
         category: selectedCategory,
         activityType: selectedOption,
+        activityMode: mode,
         value: Number(usageValue),
         passengers: Number(passengers),
-        carbonOutput: Number(calculatedCO2),
+        carbonOutput: mode === "emission" ? Number(calculatedCO2) : 0,
+        carbonSaved: mode === "saving" ? Number(calculatedCO2) : 0,
         activityDate: selectedDate,
       };
 
@@ -185,10 +230,7 @@ const CarbonFootPrintTracker = () => {
 
       alert("Activity logged successfully!");
 
-      const newRecord = res.data?.data
-        ? res.data.data
-        : { _id: Date.now(), ...payload };
-
+      const newRecord = res.data?.data ? res.data.data : { _id: Date.now(), ...payload };
       const updatedHistory = [newRecord, ...historyRecords];
       setHistoryRecords(updatedHistory);
       calculateBreakdown(updatedHistory);
@@ -200,14 +242,9 @@ const CarbonFootPrintTracker = () => {
     }
   };
 
-  const totalEmissions = Object.values(categoryBreakdown).reduce(
-    (a, b) => a + b,
-    0
-  );
-
   const getFormulaText = () => {
     const val = usageValue ? usageValue : "0";
-    if (selectedCategory === "Transport" && passengers > 1) {
+    if (selectedCategory === "Transport" && activeMode === "emission" && passengers > 1) {
       return `Formula: (${val} × ${currentFactor}) ÷ ${passengers} passengers`;
     }
     return `Formula: ${val} × ${currentFactor} factor`;
@@ -257,7 +294,7 @@ const CarbonFootPrintTracker = () => {
         <header className="page-header">
           <div>
             <h1>Carbon Footprint Tracker</h1>
-            <p>Log & Calculate Activity Emissions</p>
+            <p>Log & Calculate Activity Emissions & CO₂ Savings</p>
           </div>
           <div className="header-actions">
             <div className="icon-button">🔥</div>
@@ -281,9 +318,7 @@ const CarbonFootPrintTracker = () => {
                   key={cat}
                   type="button"
                   onClick={() => handleCategoryChange(cat)}
-                  className={`category-tab ${
-                    selectedCategory === cat ? "active" : ""
-                  }`}
+                  className={`category-tab ${selectedCategory === cat ? "active" : ""}`}
                 >
                   {cat}
                 </button>
@@ -301,7 +336,7 @@ const CarbonFootPrintTracker = () => {
                     >
                       {CATEGORY_OPTIONS[selectedCategory]?.map((opt) => (
                         <option key={opt.label} value={opt.label}>
-                          {opt.label} (Factor: {opt.factor})
+                          {opt.label} ({opt.type === "saving" ? "Saving" : "Emission"} Factor: {opt.factor})
                         </option>
                       ))}
                     </select>
@@ -317,16 +352,14 @@ const CarbonFootPrintTracker = () => {
                     />
                   </div>
 
-                  {selectedCategory === "Transport" && (
+                  {selectedCategory === "Transport" && activeMode === "emission" && (
                     <div className="form-group">
                       <label>Number of Passengers</label>
                       <input
                         type="number"
                         min="1"
                         value={passengers}
-                        onChange={(e) =>
-                          setPassengers(Math.max(1, Number(e.target.value)))
-                        }
+                        onChange={(e) => setPassengers(Math.max(1, Number(e.target.value)))}
                       />
                     </div>
                   )}
@@ -343,12 +376,10 @@ const CarbonFootPrintTracker = () => {
 
                 <div className="emission-box">
                   <div>
-                    <p>Estimated Carbon Emission Output</p>
+                    <p>{activeMode === "saving" ? "Estimated CO₂ Saved" : "Estimated Carbon Emission Output"}</p>
                     <strong>{calculatedCO2} kg CO₂e</strong>
                   </div>
-                  <span className="formula">
-                    {getFormulaText()}
-                  </span>
+                  <span className="formula">{getFormulaText()}</span>
                 </div>
 
                 <button type="submit" className="log-button">
@@ -357,18 +388,19 @@ const CarbonFootPrintTracker = () => {
               </form>
 
               <div className="breakdown">
-                <h2>Category Emissions Breakdown</h2>
-                {Object.entries(categoryBreakdown).map(([cat, amount]) => {
-                  const pct =
-                    totalEmissions > 0
-                      ? ((amount / totalEmissions) * 100).toFixed(1)
-                      : "0.0";
+                <h2>Category Breakdown</h2>
+                {Object.entries(categoryBreakdown).map(([cat, data]) => {
+                  const netCat = Math.max(0, data.emitted - data.saved);
+                  const pct = summaryData.totalEmissions > 0 
+                    ? ((data.emitted / summaryData.totalEmissions) * 100).toFixed(1)
+                    : "0.0";
+
                   return (
                     <div key={cat} className="breakdown-item">
                       <div>
                         <span>{cat}</span>
                         <strong>
-                          {amount.toFixed(1)} kg ({pct}%)
+                          Emitted: {data.emitted.toFixed(1)}kg | Saved: {data.saved.toFixed(1)}kg
                         </strong>
                       </div>
                       <div className="breakdown-track">
@@ -376,8 +408,7 @@ const CarbonFootPrintTracker = () => {
                           className="breakdown-fill"
                           style={{
                             width: `${pct}%`,
-                            backgroundColor:
-                              CATEGORY_COLORS[cat] || "var(--carbon-green-600)",
+                            backgroundColor: CATEGORY_COLORS[cat] || "var(--carbon-green-600)",
                           }}
                         ></div>
                       </div>
@@ -391,41 +422,35 @@ const CarbonFootPrintTracker = () => {
           <div className="history-panel">
             <div className="history-header">
               <h2>Historical Activity Records</h2>
-              <p className="panel-subtitle">Recent activity footprint logs</p>
+              <p className="panel-subtitle">Recent activity logs</p>
             </div>
 
             <div className="records-scroll-list">
               {loading ? (
-                <p style={{ fontSize: "12px", color: "var(--carbon-text-muted)" }}>
-                  Loading records...
-                </p>
+                <p style={{ fontSize: "12px", color: "var(--carbon-text-muted)" }}>Loading records...</p>
               ) : historyRecords.length === 0 ? (
-                <p style={{ fontSize: "12px", color: "var(--carbon-text-muted)" }}>
-                  No records logged yet.
-                </p>
+                <p style={{ fontSize: "12px", color: "var(--carbon-text-muted)" }}>No records logged yet.</p>
               ) : (
                 historyRecords.map((item, idx) => {
-                  const emissionVal =
-                    item.carbonOutput !== undefined
-                      ? item.carbonOutput
-                      : item.co2 || 0;
-                  const activityName =
-                    item.activityType || item.category || "Activity";
-                  const displayDate = item.activityDate
-                    ? item.activityDate.split("T")[0]
-                    : item.date || "";
+                  const mode = item.activityMode || (item.carbonSaved > 0 ? "saving" : "emission");
+                  const val = mode === "saving" 
+                    ? (item.carbonSaved || item.co2 || 0) 
+                    : (item.carbonOutput || item.co2 || 0);
+
+                  const activityName = item.activityType || item.category || "Activity";
+                  const displayDate = item.activityDate ? item.activityDate.split("T")[0] : item.date || "";
 
                   return (
                     <div key={item._id || idx} className="history-item">
-                      <div className="history-icon blue">🍃</div>
+                      <div className={`history-icon ${mode === "saving" ? "green" : "blue"}`}>
+                        {mode === "saving" ? "🌱" : "🍃"}
+                      </div>
                       <div className="history-content">
                         <strong>{activityName}</strong>
-                        <span>
-                          {displayDate} • {item.category}
-                        </span>
+                        <span>{displayDate} • {item.category}</span>
                       </div>
-                      <div className="history-emission positive">
-                        +{Number(emissionVal).toFixed(2)} kg
+                      <div className={`history-emission ${mode === "saving" ? "negative" : "positive"}`}>
+                        {mode === "saving" ? `−${Number(val).toFixed(2)} kg saved` : `+${Number(val).toFixed(2)} kg`}
                       </div>
                     </div>
                   );
@@ -437,21 +462,15 @@ const CarbonFootPrintTracker = () => {
               <h2>Monthly Impact Summary</h2>
               <div className="summary-row">
                 <span>Total Emissions</span>
-                <strong>{totalEmissions.toFixed(1)} kg CO₂e</strong>
+                <strong>{summaryData.totalEmissions.toFixed(1)} kg CO₂e</strong>
               </div>
-              <div className="summary-row reduction-row">
-                <span>Target Status</span>
-                <span className="reduction-value">On Track</span>
+              <div className="summary-row">
+                <span>CO₂ Saved</span>
+                <strong style={{ color: "#10b981" }}>{summaryData.totalSaved.toFixed(1)} kg CO₂e</strong>
               </div>
-              <div className="summary-progress">
-                <div
-                  style={{
-                    width: `${Math.min(
-                      ((totalEmissions / 500) * 100).toFixed(0),
-                      100
-                    )}%`,
-                  }}
-                ></div>
+              <div className="summary-row">
+                <span>Net Footprint</span>
+                <strong>{summaryData.netFootprint.toFixed(1)} kg CO₂e</strong>
               </div>
             </div>
           </div>

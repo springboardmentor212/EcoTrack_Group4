@@ -25,12 +25,13 @@ function Home() {
   });
 
   useEffect(() => {
-    const fetchSummary = async () => {
+    const fetchTodayEmission = async () => {
       try {
         const token = localStorage.getItem("token");
 
+        // Fetch user activity logs from history API
         const response = await fetch(
-          "http://localhost:5000/api/tracker/summary",
+          "http://localhost:5000/api/tracker/history",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -41,19 +42,52 @@ function Home() {
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.message || "Failed to fetch summary");
+          throw new Error(data.message || "Failed to fetch tracker history");
         }
 
-        setSummary(data);
+        const records = Array.isArray(data)
+          ? data
+          : data.logs || data.history || [];
+
+        // Today's date in YYYY-MM-DD format
+        const today = new Date().toISOString().split("T")[0];
+
+        // Calculate ONLY today's EMISSIONS (CO2 saved is excluded)
+        const todayEmission = records
+          .filter((item) => {
+            const activityDate = item.activityDate
+              ? String(item.activityDate).split("T")[0]
+              : item.createdAt
+              ? String(item.createdAt).split("T")[0]
+              : "";
+
+            const mode =
+              item.activityMode ||
+              (Number(item.carbonSaved) > 0 ? "saving" : "emission");
+
+            return activityDate === today && mode === "emission";
+          })
+          .reduce((total, item) => {
+            const emission = Number(
+              item.carbonOutput ?? item.co2 ?? 0
+            );
+
+            return total + (Number.isFinite(emission) ? emission : 0);
+          }, 0);
+
+        setSummary((prev) => ({
+          ...prev,
+          today: Number(todayEmission.toFixed(2)),
+        }));
       } catch (error) {
-        console.error("Error fetching summary:", error);
+        console.error("Error calculating today's emission:", error);
       }
     };
 
-    fetchSummary();
+    fetchTodayEmission();
   }, []);
 
-  // Gatii "Today's Emissions" sirriitti herreeguu fi safaruu
+  // Format today's calculated emission to 2 decimal places
   const formattedTodayEmission = 
     typeof summary.today === "number" 
       ? summary.today.toFixed(2) 

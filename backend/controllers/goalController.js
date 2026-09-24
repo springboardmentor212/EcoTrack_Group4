@@ -63,7 +63,7 @@ exports.getGoals = async (req, res) => {
       // Summed co2 from tracker logs
       const trackerEmitted = categoryTotals[goalKey] || 0;
 
-      // DB-la stored currentProgress value (24.96 in Compass)
+      // DB stored currentProgress value (24.96 in Compass)
       const storedProgress = Number(goal.currentProgress) || 0;
 
       // Take whichever is greater so zero emission fallback never happens

@@ -7,7 +7,7 @@ const trackerController = require("../controllers/trackerController");
 const authenticateUser = (req, res, next) => {
   const authHeader = req.headers.authorization;
   
-  // Authorization header illana "guest" ah treat panna fallback
+  
   if (!authHeader) {
     req.userId = "guest";
     req.user = { id: "guest" };

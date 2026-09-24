@@ -13,7 +13,7 @@ exports.getDashboardData = async (req, res) => {
     ]);
     const totalEmissions = totalEmissionsResult[0]?.total || 0;
 
-    // 2. Synced Dynamic Eco Score Formula (Same as Frontend)
+    // 2. Synced Dynamic Eco Score Formula 
     const ecoScore = Math.max(10, Math.min(100, Math.round(100 - (totalEmissions * 0.35))));
 
     // 3. Category Breakdown Aggregation

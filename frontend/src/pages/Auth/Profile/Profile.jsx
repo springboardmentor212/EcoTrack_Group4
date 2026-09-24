@@ -11,8 +11,6 @@ import {
   FileText,
   User,
   LogOut,
-  CheckCircle2,
-  Clock,
   Edit3,
   PlusCircle,
   X,
@@ -30,17 +28,18 @@ export default function Profile() {
   const [profileDetails, setProfileDetails] = useState({
     location: "",
     primaryTransport: "",
-    memberSince: "January 2024",
   });
   const [isEditing, setIsEditing] = useState(false);
 
   const [stats, setStats] = useState({
     co2Emitted: 0,
+    co2Saved: 0,
+    netFootprint: 0,
     treesEquivalent: 0,
     activeStreak: 0,
   });
 
-  const [achievements, setAchievements] = useState([]);
+  const [displayGoals, setDisplayGoals] = useState([]);
   const [recentLogs, setRecentLogs] = useState([]);
 
   const fetchProfileData = async () => {
@@ -54,7 +53,7 @@ export default function Profile() {
 
       const headers = { Authorization: `Bearer ${token}` };
 
-      // 1. Fetch User Info - FIX 4: Clean generic fallbacks
+      // 1. Fetch User Info
       try {
         const userRes = await axios.get("http://localhost:5000/api/auth/me", { headers });
         if (userRes.data) {
@@ -79,7 +78,6 @@ export default function Profile() {
           setProfileDetails({
             location: profileRes.data.location || "",
             primaryTransport: profileRes.data.primaryTransport || "",
-            memberSince: profileRes.data.memberSince || "January 2024",
           });
         }
       } catch (err) {
@@ -95,12 +93,20 @@ export default function Profile() {
           if (logs.length > 0) {
             setRecentLogs(logs.slice(0, 3));
 
-            const totalCO2 = logs.reduce((sum, log) => {
-              const val = Number(log.carbonOutput || log.co2 || log.co2Saved || 0);
-              return sum + val;
-            }, 0);
+            let totalEmissions = 0;
+            let totalSaved = 0;
 
-            const trees = Math.round(totalCO2 / 21);
+            logs.forEach((log) => {
+              const mode = log.activityMode || (log.carbonSaved > 0 ? "saving" : "emission");
+              if (mode === "saving") {
+                totalSaved += Number(log.carbonSaved || log.co2 || 0);
+              } else {
+                totalEmissions += Number(log.carbonOutput || log.co2 || 0);
+              }
+            });
+
+            const netFootprint = Math.max(0, totalEmissions - totalSaved);
+            const trees = Math.round(totalSaved / 21);
 
             const uniqueDates = new Set(
               logs.map((log) => {
@@ -110,7 +116,9 @@ export default function Profile() {
             );
 
             setStats({
-              co2Emitted: Number(totalCO2.toFixed(1)),
+              co2Emitted: Number(totalEmissions.toFixed(1)),
+              co2Saved: Number(totalSaved.toFixed(1)),
+              netFootprint: Number(netFootprint.toFixed(1)),
               treesEquivalent: trees,
               activeStreak: uniqueDates.size,
             });
@@ -120,12 +128,25 @@ export default function Profile() {
         console.error("Tracker Logs Fetch Error:", err);
       }
 
-      // 4. Fetch Goals
+      // 4. Fetch Goals (Max 3 Goals: 1 recent completed + 2 active)
       try {
         const goalsRes = await axios.get("http://localhost:5000/api/goals", { headers });
         if (goalsRes.data) {
-          const goalList = goalsRes.data.goals || (Array.isArray(goalsRes.data) ? goalsRes.data : []);
-          setAchievements(goalList.slice(0, 3));
+          const allGoals = goalsRes.data.goals || (Array.isArray(goalsRes.data) ? goalsRes.data : []);
+          
+          const completed = goalsRes.data.completedGoals || allGoals.filter((g) => g.isCompleted);
+          const active = goalsRes.data.activeGoals || allGoals.filter((g) => !g.isCompleted);
+
+          let selectedGoals = [];
+
+          if (completed.length > 0) {
+            selectedGoals.push(completed[0]);
+            selectedGoals = selectedGoals.concat(active.slice(0, 2));
+          } else {
+            selectedGoals = active.slice(0, 3);
+          }
+
+          setDisplayGoals(selectedGoals);
         }
       } catch (err) {
         console.error("Goals Fetch Error:", err);
@@ -189,6 +210,7 @@ export default function Profile() {
         </header>
 
         <div className="profile-figma-grid">
+          {/* LEFT COLUMN */}
           <div className="left-column">
             <div className="profile-card">
               <div className="avatar-wrapper">
@@ -198,16 +220,12 @@ export default function Profile() {
               </div>
               <h3 className="user-name">{user.name || "User"}</h3>
               <p className="user-email">{user.email || "No email"}</p>
-              <span className="user-badge">ECO HERO LEVEL 4</span>
+             
 
               <div className="info-details">
                 <div className="info-row">
                   <span>Location</span>
                   <strong>{profileDetails.location || "Not Set"}</strong>
-                </div>
-                <div className="info-row">
-                  <span>Member Since</span>
-                  <strong>{profileDetails.memberSince}</strong>
                 </div>
                 <div className="info-row">
                   <span>Primary Transport</span>
@@ -239,57 +257,103 @@ export default function Profile() {
             </div>
           </div>
 
+          {/* RIGHT COLUMN */}
           <div className="right-column">
+            {/* 4 METRIC CARDS ROW */}
             <div className="metrics-row">
               <div className="metric-card">
                 <p className="metric-label">CO₂ Emitted</p>
                 <h2 className="metric-value">{stats.co2Emitted} kg</h2>
-                <span className="metric-sub text-green">Dynamic total impact</span>
+                <span className="metric-sub text-gray">Gross Output</span>
+              </div>
+
+              <div className="metric-card">
+                <p className="metric-label">CO₂ Saved</p>
+                <h2 className="metric-value" style={{ color: "#10b981" }}>
+                  {stats.co2Saved} kg
+                </h2>
+                <span className="metric-sub text-green">Total Avoided</span>
+              </div>
+
+              <div className="metric-card">
+                <p className="metric-label">Net Footprint</p>
+                <h2 className="metric-value">{stats.netFootprint} kg</h2>
+                <span className="metric-sub text-gray">Emitted − Saved</span>
               </div>
 
               <div className="metric-card">
                 <p className="metric-label">Trees Equivalent</p>
-                <h2 className="metric-value">{stats.treesEquivalent} Trees</h2>
-                <span className="metric-sub text-gray">Lifetime impact</span>
-              </div>
-
-              {/* FIX 5: Accurate Label */}
-              <div className="metric-card">
-                <p className="metric-label">Active Activity Days</p>
-                <h2 className="metric-value">{stats.activeStreak} Days</h2>
-                <span className="metric-sub text-gray">Unique logged days</span>
+                <h2 className="metric-value" style={{ color: "#10b981" }}>
+                  {stats.treesEquivalent}
+                </h2>
+                <span className="metric-sub text-green">Based on CO₂ Saved</span>
               </div>
             </div>
 
-            <div className="panel-card">
-              <h3>Recent Goals</h3>
+            {/* GOALS SUMMARY PANEL */}
+            <div className="panel-card goal-summary-panel">
+              <h3>Goal Progress Summary</h3>
               <div className="item-list">
-                {achievements.length === 0 ? (
+                {displayGoals.length === 0 ? (
                   <p className="item-sub" style={{ textAlign: "center", padding: "10px 0" }}>
-                    No goals created yet.
+                    No goals found.
                   </p>
                 ) : (
-                  achievements.map((item, idx) => {
-                    const isDone = Boolean(item.isCompleted);
-                    const isExceeded = Boolean(item.isLimitExceeded);
+                  displayGoals.map((goal) => {
+                    const isDone = Boolean(goal.isCompleted);
+                    const targetVal = Number(goal.targetValue || 0);
+                    const rawProgress = Number(goal.currentProgress || 0);
+                    const displayProgress = isDone 
+                      ? targetVal 
+                      : Math.min(rawProgress, targetVal);
 
                     return (
-                      <div className="achievement-item" key={item._id || idx}>
-                        <div className={`icon-box ${isDone ? "green" : "gray"}`}>
-                          {isDone ? <CheckCircle2 size={16} /> : <Clock size={16} />}
+                      <div
+                        key={goal._id}
+                        style={{
+                          padding: "12px",
+                          borderRadius: "8px",
+                          background: isDone ? "#f0fdf4" : "#f8fafc",
+                          border: isDone ? "1px solid #10b981" : "1px solid #e2e8f0",
+                        }}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", fontWeight: "600", marginBottom: "4px" }}>
+                          <span>
+                            {isDone ? `✓ ${goal.title}` : goal.title} ({goal.category || "Overall"})
+                          </span>
+                          <span style={{ color: isDone ? "#10b981" : "#2563eb" }}>
+                            {isDone ? "100% Completed ✅" : `${goal.percent || 0}%`}
+                          </span>
                         </div>
-                        <div>
-                          <p className="item-title">
-                            {item.title}{" "}
-                            {isDone
-                              ? "(Completed)"
-                              : isExceeded
-                              ? "(Limit Exceeded)"
-                              : "(In Progress)"}
-                          </p>
-                          <p className="item-sub">
-                            Category: {item.category || "General"}
-                          </p>
+
+                        <div
+                          className="progress-track"
+                          style={{
+                            height: "6px",
+                            background: "#e2e8f0",
+                            borderRadius: "99px",
+                            margin: "6px 0",
+                            overflow: "hidden",
+                          }}
+                        >
+                          <div
+                            className="progress-fill"
+                            style={{
+                              width: `${goal.percent || 0}%`,
+                              background: isDone ? "#10b981" : "#2563eb",
+                              height: "100%",
+                              transition: "width 0.3s ease",
+                            }}
+                          />
+                        </div>
+
+                        <div className="goal-progress-details">
+                          <span>
+                            Progress: {displayProgress} / {targetVal} kg
+                          </span>
+                          <span>
+                            Saved: {Number(goal.totalSaved || 0).toFixed(1)} kg &nbsp;|&nbsp; Emitted: {Number(goal.totalEmitted || 0).toFixed(1)} kg
+                          </span>
                         </div>
                       </div>
                     );
@@ -298,6 +362,7 @@ export default function Profile() {
               </div>
             </div>
 
+            {/* RECENT ACTIVITY PANEL */}
             <div className="panel-card">
               <h3>Recent Activity</h3>
               <div className="item-list">
@@ -307,7 +372,10 @@ export default function Profile() {
                   </p>
                 ) : (
                   recentLogs.map((log, idx) => {
-                    const co2Val = log.carbonOutput || log.co2 || 0;
+                    const mode = log.activityMode || (log.carbonSaved > 0 ? "saving" : "emission");
+                    const co2Val = mode === "saving" 
+                      ? (log.carbonSaved || log.co2 || 0) 
+                      : (log.carbonOutput || log.co2 || 0);
                     const activityName = log.activityType || log.subType || log.category || "Eco Activity";
                     const dateStr = log.activityDate || log.date || "Recent";
 
@@ -317,8 +385,8 @@ export default function Profile() {
                           <p className="item-title">{activityName}</p>
                           <p className="item-sub">{dateStr} • {log.category}</p>
                         </div>
-                        <span className="tag-saved">
-                          +{Number(co2Val).toFixed(1)} kg CO₂
+                        <span className="tag-saved" style={{ color: mode === "saving" ? "#10b981" : "#0f172a" }}>
+                          {mode === "saving" ? `−${Number(co2Val).toFixed(1)} kg saved` : `+${Number(co2Val).toFixed(1)} kg`}
                         </span>
                       </div>
                     );
@@ -331,6 +399,7 @@ export default function Profile() {
         </div>
       </main>
 
+      {/* EDIT MODAL */}
       {isEditing && (
         <div className="modal-overlay">
           <div className="modal-content">

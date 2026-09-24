@@ -14,7 +14,7 @@ import ResetPassword from "./pages/Auth/ResetPassword/ResetPassword";
 import Profile from "./pages/Auth/Profile/Profile"; 
 import Dashboard from "./pages/Auth/Dashboard/Dashboard";
 
-// Import with unique explicit name to avoid any name collisions
+
 import GoalsPage from "./pages/Goal/goal";
 import Home from "./pages/Home/home";
 import CarbonFootprint from "./pages/CarbonFootprint/CarbonFootprint";

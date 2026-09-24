@@ -190,11 +190,7 @@
 
   gap: 20px !important;
 
-  /*
-    Both panels stay the same overall height.
-    This allows the right side summary to sit at the
-    same vertical level as the left breakdown.
-  */
+ 
   align-items: stretch !important;
 
   min-width: 0;
@@ -429,15 +425,6 @@
    RIGHT PANEL - HISTORICAL RECORDS
    ========================================================= */
 
-/*
-  Important:
-  History records are now INSIDE a fixed-height area.
-
-  When records increase:
-  - Card height will NOT increase
-  - Scrollbar will appear
-  - Monthly Summary will remain in the same position
-*/
 
 .carbon-tracker-app .history-header {
   min-height: 0;
@@ -565,17 +552,6 @@
    MONTHLY SUMMARY
    ========================================================= */
 
-/*
-  IMPORTANT:
-
-  No margin-top:auto here.
-
-  This makes Monthly Impact Summary come immediately
-  after the fixed Historical Activity Records area.
-
-  So it stays aligned with the lower section of the
-  left panel instead of leaving a huge empty gap.
-*/
 
 .carbon-tracker-app .monthly-summary {
   margin-top: 0 !important;

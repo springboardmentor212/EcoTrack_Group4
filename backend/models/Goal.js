@@ -5,7 +5,7 @@ const goalSchema = new mongoose.Schema(
     userId: {
       type: String,
       default: "guest",
-      index: true, // Faster query performance-kaaga
+      index: true,
     },
     title: {
       type: String,
@@ -14,6 +14,11 @@ const goalSchema = new mongoose.Schema(
     category: {
       type: String,
       default: "General",
+    },
+    goalType: {
+      type: String,
+      enum: ["emission_limit", "saving_target"],
+      default: "emission_limit",
     },
     targetValue: {
       type: Number,

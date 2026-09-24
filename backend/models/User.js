@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema(
     googleId: { 
       type: String, 
       default: "" 
-    }, // Google Auth-kaga add panni irukkom
+    }, 
     agreeTerms: { 
       type: Boolean, 
       default: true 

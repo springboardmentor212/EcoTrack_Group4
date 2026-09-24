@@ -31,7 +31,7 @@ app.use("/api/tracker", trackerRoutes);
 if (goalRoutes) {
   app.use("/api/goals", goalRoutes);
 }
-app.use("/api/profile", profileRoutes); // <-- ADD THIS LINE
+app.use("/api/profile", profileRoutes);
 
 // 404 Fallback
 app.use((req, res) => {

@@ -11,13 +11,28 @@ const getUserId = (req) => {
   );
 };
 
-// 1. Log Activity
+// 1. Log Activity (Emissions & Savings)
 exports.logActivity = async (req, res) => {
   try {
-    const { category, activityType, subType, value, carbonOutput, co2, activityDate, date } = req.body;
-    const currentUserId = getUserId(req);
+    const { 
+      category, 
+      activityType, 
+      subType, 
+      value, 
+      passengers,
+      activityMode,
+      carbonOutput, 
+      carbonSaved,
+      co2, 
+      activityDate, 
+      date 
+    } = req.body;
 
-    const co2Value = Number(co2 !== undefined ? co2 : carbonOutput) || 0;
+    const currentUserId = getUserId(req);
+    const mode = activityMode === "saving" ? "saving" : "emission";
+    
+    const outputVal = mode === "emission" ? (Number(carbonOutput !== undefined ? carbonOutput : co2) || 0) : 0;
+    const savedVal = mode === "saving" ? (Number(carbonSaved) || 0) : 0;
     const usageValue = Number(value) || 0;
     const cleanCategory = category || "General";
 
@@ -25,8 +40,12 @@ exports.logActivity = async (req, res) => {
       userId: currentUserId,
       category: cleanCategory,
       subType: subType || activityType || "",
+      activityMode: mode,
       value: usageValue,
-      co2: co2Value,
+      passengers: Number(passengers) || 1,
+      carbonOutput: outputVal,
+      carbonSaved: savedVal,
+      co2: mode === "saving" ? savedVal : outputVal,
       date: date || activityDate || new Date().toISOString().split("T")[0],
     });
 
@@ -61,8 +80,11 @@ exports.getHistory = async (req, res) => {
       _id: item._id,
       category: item.category,
       activityType: item.subType || item.category,
+      activityMode: item.activityMode || (item.carbonSaved > 0 ? "saving" : "emission"),
       value: item.value,
-      carbonOutput: item.co2 !== undefined ? item.co2 : item.carbonOutput || 0,
+      passengers: item.passengers || 1,
+      carbonOutput: Number(item.carbonOutput || (item.activityMode === "saving" ? 0 : item.co2) || 0),
+      carbonSaved: Number(item.carbonSaved || (item.activityMode === "saving" ? item.co2 : 0) || 0),
       activityDate: item.date || item.createdAt?.toISOString()?.split("T")[0],
     }));
 
@@ -73,7 +95,7 @@ exports.getHistory = async (req, res) => {
   }
 };
 
-// 3. Get Summary
+// 3. Get Summary (Net Footprint Computation)
 exports.getSummary = async (req, res) => {
   try {
     const currentUserId = getUserId(req);
@@ -89,50 +111,52 @@ exports.getSummary = async (req, res) => {
 
     const history = await Tracker.find({ $or: userQuery }).lean();
 
-    let totalCarbon = 0;
-    let todayCarbon = 0;
-    let monthCarbon = 0;
+    let totalEmissions = 0;
+    let totalSaved = 0;
 
-    const now = new Date();
-    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    const currentMonthStr = todayStr.substring(0, 7);
-
-    const categoryBreakdown = { Transport: 0, Energy: 0, Food: 0, Waste: 0, Water: 0 };
+    const categoryBreakdown = {
+      Transport: { emitted: 0, saved: 0 },
+      Energy: { emitted: 0, saved: 0 },
+      Food: { emitted: 0, saved: 0 },
+      Waste: { emitted: 0, saved: 0 },
+      Water: { emitted: 0, saved: 0 }
+    };
 
     (history || []).forEach((item) => {
-      const co2Val = Number(item.co2 !== undefined ? item.co2 : item.carbonOutput) || 0;
-      totalCarbon += co2Val;
+      const mode = item.activityMode || (item.carbonSaved > 0 ? "saving" : "emission");
+      const emittedVal = mode === "emission" ? Number(item.carbonOutput || item.co2 || 0) : 0;
+      const savedVal = mode === "saving" ? Number(item.carbonSaved || item.co2 || 0) : 0;
 
-      let itemDateStr = "";
-      if (item.date) {
-        itemDateStr = String(item.date).split("T")[0];
-      } else if (item.createdAt) {
-        itemDateStr = new Date(item.createdAt).toISOString().split("T")[0];
-      }
+      totalEmissions += emittedVal;
+      totalSaved += savedVal;
 
-      if (itemDateStr === todayStr) todayCarbon += co2Val;
-      if (itemDateStr && itemDateStr.startsWith(currentMonthStr)) monthCarbon += co2Val;
-
-      if (categoryBreakdown[item.category] !== undefined) {
-        categoryBreakdown[item.category] += co2Val;
+      if (categoryBreakdown[item.category]) {
+        categoryBreakdown[item.category].emitted += emittedVal;
+        categoryBreakdown[item.category].saved += savedVal;
       }
     });
 
+    const netFootprint = Math.max(0, totalEmissions - totalSaved);
+
     return res.status(200).json({
-      today: Number(todayCarbon.toFixed(2)),
-      thisMonth: Number(monthCarbon.toFixed(2)),
-      total: Number(totalCarbon.toFixed(2)),
-      totalCarbon: totalCarbon.toFixed(1),
+      totalEmissions: Number(totalEmissions.toFixed(2)),
+      totalSaved: Number(totalSaved.toFixed(2)),
+      netFootprint: Number(netFootprint.toFixed(2)),
       categoryBreakdown,
     });
   } catch (error) {
     console.error("Error in getSummary:", error);
     return res.status(200).json({
-      today: 0,
-      thisMonth: 0,
-      total: 0,
-      totalCarbon: "0.0",
-      categoryBreakdown: { Transport: 0, Energy: 0, Food: 0, Waste: 0, Water: 0 },
+      totalEmissions: 0,
+      totalSaved: 0,
+      netFootprint: 0,
+      categoryBreakdown: {
+        Transport: { emitted: 0, saved: 0 },
+        Energy: { emitted: 0, saved: 0 },
+        Food: { emitted: 0, saved: 0 },
+        Waste: { emitted: 0, saved: 0 },
+        Water: { emitted: 0, saved: 0 }
+      },
     });
   }
 };

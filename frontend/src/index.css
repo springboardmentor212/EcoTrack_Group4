@@ -48,16 +48,16 @@ code {
   min-height: 100vh;
 }
 
-/* Sidebar height & structure fix */
+
 .sidebar {
   width: 230px !important;
   min-width: 230px !important;
-  height: 100vh !important;           /* Screen-oda full height-u fix aagum */
-  position: sticky !important;        /* Page scroll aanaalum sidebar same place-la irukkum */
+  height: 100vh !important;          
+  position: sticky !important;        
   top: 0 !important;
   background: #ffffff !important;
   border-right: 1px solid var(--border-color) !important;
-  padding-top: 24px !important;       /* Top padding standard-a irukkum */
+  padding-top: 24px !important;       
   padding-bottom: 24px !important;
   padding-left: 16px !important;
   padding-right: 16px !important;
@@ -67,7 +67,7 @@ code {
   z-index: 50 !important;
 }
 
-/* EcoTrack Logo & Title Section (Gap Fix) */
+
 .sidebar-brand {
   display: flex !important;
   align-items: center !important;
@@ -77,15 +77,15 @@ code {
   font-size: 18px !important;
   line-height: 1.2 !important;
   
-  /* Intha margin-bottom thaan EcoTrack & Home gap-a ellam page-lum fix pannum */
+ 
   margin-top: 0 !important;
-  margin-bottom: 24px !important;    /* Fixed exact gap between logo and Home */
+  margin-bottom: 24px !important;    
   padding-left: 8px !important;
-  height: 32px !important;            /* Fixed brand header height */
+  height: 32px !important;           
   flex-shrink: 0 !important;
 }
 
-/* Menu Container */
+
 .sidebar-menu {
   display: flex !important;
   flex-direction: column !important;
@@ -94,12 +94,12 @@ code {
   padding-top: 0 !important;
 }
 
-/* Base Menu Item (Exact same height and padding everywhere) */
+
 .menu-item {
   display: flex !important;
   align-items: center !important;
   gap: 12px !important;
-  height: 42px !important;            /* Same item height for all pages */
+  height: 42px !important;            
   padding: 0 14px !important;
   border-radius: 8px !important;
   color: #475569 !important;
@@ -110,13 +110,12 @@ code {
   box-sizing: border-box !important;
 }
 
-/* Uniform Hover State (Grey highlight) */
 .menu-item:hover {
   background-color: #f1f5f9 !important;
   color: #0f172a !important;
 }
 
-/* Uniform Active State (Green highlight for current page) */
+
 .menu-item.active {
   background-color: #d1fae5 !important;  /* Light Green */
   color: #065f46 !important;            /* Dark Green Text */
