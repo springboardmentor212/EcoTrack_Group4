@@ -3,18 +3,16 @@ const mongoose = require("mongoose");
 const activitySchema = new mongoose.Schema(
   {
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type: String, 
       required: true,
     },
     category: {
       type: String,
-      enum: ["Transport", "Energy", "Food", "Waste", "Water Usage"],
       required: true,
     },
     activityType: {
       type: String,
-      required: true,
+      default: "",
     },
     value: {
       type: Number,

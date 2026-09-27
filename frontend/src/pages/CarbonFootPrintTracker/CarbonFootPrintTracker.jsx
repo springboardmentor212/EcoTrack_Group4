@@ -1,712 +1,483 @@
-import React, { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import { Link, useLocation } from "react-router-dom";
+import axios from "axios";
 import {
   Globe,
-  Home as HomeIcon,
+  Home,
   Leaf,
   Target,
   ShieldCheck,
   LayoutDashboard,
   FileText,
   User,
-  Bell,
-  ChevronDown,
-  Car,
-  Zap,
-  Utensils,
-  Trash2,
-  Droplets,
 } from "lucide-react";
 import "./CarbonFootPrintTracker.css";
-function CarbonFootPrintTracker() {
-  const [activeCategory, setActiveCategory] = useState("Transport");
-  // Transport
-  const [transportType, setTransportType] =
-    useState("Gasoline Car (Medium)");
-  const [distance, setDistance] = useState("45.5");
-  const [passengers, setPassengers] = useState("1");
-  // Energy
-  const [electricity, setElectricity] = useState("14");
-  // Food
-  const [meals, setMeals] = useState("3");
-  const [foodType, setFoodType] = useState("Vegetarian");
-  // Waste
-  const [wasteAmount, setWasteAmount] = useState("2.5");
-  const [wasteType, setWasteType] = useState("Recycled Household Waste");
-  // Water
-  const [waterAmount, setWaterAmount] = useState("120");
-  const categories = [
-    {
-      name: "Transport",
-      icon: Car,
-    },
-    {
-      name: "Energy",
-      icon: Zap,
-    },
-    {
-      name: "Food",
-      icon: Utensils,
-    },
-    {
-      name: "Waste",
-      icon: Trash2,
-    },
-    {
-      name: "Water Usage",
-      icon: Droplets,
-    },
-  ];
-  const emission = useMemo(() => {
-    if (activeCategory === "Transport") {
-      const km = Number(distance) || 0;
-      let factor = 0.192;
-      if (transportType === "Gasoline Car (Small)") {
-        factor = 0.15;
-      } else if (transportType === "Gasoline Car (Medium)") {
-        factor = 0.192;
-      } else if (transportType === "Gasoline Car (Large)") {
-        factor = 0.25;
-      } else if (transportType === "Motorcycle") {
-        factor = 0.103;
-      } else if (transportType === "Bus") {
-        factor = 0.089;
-      }
-      const passengerCount = Number(passengers) || 1;
-      return (km * factor) / passengerCount;
-    }
-    if (activeCategory === "Energy") {
-      const kwh = Number(electricity) || 0;
-      return kwh * 0.371;
-    }
-    if (activeCategory === "Food") {
-      const mealCount = Number(meals) || 0;
-      if (foodType === "Vegetarian") {
-        return mealCount * 0.6;
-      }
-      if (foodType === "Mixed") {
-        return mealCount * 1.2;
-      }
-      return mealCount * 2.0;
-    }
-    if (activeCategory === "Waste") {
-      const kg = Number(wasteAmount) || 0;
-      if (wasteType === "Recycled Household Waste") {
-        return -(kg * 0.48);
-      }
-      if (wasteType === "General Household Waste") {
-        return kg * 0.57;
-      }
-      if (wasteType === "Organic Waste") {
-        return kg * 0.35;
-      }
-      return kg * 0.8;
-    }
-    if (activeCategory === "Water Usage") {
-      const litres = Number(waterAmount) || 0;
-      return litres * 0.0033;
-    }
-    return 0;
-  }, [
-    activeCategory,
-    transportType,
-    distance,
-    passengers,
-    electricity,
-    meals,
-    foodType,
-    wasteAmount,
-    wasteType,
-    waterAmount,
-  ]);
-  const formattedEmission = emission.toFixed(1);
-  const handleCategoryChange = (category) => {
-    setActiveCategory(category);
-  };
-  const handleLogActivity = async () => {
-  try {
-    const token = localStorage.getItem("token");
 
-    let activityType = "";
-    let value = 0;
-
-    if (activeCategory === "Transport") {
-      activityType = transportType;
-      value = Number(distance);
-    } else if (activeCategory === "Energy") {
-      activityType = "Electricity";
-      value = Number(electricity);
-    } else if (activeCategory === "Food") {
-      activityType = foodType;
-      value = Number(meals);
-    } else if (activeCategory === "Waste") {
-      activityType = wasteType;
-      value = Number(wasteAmount);
-    } else if (activeCategory === "Water Usage") {
-      activityType = "Water Consumption";
-      value = Number(waterAmount);
-    }
-
-    const response = await fetch(
-      "http://localhost:5000/api/tracker/log",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          category: activeCategory,
-          activityType,
-          value,
-          passengers: Number(passengers) || 1,
-          activityDate: new Date(),
-        }),
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || "Failed to log activity");
-    }
-
-    alert(
-      `${activeCategory} activity logged successfully.\nEstimated emission: ${data.activity.carbonOutput} kg CO₂e`
-    );
-  } catch (error) {
-    console.error("Error logging activity:", error);
-    alert("Failed to log activity.");
-  }
+const CATEGORY_OPTIONS = {
+  Transport: [
+    { label: "Car (Petrol/Diesel)", factor: 0.192, type: "emission" },
+    { label: "Bus", factor: 0.089, type: "emission" },
+    { label: "Bike / Scooter", factor: 0.05, type: "emission" },
+    { label: "Electric Car", factor: 0.053, type: "emission" },
+    { label: "Cycling", factor: 0.192, type: "saving" },
+    { label: "Walking", factor: 0.192, type: "saving" },
+  ],
+  Energy: [
+    { label: "Electricity (kWh)", factor: 0.85, type: "emission" },
+    { label: "LPG Gas Cylinder", factor: 2.98, type: "emission" },
+    { label: "Energy Saving (kWh)", factor: 0.85, type: "saving" },
+  ],
+  Food: [
+    { label: "Non-Vegetarian Meals", factor: 2.5, type: "emission" },
+    { label: "Vegetarian Meals", factor: 0.5, type: "emission" },
+    { label: "Plant-Based Meal", factor: 2.0, type: "saving" },
+  ],
+  Waste: [
+    { label: "General Household Waste (kg)", factor: 0.5, type: "emission" },
+    { label: "Plastic Waste (kg)", factor: 1.8, type: "emission" },
+    { label: "Recycling (kg)", factor: 0.5, type: "saving" },
+  ],
+  Water: [
+    { label: "Water Consumption (Liters)", factor: 0.001, type: "emission" },
+    { label: "Water Saving (Liters)", factor: 0.001, type: "saving" },
+  ],
 };
+
+const CATEGORY_COLORS = {
+  Transport: "#2f6fed",
+  Energy: "#f0883e",
+  Food: "#2f7d4f",
+  Waste: "#687386",
+  Water: "#0284c7",
+};
+
+const CarbonFootPrintTracker = () => {
+  const location = useLocation();
+  const [selectedCategory, setSelectedCategory] = useState("Transport");
+  const [selectedOption, setSelectedOption] = useState("Car (Petrol/Diesel)");
+  const [usageValue, setUsageValue] = useState("");
+  const [passengers, setPassengers] = useState(1);
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+  
+  const [calculatedCO2, setCalculatedCO2] = useState(0.0);
+  const [currentFactor, setCurrentFactor] = useState(0.192);
+  const [activeMode, setActiveMode] = useState("emission");
+
+  const [loggeduser, setLoggeduser] = useState("User");
+  const [historyRecords, setHistoryRecords] = useState([]);
+  
+  const [categoryBreakdown, setCategoryBreakdown] = useState({
+    Transport: { emitted: 0, saved: 0 },
+    Energy: { emitted: 0, saved: 0 },
+    Food: { emitted: 0, saved: 0 },
+    Waste: { emitted: 0, saved: 0 },
+    Water: { emitted: 0, saved: 0 },
+  });
+
+  const [summaryData, setSummaryData] = useState({
+    totalEmissions: 0,
+    totalSaved: 0,
+    netFootprint: 0,
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  const isActive = (path) => location.pathname === path;
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser && storedUser !== "undefined") {
+      try {
+        const parsed = JSON.parse(storedUser);
+        setLoggeduser(parsed.fullName || parsed.name || parsed.username || parsed.email || "User");
+      } catch (e) {
+        setLoggeduser(storedUser);
+      }
+    }
+  }, []);
+
+  const calculateBreakdown = useCallback((records) => {
+    const breakdown = {
+      Transport: { emitted: 0, saved: 0 },
+      Energy: { emitted: 0, saved: 0 },
+      Food: { emitted: 0, saved: 0 },
+      Waste: { emitted: 0, saved: 0 },
+      Water: { emitted: 0, saved: 0 },
+    };
+
+    let totalEmitted = 0;
+    let totalSaved = 0;
+
+    records.forEach((rec) => {
+      const cat = rec.category;
+      const mode = rec.activityMode || (rec.carbonSaved > 0 ? "saving" : "emission");
+      const emitted = mode === "emission" ? (parseFloat(rec.carbonOutput || rec.co2) || 0) : 0;
+      const saved = mode === "saving" ? (parseFloat(rec.carbonSaved || rec.co2) || 0) : 0;
+
+      if (breakdown[cat]) {
+        breakdown[cat].emitted += emitted;
+        breakdown[cat].saved += saved;
+      }
+
+      totalEmitted += emitted;
+      totalSaved += saved;
+    });
+
+    setCategoryBreakdown(breakdown);
+    setSummaryData({
+      totalEmissions: Number(totalEmitted.toFixed(2)),
+      totalSaved: Number(totalSaved.toFixed(2)),
+      netFootprint: Number(Math.max(0, totalEmitted - totalSaved).toFixed(2)),
+    });
+  }, []);
+
+  const fetchTrackerData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+
+      const historyRes = await axios.get(
+        "http://localhost:5000/api/tracker/history",
+        config
+      );
+
+      const records = Array.isArray(historyRes.data)
+        ? historyRes.data
+        : historyRes.data?.logs || historyRes.data?.history || [];
+
+      setHistoryRecords(records);
+      calculateBreakdown(records);
+    } catch (err) {
+      console.error("Error fetching tracker data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [calculateBreakdown]);
+
+  useEffect(() => {
+    fetchTrackerData();
+  }, [fetchTrackerData]);
+
+  useEffect(() => {
+    const options = CATEGORY_OPTIONS[selectedCategory] || [];
+    const activeOption = options.find((opt) => opt.label === selectedOption);
+    const factor = activeOption ? activeOption.factor : 0.192;
+    const mode = activeOption ? activeOption.type : "emission";
+
+    setCurrentFactor(factor);
+    setActiveMode(mode);
+
+    const val = parseFloat(usageValue) || 0;
+    let carbonOutput = 0;
+    let carbonSaved = 0;
+
+    if (mode === "saving") {
+      carbonSaved = val * factor;
+    } else {
+      carbonOutput = val * factor;
+      if (selectedCategory === "Transport" && passengers > 0) {
+        carbonOutput /= Number(passengers);
+      }
+    }
+
+    setCalculatedCO2(mode === "saving" ? carbonSaved.toFixed(2) : carbonOutput.toFixed(2));
+  }, [selectedCategory, selectedOption, usageValue, passengers]);
+
+  const handleCategoryChange = (category) => {
+    setSelectedCategory(category);
+    const defaultOption = CATEGORY_OPTIONS[category]?.[0]?.label || "";
+    setSelectedOption(defaultOption);
+  };
+
+  const handleLogActivity = async (e) => {
+    e.preventDefault();
+    if (!usageValue || parseFloat(usageValue) <= 0) {
+      alert("Please enter a valid usage value!");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Session expired. Please log in again.");
+        return;
+      }
+
+      const options = CATEGORY_OPTIONS[selectedCategory] || [];
+      const activeOption = options.find((opt) => opt.label === selectedOption);
+      const mode = activeOption?.type || "emission";
+
+      const payload = {
+        category: selectedCategory,
+        activityType: selectedOption,
+        activityMode: mode,
+        value: Number(usageValue),
+        passengers: Number(passengers),
+        carbonOutput: mode === "emission" ? Number(calculatedCO2) : 0,
+        carbonSaved: mode === "saving" ? Number(calculatedCO2) : 0,
+        activityDate: selectedDate,
+      };
+
+      const res = await axios.post(
+        "http://localhost:5000/api/tracker/log",
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      alert("Activity logged successfully!");
+
+      const newRecord = res.data?.data ? res.data.data : { _id: Date.now(), ...payload };
+      const updatedHistory = [newRecord, ...historyRecords];
+      setHistoryRecords(updatedHistory);
+      calculateBreakdown(updatedHistory);
+
+      setUsageValue("");
+    } catch (error) {
+      console.error("Error logging activity:", error);
+      alert("Failed to log activity record.");
+    }
+  };
+
+  const getFormulaText = () => {
+    const val = usageValue ? usageValue : "0";
+    if (selectedCategory === "Transport" && activeMode === "emission" && passengers > 1) {
+      return `Formula: (${val} × ${currentFactor}) ÷ ${passengers} passengers`;
+    }
+    return `Formula: ${val} × ${currentFactor} factor`;
+  };
+
   return (
     <div className="carbon-tracker-app">
-      {/* ================= SIDEBAR ================= */}
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <Globe size={18} strokeWidth={2} />
+          <Globe size={22} color="#059669" strokeWidth={2.2} />
           <span>EcoTrack</span>
         </div>
+
         <nav className="sidebar-menu">
-          <Link to="/home" className="menu-item">
-            <HomeIcon size={16} />
+          <Link to="/home" className={`menu-item ${isActive("/home") ? "active" : ""}`}>
+            <Home size={16} />
             <span>Home</span>
           </Link>
-          <Link to="/carbon-footprint-tracker"className="menu-item active">
+          <Link to="/carbon-footprint-tracker" className={`menu-item ${isActive("/carbon-footprint-tracker") ? "active" : ""}`}>
             <Leaf size={16} />
             <span>Carbon Tracker</span>
           </Link>
-          <Link to="/goals" className="menu-item">
+          <Link to="/goals" className={`menu-item ${isActive("/goals") ? "active" : ""}`}>
             <Target size={16} />
             <span>Goals</span>
           </Link>
-          <Link to="/challenges" className="menu-item">
+          <Link to="/challenges" className={`menu-item ${isActive("/challenges") ? "active" : ""}`}>
             <ShieldCheck size={16} />
             <span>Challenges</span>
           </Link>
-
-          <a href="/dashboard" className="menu-item">
+          <Link to="/dashboard" className={`menu-item ${isActive("/dashboard") ? "active" : ""}`}>
             <LayoutDashboard size={16} />
             <span>Dashboard</span>
-          </a>
-          <a href="#" className="menu-item">
+          </Link>
+          <Link to="/reports" className={`menu-item ${isActive("/reports") ? "active" : ""}`}>
             <FileText size={16} />
             <span>Reports</span>
-          </a>
-          <Link to="/profile" className="menu-item">
+          </Link>
+          <Link to="/profile" className={`menu-item ${isActive("/profile") ? "active" : ""}`}>
             <User size={16} />
             <span>Profile</span>
           </Link>
         </nav>
       </aside>
-      {/* ================= MAIN CONTENT ================= */}
+
       <main className="main-content">
-        {/* ================= HEADER ================= */}
-        <div className="page-header">
+        <header className="page-header">
           <div>
             <h1>Carbon Footprint Tracker</h1>
-            <p>
-              Log & Calculate Activity Emissions
-            </p>
+            <p>Log & Calculate Activity Emissions & CO₂ Savings</p>
           </div>
           <div className="header-actions">
-            <button className="icon-button">
-              <Bell size={16} strokeWidth={2} />
-            </button>
+            <div className="icon-button">🔥</div>
             <div className="user-chip">
-              <span className="user-chip-avatar">
-                <User size={12} strokeWidth={2.5} />
-              </span>
-              <span>User</span>
-              <ChevronDown
-                size={14}
-                strokeWidth={2.5}
-              />
+              <div className="user-chip-avatar">🌱</div>
+              <span>{loggeduser}</span>
             </div>
           </div>
-        </div>
-        {/* ================= MAIN GRID ================= */}
+        </header>
+
         <div className="tracker-grid">
-          {/* ================= LEFT PANEL ================= */}
-          <section className="tracker-panel">
-            <h2>Log Daily Activity</h2>
+          <div className="tracker-panel">
+            <h2>Log New Activity</h2>
             <p className="panel-subtitle">
-              Select a tracking category to calculate carbon output
+              Select category, option type, and enter consumption details
             </p>
-            {/* CATEGORY TABS */}
+
             <div className="category-tabs">
-              {categories.map(({ name, icon: Icon }) => (
+              {Object.keys(CATEGORY_OPTIONS).map((cat) => (
                 <button
-                  key={name}
-                  className={`category-tab ${
-                    activeCategory === name ? "active" : ""
-                  }`}
-                  onClick={() => handleCategoryChange(name)}
+                  key={cat}
+                  type="button"
+                  onClick={() => handleCategoryChange(cat)}
+                  className={`category-tab ${selectedCategory === cat ? "active" : ""}`}
                 >
-                  <Icon size={15} />
-                  <span>{name}</span>
+                  {cat}
                 </button>
               ))}
             </div>
-            {/* ================= ACTIVITY FORM ================= */}
+
             <div className="activity-area">
-              {/* TRANSPORT */}
-              {activeCategory === "Transport" && (
-                <>
-                  <div className="form-grid">
-                    <div className="form-group">
-                      <label>Transportation Type</label>
-                      <div className="select-wrap">
-                        <select
-                          value={transportType}
-                          onChange={(e) =>
-                            setTransportType(e.target.value)
-                          }
-                        >
-                          <option>
-                            Gasoline Car (Small)
-                          </option>
-                          <option>
-                            Gasoline Car (Medium)
-                          </option>
-                          <option>
-                            Gasoline Car (Large)
-                          </option>
-                          <option>
-                            Motorcycle
-                          </option>
-                          <option>
-                            Bus
-                          </option>
-                        </select>
-                        <ChevronDown size={15} />
-                      </div>
-                    </div>
-                    <div className="form-group">
-                      <label>Distance Traveled (km)</label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={distance}
-                        onChange={(e) =>
-                          setDistance(e.target.value)
-                        }
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Activity Date</label>
-                      <input
-                        type="date"
-                        defaultValue="2026-08-29"
-                      />
-                    </div>
+              <form onSubmit={handleLogActivity}>
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label>Select Activity Option / Type</label>
+                    <select
+                      value={selectedOption}
+                      onChange={(e) => setSelectedOption(e.target.value)}
+                    >
+                      {CATEGORY_OPTIONS[selectedCategory]?.map((opt) => (
+                        <option key={opt.label} value={opt.label}>
+                          {opt.label} ({opt.type === "saving" ? "Saving" : "Emission"} Factor: {opt.factor})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Usage Value</label>
+                    <input
+                      type="number"
+                      placeholder="Enter value"
+                      value={usageValue}
+                      onChange={(e) => setUsageValue(e.target.value)}
+                    />
+                  </div>
+
+                  {selectedCategory === "Transport" && activeMode === "emission" && (
                     <div className="form-group">
                       <label>Number of Passengers</label>
-                      <div className="select-wrap">
-                        <select
-                          value={passengers}
-                          onChange={(e) =>
-                            setPassengers(e.target.value)
-                          }
-                        >
-                          <option value="1">
-                            1 (Solo)
-                          </option>
-                          <option value="2">
-                            2 Passengers
-                          </option>
-                          <option value="3">
-                            3 Passengers
-                          </option>
-                          <option value="4">
-                            4 Passengers
-                          </option>
-                        </select>
-                        <ChevronDown size={15} />
+                      <input
+                        type="number"
+                        min="1"
+                        value={passengers}
+                        onChange={(e) => setPassengers(Math.max(1, Number(e.target.value)))}
+                      />
+                    </div>
+                  )}
+
+                  <div className="form-group">
+                    <label>Activity Date</label>
+                    <input
+                      type="date"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="emission-box">
+                  <div>
+                    <p>{activeMode === "saving" ? "Estimated CO₂ Saved" : "Estimated Carbon Emission Output"}</p>
+                    <strong>{calculatedCO2} kg CO₂e</strong>
+                  </div>
+                  <span className="formula">{getFormulaText()}</span>
+                </div>
+
+                <button type="submit" className="log-button">
+                  + Log Activity Record
+                </button>
+              </form>
+
+              <div className="breakdown">
+                <h2>Category Breakdown</h2>
+                {Object.entries(categoryBreakdown).map(([cat, data]) => {
+                  const netCat = Math.max(0, data.emitted - data.saved);
+                  const pct = summaryData.totalEmissions > 0 
+                    ? ((data.emitted / summaryData.totalEmissions) * 100).toFixed(1)
+                    : "0.0";
+
+                  return (
+                    <div key={cat} className="breakdown-item">
+                      <div>
+                        <span>{cat}</span>
+                        <strong>
+                          Emitted: {data.emitted.toFixed(1)}kg | Saved: {data.saved.toFixed(1)}kg
+                        </strong>
+                      </div>
+                      <div className="breakdown-track">
+                        <div
+                          className="breakdown-fill"
+                          style={{
+                            width: `${pct}%`,
+                            backgroundColor: CATEGORY_COLORS[cat] || "var(--carbon-green-600)",
+                          }}
+                        ></div>
                       </div>
                     </div>
-                  </div>
-                </>
-              )}
-              {/* ENERGY */}
-              {activeCategory === "Energy" && (
-                <div className="single-form">
-                  <div className="form-group">
-                    <label>Electricity Consumption (kWh)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={electricity}
-                      onChange={(e) =>
-                        setElectricity(e.target.value)
-                      }
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Activity Date</label>
-                    <input
-                      type="date"
-                      defaultValue="2026-08-29"
-                    />
-                  </div>
-                  <div className="category-info energy-info">
-                    <Zap size={20} />
-                    <div>
-                      <strong>Energy Usage</strong>
-                      <p>
-                        Enter the electricity consumed during
-                        the selected activity period.
-                      </p>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="history-panel">
+            <div className="history-header">
+              <h2>Historical Activity Records</h2>
+              <p className="panel-subtitle">Recent activity logs</p>
+            </div>
+
+            <div className="records-scroll-list">
+              {loading ? (
+                <p style={{ fontSize: "12px", color: "var(--carbon-text-muted)" }}>Loading records...</p>
+              ) : historyRecords.length === 0 ? (
+                <p style={{ fontSize: "12px", color: "var(--carbon-text-muted)" }}>No records logged yet.</p>
+              ) : (
+                historyRecords.map((item, idx) => {
+                  const mode = item.activityMode || (item.carbonSaved > 0 ? "saving" : "emission");
+                  const val = mode === "saving" 
+                    ? (item.carbonSaved || item.co2 || 0) 
+                    : (item.carbonOutput || item.co2 || 0);
+
+                  const activityName = item.activityType || item.category || "Activity";
+                  const displayDate = item.activityDate ? item.activityDate.split("T")[0] : item.date || "";
+
+                  return (
+                    <div key={item._id || idx} className="history-item">
+                      <div className={`history-icon ${mode === "saving" ? "green" : "blue"}`}>
+                        {mode === "saving" ? "🌱" : "🍃"}
+                      </div>
+                      <div className="history-content">
+                        <strong>{activityName}</strong>
+                        <span>{displayDate} • {item.category}</span>
+                      </div>
+                      <div className={`history-emission ${mode === "saving" ? "negative" : "positive"}`}>
+                        {mode === "saving" ? `−${Number(val).toFixed(2)} kg saved` : `+${Number(val).toFixed(2)} kg`}
+                      </div>
                     </div>
-                  </div>
-                </div>
-              )}
-              {/* FOOD */}
-              {activeCategory === "Food" && (
-                <div className="single-form">
-                  <div className="form-group">
-                    <label>Number of Meals</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={meals}
-                      onChange={(e) =>
-                        setMeals(e.target.value)
-                      }
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Food Type</label>
-                    <div className="select-wrap">
-                      <select
-                        value={foodType}
-                        onChange={(e) =>
-                          setFoodType(e.target.value)
-                        }
-                      >
-                        <option>
-                          Vegetarian
-                        </option>
-                        <option>
-                          Mixed
-                        </option>
-                        <option>
-                          Non-Vegetarian
-                        </option>
-                      </select>
-                      <ChevronDown size={15} />
-                    </div>
-                  </div>
-                  <div className="category-info food-info">
-                    <Utensils size={20} />
-                    <div>
-                      <strong>Food & Diet</strong>
-                      <p>
-                        Record your meals to estimate the
-                        associated food-related emissions.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              {/* WASTE */}
-              {activeCategory === "Waste" && (
-                <div className="single-form">
-                  <div className="form-group">
-                    <label>Waste Amount (kg)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={wasteAmount}
-                      onChange={(e) =>
-                        setWasteAmount(e.target.value)
-                      }
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Waste Type</label>
-                    <div className="select-wrap">
-                      <select
-                        value={wasteType}
-                        onChange={(e) =>
-                          setWasteType(e.target.value)
-                        }
-                      >
-                        <option>
-                          Recycled Household Waste
-                        </option>
-                        <option>
-                          General Household Waste
-                        </option>
-                        <option>
-                          Organic Waste
-                        </option>
-                        <option>
-                          Plastic Waste
-                        </option>
-                      </select>
-                      <ChevronDown size={15} />
-                    </div>
-                  </div>
-                  <div className="category-info waste-info">
-                    <Trash2 size={20} />
-                    <div>
-                      <strong>Waste Management</strong>
-                      <p>
-                        Recycled waste can result in avoided
-                        emissions, represented as a negative value.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              {/* WATER */}
-              {activeCategory === "Water Usage" && (
-                <div className="single-form">
-                  <div className="form-group">
-                    <label>Water Consumption (Litres)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={waterAmount}
-                      onChange={(e) =>
-                        setWaterAmount(e.target.value)
-                      }
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Activity Date</label>
-                    <input
-                      type="date"
-                      defaultValue="2026-08-29"
-                    />
-                  </div>
-                  <div className="category-info water-info">
-                    <Droplets size={20} />
-                    <div>
-                      <strong>Water Consumption</strong>
-                      <p>
-                        Record your water usage to estimate its
-                        associated carbon impact.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                  );
+                })
               )}
             </div>
-            {/* ================= EMISSION OUTPUT ================= */}
-            <div className="emission-box">
-              <div>
-                <p>Estimated Carbon Emission Output</p>
-                <strong>
-                  {formattedEmission}
-                </strong>
-                <span> kg CO₂e</span>
-              </div>
-              <div className="formula">
-                Formula based on selected activity
-              </div>
-            </div>
-            {/* ================= LOG BUTTON ================= */}
-            <button
-              className="log-button"
-              onClick={handleLogActivity}
-            >
-              + Log Activity Record
-            </button>
-            {/* ================= BREAKDOWN ================= */}
-            <div className="breakdown">
-              <h2>Category Emissions Breakdown</h2>
-              <div className="breakdown-item">
-                <div>
-                  <span>Transportation</span>
-                  <strong>45%</strong>
-                </div>
-                <div className="breakdown-track">
-                  <div
-                    className="breakdown-fill"
-                    style={{ width: "45%" }}
-                  />
-                </div>
-              </div>
-              <div className="breakdown-item">
-                <div>
-                  <span>Energy Consumption</span>
-                  <strong>30%</strong>
-                </div>
-                <div className="breakdown-track">
-                  <div
-                    className="breakdown-fill"
-                    style={{ width: "30%" }}
-                  />
-                </div>
-              </div>
-              <div className="breakdown-item">
-                <div>
-                  <span>Food & Diet</span>
-                  <strong>15%</strong>
-                </div>
-                <div className="breakdown-track">
-                  <div
-                    className="breakdown-fill"
-                    style={{ width: "15%" }}
-                  />
-                </div>
-              </div>
-              <div className="breakdown-item">
-                <div>
-                  <span>Water & Waste</span>
-                  <strong>10%</strong>
-                </div>
-                <div className="breakdown-track">
-                  <div
-                    className="breakdown-fill"
-                    style={{ width: "10%" }}
-                  />
-                </div>
-              </div>
-            </div>
-          </section>
-          {/* ================= RIGHT PANEL ================= */}
-          <section className="history-panel">
-            <h2>Historical Activity Records</h2>
-            <p className="panel-subtitle">
-              Recent entries logged into backend
-            </p>
-            {/* RECORD 1 */}
-            <div className="history-item">
-              <div className="history-icon green">
-                <Car size={18} />
-              </div>
-              <div className="history-content">
-                <strong>
-                  Car Commute (Gasoline)
-                </strong>
-                <span>
-                  45.5 km • Today
-                </span>
-              </div>
-              <strong className="history-emission positive">
-                +8.7 kg
-              </strong>
-            </div>
-            {/* RECORD 2 */}
-            <div className="history-item">
-              <div className="history-icon green">
-                <Zap size={18} />
-              </div>
-              <div className="history-content">
-                <strong>
-                  Electricity Usage
-                </strong>
-                <span>
-                  14 kWh • Yesterday
-                </span>
-              </div>
-              <strong className="history-emission positive">
-                +5.2 kg
-              </strong>
-            </div>
-            {/* RECORD 3 */}
-            <div className="history-item">
-              <div className="history-icon blue">
-                <Droplets size={18} />
-              </div>
-              <div className="history-content">
-                <strong>
-                  Water Consumption
-                </strong>
-                <span>
-                  120 L • 2 days ago
-                </span>
-              </div>
-              <strong className="history-emission positive">
-                +0.4 kg
-              </strong>
-            </div>
-            {/* RECORD 4 */}
-            <div className="history-item">
-              <div className="history-icon orange">
-                <Utensils size={18} />
-              </div>
-              <div className="history-content">
-                <strong>
-                  Vegetarian Meal Log
-                </strong>
-                <span>
-                  3 Meals • 3 days ago
-                </span>
-              </div>
-              <strong className="history-emission positive">
-                +1.8 kg
-              </strong>
-            </div>
-            {/* RECORD 5 */}
-            <div className="history-item">
-              <div className="history-icon gray">
-                <Trash2 size={18} />
-              </div>
-              <div className="history-content">
-                <strong>
-                  Recycled Household Waste
-                </strong>
-                <span>
-                  2.5 kg • 4 days ago
-                </span>
-              </div>
-              <strong className="history-emission negative">
-                -1.2 kg
-              </strong>
-            </div>
-            {/* ================= MONTHLY SUMMARY ================= */}
+
             <div className="monthly-summary">
               <h2>Monthly Impact Summary</h2>
               <div className="summary-row">
-                <span>Total Logged Emissions</span>
-                <strong>
-                  148.5 kg CO₂e
-                </strong>
+                <span>Total Emissions</span>
+                <strong>{summaryData.totalEmissions.toFixed(1)} kg CO₂e</strong>
               </div>
               <div className="summary-row">
-                <span>Avg. Daily Emissions</span>
-                <strong>
-                  4.95 kg/day
-                </strong>
+                <span>CO₂ Saved</span>
+                <strong style={{ color: "#10b981" }}>{summaryData.totalSaved.toFixed(1)} kg CO₂e</strong>
               </div>
               <div className="summary-row">
-                <span>Reduction vs. Last Month</span>
-                <strong className="reduction">
-                  -12.4%
-                </strong>
-              </div>
-              <div className="summary-progress">
-                <div />
+                <span>Net Footprint</span>
+                <strong>{summaryData.netFootprint.toFixed(1)} kg CO₂e</strong>
               </div>
             </div>
-          </section>
+          </div>
         </div>
       </main>
     </div>
   );
-}
+};
+
 export default CarbonFootPrintTracker;

@@ -1,172 +1,162 @@
-const Activity = require("../models/Activity");
+const Tracker = require("../models/Tracker");
 const mongoose = require("mongoose");
 
-const calculateEmission = (category, type, value, passengers = 1) => {
-  let factor = 0.192;
-  if (category === "Transport") factor = 0.192;
-  if (category === "Energy") factor = 0.385;
-  if (category === "Food") factor = 0.5;
-  if (category === "Water Usage") factor = 0.003;
-  if (category === "Waste") factor = 0.2;
-
-  return parseFloat(((value * factor) / passengers).toFixed(2));
+const getUserId = (req) => {
+  return String(
+    req.user?.id || 
+    req.user?._id || 
+    req.user?.googleId || 
+    req.user?.email || 
+    "guest"
+  );
 };
 
+// 1. Log Activity (Emissions & Savings)
 exports.logActivity = async (req, res) => {
   try {
-    const { category, activityType, value, passengers, activityDate } = req.body;
+    const { 
+      category, 
+      activityType, 
+      subType, 
+      value, 
+      passengers,
+      activityMode,
+      carbonOutput, 
+      carbonSaved,
+      co2, 
+      activityDate, 
+      date 
+    } = req.body;
 
-    const userId = req.user.id;
-    const carbonOutput = calculateEmission(
-      category,
-      activityType,
-      value,
-      passengers
-    );
+    const currentUserId = getUserId(req);
+    const mode = activityMode === "saving" ? "saving" : "emission";
+    
+    const outputVal = mode === "emission" ? (Number(carbonOutput !== undefined ? carbonOutput : co2) || 0) : 0;
+    const savedVal = mode === "saving" ? (Number(carbonSaved) || 0) : 0;
+    const usageValue = Number(value) || 0;
+    const cleanCategory = category || "General";
 
-    const newActivity = await Activity.create({
-      userId,
-      category,
-      activityType,
-      value,
-      passengers: passengers || 1,
-      carbonOutput,
-      activityDate: activityDate || new Date(),
+    const newLog = new Tracker({
+      userId: currentUserId,
+      category: cleanCategory,
+      subType: subType || activityType || "",
+      activityMode: mode,
+      value: usageValue,
+      passengers: Number(passengers) || 1,
+      carbonOutput: outputVal,
+      carbonSaved: savedVal,
+      co2: mode === "saving" ? savedVal : outputVal,
+      date: date || activityDate || new Date().toISOString().split("T")[0],
     });
 
+    await newLog.save();
 
-    res.status(201).json({
-      message: "Activity logged successfully",
-      activity: newActivity,
-    });
-
+    return res.status(201).json({ message: "Activity logged successfully", data: newLog });
   } catch (error) {
-
-    res.status(500).json({
-      message: "Error logging activity",
-      error: error.message,
-    });
+    console.error("Error in logActivity:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-exports.getHistoricalActivities = async (req, res) => {
+// 2. Get History
+exports.getHistory = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const activities = await Activity.find({ userId }).sort({ activityDate: -1 }).limit(10);
+    const currentUserId = getUserId(req);
 
-    const categoryTotals = await Activity.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
-      { $group: { _id: "$category", totalOutput: { $sum: "$carbonOutput" } } },
-    ]);
+    const userQuery = [
+      { userId: currentUserId },
+      { userId: "guest" }
+    ];
 
-    res.json({ activities, categoryTotals });
+    if (mongoose.Types.ObjectId.isValid(currentUserId)) {
+      userQuery.push({ userId: new mongoose.Types.ObjectId(currentUserId) });
+    }
+
+    const history = await Tracker.find({ $or: userQuery })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const formattedHistory = (history || []).map((item) => ({
+      _id: item._id,
+      category: item.category,
+      activityType: item.subType || item.category,
+      activityMode: item.activityMode || (item.carbonSaved > 0 ? "saving" : "emission"),
+      value: item.value,
+      passengers: item.passengers || 1,
+      carbonOutput: Number(item.carbonOutput || (item.activityMode === "saving" ? 0 : item.co2) || 0),
+      carbonSaved: Number(item.carbonSaved || (item.activityMode === "saving" ? item.co2 : 0) || 0),
+      activityDate: item.date || item.createdAt?.toISOString()?.split("T")[0],
+    }));
+
+    return res.status(200).json(formattedHistory);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching activities", error: error.message });
+    console.error("Error in getHistory:", error);
+    return res.status(200).json([]);
   }
 };
+
+// 3. Get Summary (Net Footprint Computation)
 exports.getSummary = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const currentUserId = getUserId(req);
 
+    const userQuery = [
+      { userId: currentUserId },
+      { userId: "guest" }
+    ];
 
-    const activities = await Activity.find({ userId });
+    if (mongoose.Types.ObjectId.isValid(currentUserId)) {
+      userQuery.push({ userId: new mongoose.Types.ObjectId(currentUserId) });
+    }
 
+    const history = await Tracker.find({ $or: userQuery }).lean();
 
-    const objectId = new mongoose.Types.ObjectId(userId);
+    let totalEmissions = 0;
+    let totalSaved = 0;
 
-    // Today's emissions
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    const categoryBreakdown = {
+      Transport: { emitted: 0, saved: 0 },
+      Energy: { emitted: 0, saved: 0 },
+      Food: { emitted: 0, saved: 0 },
+      Waste: { emitted: 0, saved: 0 },
+      Water: { emitted: 0, saved: 0 }
+    };
 
-    const todayEnd = new Date();
-    todayEnd.setHours(23, 59, 59, 999);
+    (history || []).forEach((item) => {
+      const mode = item.activityMode || (item.carbonSaved > 0 ? "saving" : "emission");
+      const emittedVal = mode === "emission" ? Number(item.carbonOutput || item.co2 || 0) : 0;
+      const savedVal = mode === "saving" ? Number(item.carbonSaved || item.co2 || 0) : 0;
 
-    const todayResult = await Activity.aggregate([
-      {
-        $match: {
-          userId: objectId,
-          activityDate: {
-            $gte: todayStart,
-            $lte: todayEnd
-          }
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          total: { $sum: "$carbonOutput" }
-        }
+      totalEmissions += emittedVal;
+      totalSaved += savedVal;
+
+      if (categoryBreakdown[item.category]) {
+        categoryBreakdown[item.category].emitted += emittedVal;
+        categoryBreakdown[item.category].saved += savedVal;
       }
-    ]);
-
-    // Current month's emissions
-    const monthStart = new Date(
-      new Date().getFullYear(),
-      new Date().getMonth(),
-      1
-    );
-
-    const monthResult = await Activity.aggregate([
-      {
-        $match: {
-          userId: objectId,
-          activityDate: {
-            $gte: monthStart,
-            $lte: todayEnd
-          }
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          total: { $sum: "$carbonOutput" }
-        }
-      }
-    ]);
-
-    // Total emissions
-    const totalResult = await Activity.aggregate([
-      {
-        $match: {
-          userId: objectId
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          total: { $sum: "$carbonOutput" }
-        }
-      }
-    ]);
-
-    // Category breakdown
-    const categoryTotals = await Activity.aggregate([
-      {
-        $match: {
-          userId: objectId
-        }
-      },
-      {
-        $group: {
-          _id: "$category",
-          total: { $sum: "$carbonOutput" }
-        }
-      }
-    ]);
-
-    res.json({
-      today: Number((todayResult[0]?.total || 0).toFixed(2)),
-      thisMonth: Number((monthResult[0]?.total || 0).toFixed(2)),
-      total: Number((totalResult[0]?.total || 0).toFixed(2)),
-      categoryTotals
     });
 
-  } catch (error) {
-    console.error("Error fetching carbon summary:", error);
+    const netFootprint = Math.max(0, totalEmissions - totalSaved);
 
-    res.status(500).json({
-      message: "Error fetching carbon summary",
-      error: error.message
+    return res.status(200).json({
+      totalEmissions: Number(totalEmissions.toFixed(2)),
+      totalSaved: Number(totalSaved.toFixed(2)),
+      netFootprint: Number(netFootprint.toFixed(2)),
+      categoryBreakdown,
+    });
+  } catch (error) {
+    console.error("Error in getSummary:", error);
+    return res.status(200).json({
+      totalEmissions: 0,
+      totalSaved: 0,
+      netFootprint: 0,
+      categoryBreakdown: {
+        Transport: { emitted: 0, saved: 0 },
+        Energy: { emitted: 0, saved: 0 },
+        Food: { emitted: 0, saved: 0 },
+        Waste: { emitted: 0, saved: 0 },
+        Water: { emitted: 0, saved: 0 }
+      },
     });
   }
 };

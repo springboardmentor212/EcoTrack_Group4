@@ -12,6 +12,7 @@ const GOOGLE_CLIENT_ID = "818650396288-6s2ba3aqf306cejbgvip393qreb2ef1i.apps.goo
 root.render(
   <React.StrictMode>
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      
       <App />
     </GoogleOAuthProvider>
   </React.StrictMode>
