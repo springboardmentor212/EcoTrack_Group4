@@ -178,7 +178,7 @@ function GoalsPage() {
       <aside className="sidebar">
         <div className="sidebar-brand">
           {/* <Globe className="w-5 h-5" strokeWidth={2} /> */}
-          <Globe size={22} />
+          <Globe size={20} />
           <span>EcoTrack</span>
         </div>
 
