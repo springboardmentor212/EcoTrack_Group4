@@ -48,6 +48,7 @@
 }
 
 .reports-app .sidebar-menu {
+  margin-top: -23px;
   display: grid;
   gap: 4px;
 }
