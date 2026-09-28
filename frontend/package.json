@@ -9,6 +9,7 @@
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.20.0",
+    "jwt-decode": "^4.0.0",
     "lucide-react": "^1.37.0",
     "react": "^19.2.8",
     "react-apple-login": "^1.1.6",

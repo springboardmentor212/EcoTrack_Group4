@@ -44,10 +44,10 @@
 
 /* Active Tab Highlight Pill */
 .nav-item.active {
-  width: 100%; /* Spans full width of the sidebar container */
+  width: 100%; 
   padding: 10px 16px;
   border-radius: 12px;
-  background-color: #e2f1e7; /* Soft green active background */
+  background-color: #e2f1e7; 
   box-sizing: border-box;
 }
 
@@ -123,10 +123,10 @@
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  /* Negative top margin pulls the card up to match EcoTrack */
+  
   margin-top: -10px; 
   margin-bottom: 20px;
-  /* Reduced top padding inside the white card */
+  
   padding: 10px 20px 18px; 
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
@@ -136,7 +136,7 @@
   font-size: 20px;
   font-weight: 700;
   color: #0f172a;
-  line-height: 1; /* Eliminates top text spacing */
+  line-height: 1; 
 }
 
 .welcome p {
@@ -320,7 +320,7 @@
   margin: 0 0 10px;
 }
 
-/* Calculation Callout (Inside Card) */
+
 .calculate-box {
   margin-top: 14px;
   padding: 14px 16px;

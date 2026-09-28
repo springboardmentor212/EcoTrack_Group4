@@ -1,19 +1,18 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const apiRoutes = require("./routes/apiRoutes");
 require("dotenv").config();
 
-// Routes Imports
+// Route Imports
 const authRoutes = require("./routes/authRoutes");
-const dashboardRoutes = require("./routes/dashboardRoutes");
+const trackerRoutes = require("./routes/trackerRoutes");
+const goalRoutes = require("./routes/goalRoutes");
+const profileRoutes = require("./routes/profileRoutes"); // <-- ADD THIS LINE
 
 const app = express();
 
-// Middleware
+// Middlewares
 app.use(express.json());
-
-// CORS 
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || "http://localhost:3000",
@@ -21,17 +20,25 @@ app.use(
   })
 );
 
-// Health Check Route
+// Base Health Check
 app.get("/", (req, res) => {
-  res.send("EcoTrack Backend API is running successfully!");
+  res.send("EcoTrack Backend API is running!");
 });
 
 // API Routes
 app.use("/api/auth", authRoutes);
-app.use("/api", apiRoutes);
-app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/tracker", trackerRoutes);
+if (goalRoutes) {
+  app.use("/api/goals", goalRoutes);
+}
+app.use("/api/profile", profileRoutes);
 
-// Database Connection & Server Startup
+// 404 Fallback
+app.use((req, res) => {
+  res.status(404).json({ message: "Route not found" });
+});
+
+// MongoDB Connection & Server Launch
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/ecotrack";
 
@@ -41,6 +48,4 @@ mongoose
     console.log("MongoDB Connected Successfully!");
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
-  .catch((err) => {
-    console.log("Database Connection Error:", err.message);
-  });
+  .catch((err) => console.log("Database Connection Error:", err.message));
