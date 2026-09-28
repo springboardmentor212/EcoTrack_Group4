@@ -52,7 +52,7 @@
   padding: 20px 16px;
   display: grid;
   grid-template-rows: auto 1fr;
-  gap: 32px;
+  gap: 8px;
 }
 
 .goals-app .sidebar-brand {

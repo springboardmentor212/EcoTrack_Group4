@@ -140,7 +140,7 @@ export default function ReportsPage() {
             <span>Home</span>
           </Link>
 
-          <Link to="/carbon-footprint" className="menu-item">
+          <Link to="/carbon-footprint-tracker" className="menu-item">
             <Leaf size={16} />
             <span>Carbon Tracker</span>
           </Link>
