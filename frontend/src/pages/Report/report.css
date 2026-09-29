@@ -1,10 +1,11 @@
+/* Reports page styles — scoped under .reports-app, no :root/body/bare * rules */
 
 .reports-app {
   --rep-bg: #f8f9fa;
   --rep-white: #ffffff;
   --rep-border: #eef0f2;
   --rep-text: #1a1d1f;
-  --rep-muted: #45484f;
+  --rep-muted: #8a8f98;
   --rep-green: #2f7d4f;
   --rep-green-50: #eaf5ee;
   --rep-blue: #2f6fed;
@@ -17,8 +18,8 @@
   grid-template-columns: 224px 1fr;
   align-items: start; /* stops main-content from stretching to fill leftover viewport height */
   min-height: 100vh;
-  background: var(--rep-bg);
-   background: linear-gradient(to right, rgb(184, 211, 184),rgb(241, 247, 238));
+  /* background: var(--rep-bg); */
+    background: linear-gradient(to right, rgb(184, 211, 184), rgb(241, 247, 238));
   font-family: var(--rep-font);
   color: var(--rep-text);
 }
@@ -33,9 +34,7 @@
   background: var(--rep-white);
   border-right: 1px solid var(--rep-border);
   padding: 20px 16px;
-  display: flex;
-  flex-wrap: wrap;
-  flex-direction: column;
+  display: grid;
   gap: 8px;
 }
 
@@ -43,12 +42,11 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: black;
+  color: var(--rep-green);
   font-weight: 600;
 }
 
 .reports-app .sidebar-menu {
-  margin-top: -23px;
   display: grid;
   gap: 4px;
 }
@@ -59,7 +57,7 @@
   gap: 12px;
   padding: 9px 12px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--rep-muted);
   text-decoration: none;
@@ -168,7 +166,9 @@
   border-radius: var(--rep-radius);
   padding: 16px;
   display: flex;
+  flex-direction: column;
   align-items: center;
+  text-align: center;
   gap: 12px;
 }
 
