@@ -1,230 +1,483 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import {
-  Globe,
+  Home,
+  Square,
+  Target,
+  Grid2X2,
+  User,
   Mail,
   Lock,
-  User,
   Upload,
-  Trash2,
+  Globe,
+  Eye,
+  EyeOff,
 } from "lucide-react";
+
 import "./Settings.css";
 
-const Settings = () => {
+const Setting = () => {
   const [profileImage, setProfileImage] = useState(null);
 
   const [notifications, setNotifications] = useState({
-    daily: true,
-    weekly: true,
-    goal: true,
-    challenge: true,
+    dailyReminder: true,
+    weeklyReport: true,
+    goalAchievement: true,
+    challengeUpdates: false,
   });
 
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  // Profile image
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
 
-    if (!file) return;
-
-    if (!["image/jpeg", "image/png"].includes(file.type)) {
-      alert("Please upload a JPG or PNG image.");
-      return;
+    if (file) {
+      setProfileImage(URL.createObjectURL(file));
     }
-
-    if (file.size > 5 * 1024 * 1024) {
-      alert("Image size must be less than 5MB.");
-      return;
-    }
-
-    setProfileImage(URL.createObjectURL(file));
   };
 
-  const toggleNotification = (key) => {
+  // Notifications
+  const handleNotificationChange = (name) => {
     setNotifications((prev) => ({
       ...prev,
-      [key]: !prev[key],
+      [name]: !prev[name],
     }));
+  };
+
+  // Save settings
+  const handleSave = () => {
+    alert("Settings saved successfully!");
+  };
+
+  // Cancel settings
+  const handleCancel = () => {
+    window.location.reload();
+  };
+
+  // Delete account
+  const handleDeleteAccount = () => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete your account? This action cannot be undone."
+    );
+
+    if (confirmed) {
+      alert("Account deleted successfully");
+    }
   };
 
   return (
     <div className="settings-page">
 
-      <aside className="sidebar">
+      {/* SIDEBAR */}
+      <aside className="settings-sidebar">
 
-        <div className="logo">
-          <Globe size={21} strokeWidth={1.8} />
+        <div className="eco-logo">
+          <Globe size={20} strokeWidth={1.8} />
           <span>EcoTrack</span>
         </div>
 
-        <nav className="sidebar-nav">
-          <a href="/home">Home</a>
-          <a href="/carbon-footprint-tracker">Carbon Tracker</a>
-          <a href="/goals">Goals</a>
-          <a href="/challenges">Challenges</a>
-          <a href="/dashboard">Dashboard</a>
-          <a href="/reports">Reports</a>
-          <a href="/profile">Profile</a>
-          <a href="/settings" className="active">Settings</a>
+        <nav>
+
+          <Link to="/home">
+            <Home size={17} />
+            <span>Home</span>
+          </Link>
+
+          <Link to="/carbon-footprint-tracker">
+            <Square size={17} />
+            <span>Carbon Tracker</span>
+          </Link>
+
+          <Link to="/goals">
+            <Target size={17} />
+            <span>Goals</span>
+          </Link>
+
+          <Link to="/dashboard">
+            <Grid2X2 size={17} />
+            <span>Dashboard</span>
+          </Link>
+
+          <Link to="/profile">
+            <User size={17} />
+            <span>Profile</span>
+          </Link>
+
         </nav>
 
       </aside>
 
+
+      {/* MAIN CONTENT */}
       <main className="settings-content">
 
-        <div className="page-header">
+        <div className="settings-heading">
           <h1>Settings</h1>
-          <p>
-            Manage your account and notification preferences.
-          </p>
+          <p>Manage your account and notification preferences</p>
         </div>
+
 
         <div className="settings-grid">
 
-          <section className="settings-card">
+          {/* ACCOUNT SETTINGS */}
+          <div className="settings-card">
 
             <h2>Account Settings</h2>
 
-            <label className="field-label">
-              Profile Photo
-            </label>
 
-            <div className="profile-photo-row">
+            {/* PROFILE PHOTO */}
+            <div className="field-group">
 
-              <div className="avatar">
-                {profileImage ? (
-                  <img
-                    src={profileImage}
-                    alt="Profile"
-                    className="profile-image"
+              <label>Profile Photo</label>
+
+              <div className="profile-upload">
+
+                <div className="profile-avatar">
+
+                  {profileImage ? (
+                    <img
+                      src={profileImage}
+                      alt="Profile"
+                    />
+                  ) : (
+                    <User size={30} />
+                  )}
+
+                </div>
+
+                <label className="upload-button">
+
+                  <Upload size={14} />
+
+                  Upload Photo
+
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    style={{ display: "none" }}
                   />
-                ) : (
-                  <User size={24} strokeWidth={1.8} />
-                )}
+
+                </label>
+
+                <span>JPG, PNG</span>
+
               </div>
 
-              <label className="upload-btn">
-                <Upload size={16} strokeWidth={1.8} />
-                Upload Image
+            </div>
+
+
+            {/* FULL NAME */}
+            <div className="field-group">
+
+              <label>Full Name</label>
+
+              <input
+                type="text"
+                defaultValue=""
+                placeholder="Enter your full name"
+              />
+
+            </div>
+
+
+            {/* EMAIL */}
+            <div className="field-group">
+
+              <label>Update Email Address</label>
+
+              <div className="input-icon">
 
                 <input
-                  type="file"
-                  accept="image/png, image/jpeg"
-                  onChange={handleImageUpload}
-                  hidden
+                  type="email"
+                  defaultValue=""
+                  placeholder="Enter your email address"
                 />
-              </label>
 
-              <span className="file-info">
-                JPG, PNG up to 5MB
-              </span>
+                <Mail size={14} />
 
-            </div>
-
-            <div className="form-group">
-              <label>Full Name</label>
-              <input type="text" />
-            </div>
-
-            <div className="form-group">
-              <label>Email Address</label>
-
-              <div className="input-wrapper">
-                <input type="email" />
-                <Mail size={17} strokeWidth={1.8} />
               </div>
+
             </div>
 
-            <div className="form-group">
-              <label>Password & Security</label>
 
-              <button className="password-btn">
-                <Lock size={16} strokeWidth={1.8} />
+            {/* CHANGE PASSWORD */}
+            <div className="field-group">
+
+              <button
+                className="change-password-btn"
+                onClick={() => setShowPasswordModal(true)}
+              >
+
+                <Lock size={14} />
+
                 Change Password
+
               </button>
+
             </div>
 
-            <button className="delete-btn">
-              <Trash2 size={16} strokeWidth={1.8} />
+
+            {/* DELETE ACCOUNT */}
+            <button
+              className="delete-account"
+              onClick={handleDeleteAccount}
+            >
               Delete Account
             </button>
 
-          </section>
+          </div>
 
-          <section className="settings-card notifications-card">
+
+          {/* NOTIFICATION PREFERENCES */}
+          <div className="settings-card">
 
             <h2>Notification Preferences</h2>
 
-            <NotificationItem
-              title="Daily Activity Reminder"
-              description="Receive daily reminders to log your eco-actions"
-              enabled={notifications.daily}
-              onToggle={() => toggleNotification("daily")}
+            <NotificationRow
+              title="Daily Reminder"
+              description="Get reminded to track your carbon footprint"
+              checked={notifications.dailyReminder}
+              onChange={() =>
+                handleNotificationChange("dailyReminder")
+              }
             />
 
-            <NotificationItem
-              title="Weekly Carbon Footprint Report"
-              description="Receive a summary of your emissions and reductions"
-              enabled={notifications.weekly}
-              onToggle={() => toggleNotification("weekly")}
+            <NotificationRow
+              title="Weekly Report"
+              description="Receive your weekly sustainability summary"
+              checked={notifications.weeklyReport}
+              onChange={() =>
+                handleNotificationChange("weeklyReport")
+              }
             />
 
-            <NotificationItem
-              title="Goal Achievement Notification"
-              description="Get alerts when you reach your sustainability goals"
-              enabled={notifications.goal}
-              onToggle={() => toggleNotification("goal")}
+            <NotificationRow
+              title="Goal Achievement"
+              description="Get notified when you complete a goal"
+              checked={notifications.goalAchievement}
+              onChange={() =>
+                handleNotificationChange("goalAchievement")
+              }
             />
 
-            <NotificationItem
+            <NotificationRow
               title="Challenge Updates"
-              description="Receive updates about active challenges"
-              enabled={notifications.challenge}
-              onToggle={() => toggleNotification("challenge")}
+              description="Receive updates about your challenges"
+              checked={notifications.challengeUpdates}
+              onChange={() =>
+                handleNotificationChange("challengeUpdates")
+              }
             />
 
-          </section>
+          </div>
 
         </div>
 
+
+        {/* SAVE / CANCEL */}
         <div className="settings-actions">
-          <button className="save-btn">
+
+          <button
+            className="save-button"
+            onClick={handleSave}
+          >
             Save Changes
           </button>
 
-          <button className="cancel-btn">
+          <button
+            className="cancel-button"
+            onClick={handleCancel}
+          >
             Cancel
           </button>
+
         </div>
 
       </main>
 
+
+      {/* CHANGE PASSWORD MODAL */}
+      {showPasswordModal && (
+
+        <div className="modal-overlay">
+
+          <div className="password-modal">
+
+            <div className="modal-header">
+
+              <h2>Change Password</h2>
+
+              <button
+                className="modal-cancel"
+                onClick={() => setShowPasswordModal(false)}
+              >
+                Cancel
+              </button>
+
+            </div>
+
+
+            {/* CURRENT PASSWORD */}
+            <div className="modal-field">
+
+              <label>Current Password</label>
+
+              <div className="password-input">
+
+                <input
+                  type={showCurrent ? "text" : "password"}
+                  placeholder="Enter current password"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowCurrent(!showCurrent)}
+                >
+                  {showCurrent ? (
+                    <EyeOff size={14} />
+                  ) : (
+                    <Eye size={14} />
+                  )}
+                </button>
+
+              </div>
+
+            </div>
+
+
+            {/* NEW PASSWORD */}
+            <div className="modal-field">
+
+              <label>New Password</label>
+
+              <div className="password-input">
+
+                <input
+                  type={showNew ? "text" : "password"}
+                  placeholder="Enter new password"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowNew(!showNew)}
+                >
+                  {showNew ? (
+                    <EyeOff size={14} />
+                  ) : (
+                    <Eye size={14} />
+                  )}
+                </button>
+
+              </div>
+
+            </div>
+
+
+            {/* PASSWORD TIP */}
+            <div className="password-tip">
+
+              <strong>💡 Keep it up!</strong>
+
+              <p>
+                Remember: the longer and more random your
+                password, the better!
+              </p>
+
+            </div>
+
+
+            {/* CONFIRM PASSWORD */}
+            <div className="modal-field">
+
+              <label>Confirm New Password</label>
+
+              <div className="password-input">
+
+                <input
+                  type={showConfirm ? "text" : "password"}
+                  placeholder="Confirm new password"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm(!showConfirm)}
+                >
+                  {showConfirm ? (
+                    <EyeOff size={14} />
+                  ) : (
+                    <Eye size={14} />
+                  )}
+                </button>
+
+              </div>
+
+            </div>
+
+
+            {/* CHANGE PASSWORD */}
+            <button className="modal-change-button">
+              Change Password
+            </button>
+
+
+            {/* KEEP CURRENT PASSWORD */}
+            <button
+              className="keep-password-button"
+              onClick={() => setShowPasswordModal(false)}
+            >
+              Keep Current Password
+            </button>
+
+          </div>
+
+        </div>
+
+      )}
+
     </div>
   );
 };
 
-const NotificationItem = ({
+
+/* NOTIFICATION ROW */
+const NotificationRow = ({
   title,
   description,
-  enabled,
-  onToggle,
+  checked,
+  onChange,
 }) => {
   return (
-    <div className="notification-item">
+    <div className="notification-row">
 
-      <div className="notification-text">
+      <div>
+
         <h3>{title}</h3>
+
         <p>{description}</p>
+
       </div>
 
-      <button
-        type="button"
-        className={`toggle ${enabled ? "active" : ""}`}
-        onClick={onToggle}
-        aria-label={`Toggle ${title}`}
-      >
-        <span></span>
-      </button>
+      <label className="switch">
+
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={onChange}
+        />
+
+        <span className="slider"></span>
+
+      </label>
 
     </div>
   );
 };
 
-export default Settings;
+
+export default Setting;

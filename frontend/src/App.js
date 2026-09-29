@@ -19,6 +19,7 @@ import GoalsPage from "./pages/Goal/goal";
 import Home from "./pages/Home/home";
 import CarbonFootprint from "./pages/CarbonFootprint/CarbonFootprint";
 import CarbonFootPrintTracker from "./pages/CarbonFootPrintTracker/CarbonFootPrintTracker";
+import Settings from "./pages/Auth/Settings/setting";
 
 const GOOGLE_CLIENT_ID = "818650396288-6s2ba3aqf306cejbgvip393qreb2ef1i.apps.googleusercontent.com";
 
@@ -38,6 +39,7 @@ function App() {
           <Route path="/home" element={<Home />} />
           <Route path="/carbon-footprint" element={<CarbonFootprint />} />
           <Route path="/carbon-footprint-tracker" element={<CarbonFootPrintTracker />} />
+          <Route path="/setting" element={<Settings />} />
         </Routes>
       </Router>
     </GoogleOAuthProvider>
