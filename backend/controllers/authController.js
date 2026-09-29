@@ -28,7 +28,6 @@ exports.register = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password.trim(), salt);
 
-    // Fallback name if fullName is empty/missing
     const safeName = fullName && fullName.trim() !== "" ? fullName.trim() : "EcoTrack User";
 
     user = new User({
@@ -99,11 +98,10 @@ exports.forgotPassword = async (req, res) => {
     const user = await User.findOne({ email: cleanEmail });
     if (!user) return res.status(404).json({ message: "User with this email does not exist." });
 
-    // 6-Digit Random OTP Generation
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     user.resetOTP = otp;
-    user.resetOTPExpires = Date.now() + 10 * 60 * 1000; // Valid for 10 Minutes
+    user.resetOTPExpires = Date.now() + 10 * 60 * 1000;
 
     await user.save();
 
@@ -189,15 +187,16 @@ exports.resetPasswordWithOTP = async (req, res) => {
   }
 };
 
-// 6. Google Login
+// 6. Google Login (Fixed Token Fetching Logic)
 exports.googleLogin = async (req, res) => {
   try {
-    const { access_token } = req.body;
+    const access_token = req.body.access_token || req.body.token;
 
     if (!access_token) {
       return res.status(400).json({ message: "Access token is missing" });
     }
 
+    // Google API Call to get authenticated profile
     const googleRes = await axios.get(
       `https://www.googleapis.com/oauth2/v3/userinfo`,
       {
@@ -208,13 +207,17 @@ exports.googleLogin = async (req, res) => {
     );
 
     const { email, name } = googleRes.data;
+    if (!email) {
+      return res.status(400).json({ message: "Google user email not provided." });
+    }
+
     const cleanEmail = email.trim().toLowerCase();
 
     let user = await User.findOne({ email: cleanEmail });
 
     if (!user) {
       user = await User.create({
-        fullName: name || "Google User",
+        fullName: name || "Meenakshi",
         email: cleanEmail,
         agreeTerms: true,
       });
@@ -232,6 +235,6 @@ exports.googleLogin = async (req, res) => {
     });
   } catch (error) {
     console.error("Google Login Error:", error.response?.data || error.message);
-    res.status(500).json({ message: "Google authentication failed." });
+    res.status(500).json({ message: "Google authentication failed on server." });
   }
 };

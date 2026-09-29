@@ -25,13 +25,13 @@ function Home() {
   });
 
   useEffect(() => {
-    const fetchSummary = async () => {
+    const fetchTodayEmission = async () => {
       try {
         const token = localStorage.getItem("token");
 
-
+        // Fetch user activity logs from history API
         const response = await fetch(
-          "http://localhost:5000/api/tracker/summary",
+          "http://localhost:5000/api/tracker/history",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -42,17 +42,57 @@ function Home() {
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.message || "Failed to fetch summary");
+          throw new Error(data.message || "Failed to fetch tracker history");
         }
 
-        setSummary(data);
+        const records = Array.isArray(data)
+          ? data
+          : data.logs || data.history || [];
+
+        // Today's date in YYYY-MM-DD format
+        const today = new Date().toISOString().split("T")[0];
+
+        // Calculate ONLY today's EMISSIONS (CO2 saved is excluded)
+        const todayEmission = records
+          .filter((item) => {
+            const activityDate = item.activityDate
+              ? String(item.activityDate).split("T")[0]
+              : item.createdAt
+              ? String(item.createdAt).split("T")[0]
+              : "";
+
+            const mode =
+              item.activityMode ||
+              (Number(item.carbonSaved) > 0 ? "saving" : "emission");
+
+            return activityDate === today && mode === "emission";
+          })
+          .reduce((total, item) => {
+            const emission = Number(
+              item.carbonOutput ?? item.co2 ?? 0
+            );
+
+            return total + (Number.isFinite(emission) ? emission : 0);
+          }, 0);
+
+        setSummary((prev) => ({
+          ...prev,
+          today: Number(todayEmission.toFixed(2)),
+        }));
       } catch (error) {
-        console.error("Error fetching summary:", error);
+        console.error("Error calculating today's emission:", error);
       }
     };
 
-    fetchSummary();
+    fetchTodayEmission();
   }, []);
+
+  // Format today's calculated emission to 2 decimal places
+  const formattedTodayEmission = 
+    typeof summary.today === "number" 
+      ? summary.today.toFixed(2) 
+      : parseFloat(summary.today || 0).toFixed(2);
+
   return (
     <div className="home-page">
       <div className="home-layout">
@@ -85,16 +125,14 @@ function Home() {
             </Link>
 
             <Link to="/dashboard" className="menu-item">
-                 <LayoutDashboard size={16} />
-                  <span>Dashboard</span>
+              <LayoutDashboard size={16} />
+              <span>Dashboard</span>
             </Link>
 
-           
-
-            <a href="#" className="menu-item">
+            <Link to="/reports" className="menu-item">
               <FileText size={16} />
               <span>Reports</span>
-            </a>
+            </Link>
 
             <Link to="/profile" className="menu-item">
               <User size={16} />
@@ -148,20 +186,18 @@ function Home() {
                 </div>
               </div>
 
+              {/* TODAY'S EMISSIONS CALCULATED VALUE */}
               <div className="stat-card">
                 <span>TODAY'S EMISSIONS</span>
-
                 <div>
-                  <strong>{summary.today}</strong>
+                  <strong>{formattedTodayEmission}</strong>
                   <small>kg CO₂e</small>
                 </div>
               </div>
-
             </section>
 
             {/* ================= INFORMATION CARD ================= */}
             <section className="info-card">
-              {/* REALISTIC TREE IMAGE */}
               <div className="tree-box">
                 <img
                   src={treeImage}
@@ -174,7 +210,6 @@ function Home() {
                 </div>
               </div>
 
-              {/* INFORMATION CONTENT */}
               <div className="info-content">
                 <h2>What is a carbon footprint?</h2>
                 <p>
@@ -184,7 +219,6 @@ function Home() {
                   The average US footprint is 16 tons, while global average is 4 tons. To avoid a 2°C temperature rise, we must lower the global average to <strong>under 2 tons per year by 2050</strong>.
                 </p>
 
-                {/* ================= CALCULATION BOX (INSIDE SAME CARD) ================= */}
                 <div className="calculate-box">
                   <h3>How We Calculate Your Impact</h3>
                   <p>
@@ -225,7 +259,6 @@ function Home() {
                   <span>Help & Support</span>
                 </div>
 
-                {/* ================= MILESTONE ================= */}
                 <div className="milestone">
                   <h4>COMMUNITY MILESTONE</h4>
                   <strong>
@@ -238,7 +271,6 @@ function Home() {
                 </div>
               </div>
 
-              {/* ================= FOOTER BOTTOM ================= */}
               <div className="footer-bottom-bar">
                 <small className="copyright">
                   © 2026 EcoTrack. All rights reserved.
