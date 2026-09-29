@@ -196,7 +196,7 @@ function GoalsPage() {
       <main className="main-content">
         <div className="page-header">
           <div>
-            <h1>Sustainability Goals</h1>
+            <h1>Sustainability Goals 🎯</h1>
             <p>Net Savings Goal Progress = CO₂ Saved − CO₂ Emitted</p>
           </div>
           <div className="header-actions">

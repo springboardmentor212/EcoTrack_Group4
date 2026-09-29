@@ -177,7 +177,7 @@ export default function ReportsPage() {
         {/* Header */}
         <div className="page-header">
           <div>
-            <h1>Reports</h1>
+            <h1>Reports 📜</h1>
             <p>Detailed insights into your sustainability journey.</p>
           </div>
 
