@@ -177,7 +177,8 @@ function GoalsPage() {
     <div className="goals-app">
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <Globe className="w-5 h-5" strokeWidth={2} />
+          {/* <Globe className="w-5 h-5" strokeWidth={2} /> */}
+          <Globe size={20} />
           <span>EcoTrack</span>
         </div>
 
@@ -195,7 +196,7 @@ function GoalsPage() {
       <main className="main-content">
         <div className="page-header">
           <div>
-            <h1>Sustainability Goals</h1>
+            <h1>Sustainability Goals 🎯</h1>
             <p>Net Savings Goal Progress = CO₂ Saved − CO₂ Emitted</p>
           </div>
           <div className="header-actions">

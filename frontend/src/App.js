@@ -13,6 +13,7 @@ import ForgotPassword from "./pages/Auth/ForgotPassword/ForgotPassword";
 import ResetPassword from "./pages/Auth/ResetPassword/ResetPassword";
 import Profile from "./pages/Auth/Profile/Profile"; 
 import Dashboard from "./pages/Auth/Dashboard/Dashboard";
+import Report from "./pages/Report/report";
 
 
 import GoalsPage from "./pages/Goal/goal";
@@ -34,6 +35,7 @@ function App() {
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/reports" element={<Report />} />
           <Route path="/goals" element={<GoalsPage />} />
           <Route path="/home" element={<Home />} />
           <Route path="/carbon-footprint" element={<CarbonFootprint />} />

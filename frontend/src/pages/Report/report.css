@@ -1,0 +1,339 @@
+/* Reports page styles — scoped under .reports-app, no :root/body/bare * rules */
+
+.reports-app {
+  --rep-bg: #f8f9fa;
+  --rep-white: #ffffff;
+  --rep-border: #eef0f2;
+  --rep-text: #1a1d1f;
+  --rep-muted: #8a8f98;
+  --rep-green: #2f7d4f;
+  --rep-green-50: #eaf5ee;
+  --rep-blue: #2f6fed;
+  --rep-blue-50: #eaf1fd;
+  --rep-gray-50: #f1f2f4;
+  --rep-radius: 12px;
+  --rep-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+
+  display: grid;
+  grid-template-columns: 224px 1fr;
+  align-items: start; /* stops main-content from stretching to fill leftover viewport height */
+  min-height: 100vh;
+  /* background: var(--rep-bg); */
+    background: linear-gradient(to right, rgb(184, 211, 184), rgb(241, 247, 238));
+  font-family: var(--rep-font);
+  color: var(--rep-text);
+}
+
+.reports-app, .reports-app * {
+  box-sizing: border-box;
+}
+
+/* Sidebar (shared look with other pages, scoped here) */
+.reports-app .sidebar {
+  align-self: stretch; /* sidebar still fills full page height on its own */
+  background: var(--rep-white);
+  border-right: 1px solid var(--rep-border);
+  padding: 20px 16px;
+  display: grid;
+  gap: 8px;
+}
+
+.reports-app .sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--rep-green);
+  font-weight: 600;
+}
+
+.reports-app .sidebar-menu {
+  display: grid;
+  gap: 4px;
+}
+
+.reports-app .menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--rep-muted);
+  text-decoration: none;
+}
+
+.reports-app .menu-item:hover {
+  background: #f4f5f6;
+}
+
+.reports-app .menu-item.active {
+  background: var(--rep-green-50);
+  color: var(--rep-green);
+}
+
+/* Main content */
+.reports-app .main-content {
+  padding: 24px 32px;
+  display: grid;
+  gap: 20px;
+  align-content: start;
+}
+
+/* Header */
+.reports-app .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.reports-app .page-header h1 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.reports-app .page-header p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--rep-muted);
+}
+
+.reports-app .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.reports-app .time-period {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--rep-muted);
+}
+
+.reports-app .select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.reports-app .select-wrap select {
+  appearance: none;
+  border: 1px solid var(--rep-border);
+  border-radius: 8px;
+  padding: 8px 28px 8px 12px;
+  font-size: 13px;
+  color: var(--rep-text);
+  background: var(--rep-white);
+}
+
+.reports-app .select-wrap svg {
+  position: absolute;
+  right: 10px;
+  pointer-events: none;
+  color: var(--rep-muted);
+}
+
+.reports-app .btn-export {
+  background: var(--rep-gray-50);
+  border: 1px solid var(--rep-border);
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.reports-app .btn-export:hover {
+  background: #e6e8eb;
+}
+
+/* Stat cards */
+.reports-app .stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.reports-app .stat-card {
+  background: var(--rep-white);
+  border: 1px solid var(--rep-border);
+  border-radius: var(--rep-radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+}
+
+.reports-app .stat-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.reports-app .stat-label {
+  margin: 0 0 4px;
+  font-size: 11px;
+  color: var(--rep-muted);
+}
+
+.reports-app .stat-value {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.reports-app .trend-up {
+  color: var(--rep-green);
+  margin-left: 4px;
+  font-size: 14px;
+}
+
+.reports-app .bg-green { background: var(--rep-green-50); }
+.reports-app .bg-blue { background: var(--rep-blue-50); }
+.reports-app .bg-gray { background: var(--rep-gray-50); }
+.reports-app .bg-gauge { background: var(--rep-gray-50); }
+
+.reports-app .text-green { color: var(--rep-green); }
+.reports-app .text-blue { color: var(--rep-blue); }
+.reports-app .text-gray { color: var(--rep-muted); }
+.reports-app .text-gauge { color: var(--rep-green); }
+
+/* Panels shared by charts + tables */
+.reports-app .panel {
+  background: var(--rep-white);
+  border: 1px solid var(--rep-border);
+  border-radius: var(--rep-radius);
+  padding: 20px;
+}
+
+.reports-app .panel h2 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.reports-app .panel-subtitle {
+  margin: -8px 0 12px;
+  font-size: 12px;
+  color: var(--rep-muted);
+}
+
+.reports-app .chart-wrap {
+  width: 100%;
+}
+
+/* Charts row: CO2 overview + impact breakdown */
+.reports-app .charts-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.reports-app .donut-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.reports-app .donut-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.reports-app .legend-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--rep-text);
+}
+
+.reports-app .legend-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reports-app .legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* Bottom row: activities table + monthly comparison */
+.reports-app .bottom-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.reports-app .activities-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.reports-app .activities-table th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--rep-muted);
+  padding: 0 0 10px;
+}
+
+.reports-app .activities-table td {
+  padding: 10px 0;
+  border-top: 1px solid var(--rep-border);
+}
+
+.reports-app .activity-name {
+  font-weight: 600;
+}
+
+.reports-app .activity-icon {
+  color: var(--rep-muted);
+  text-align: right;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .reports-app .stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .reports-app .charts-grid,
+  .reports-app .bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .reports-app {
+    grid-template-columns: 1fr;
+  }
+  .reports-app .sidebar {
+    display: none;
+  }
+  .reports-app .main-content {
+    padding: 16px;
+  }
+  .reports-app .stat-grid {
+    grid-template-columns: 1fr;
+  }
+}
