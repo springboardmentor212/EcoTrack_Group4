@@ -226,7 +226,7 @@ export default function ReportsPage() {
             <h2>CO2 Reduction Overview</h2>
             <div className="chart-wrap">
               <ResponsiveContainer width="100%" height={260}>
-                <AreaChart data={co2Overview} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                <AreaChart data={co2Overview} margin={{ top: 10, right: 0, left: -9, bottom: 0 }}>
                   <defs>
                     <linearGradient id="co2Fill" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#2f7d4f" stopOpacity={0.25} />
