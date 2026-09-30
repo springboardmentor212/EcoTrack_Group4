@@ -329,7 +329,7 @@ export default function ReportsPage() {
             <p className="panel-subtitle">CO2 reduced</p>
             <div className="chart-wrap">
               <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={monthlyComparison} margin={{ top: 10, right: 0, left: -10, bottom: 0 }}>
+                <BarChart data={monthlyComparison} margin={{ top: 10, right: 0, left: 2, bottom: 0 }}>
                   <CartesianGrid vertical={false} stroke="#eef0f2" />
                   <XAxis
                     dataKey="month"
