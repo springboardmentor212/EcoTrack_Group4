@@ -158,7 +158,7 @@ export default function ChallengesPage() {
                 {/* Header */}
                 <div className="page-header">
                     <div>
-                        <h1>Community Challenges</h1>
+                        <h1>Community Challenges 🏆</h1>
                         <p>Join eco-drives, earn badges, and climb the leaderboard</p>
                     </div>
                     <div className="header-actions">
