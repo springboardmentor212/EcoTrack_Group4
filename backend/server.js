@@ -3,7 +3,14 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
 
+
 // Route Imports
+
+const dns =require("dns");
+dns.setServers(["1.1.1.1" , "8.8.8.8"]);
+
+// Routes Imports
+
 const authRoutes = require("./routes/authRoutes");
 const trackerRoutes = require("./routes/trackerRoutes");
 const goalRoutes = require("./routes/goalRoutes");
