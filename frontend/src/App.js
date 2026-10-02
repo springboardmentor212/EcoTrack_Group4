@@ -19,6 +19,7 @@ import Challenges from "./pages/Challenges/challenges";
 import Home from "./pages/Home/home";
 import CarbonFootprint from "./pages/CarbonFootprint/CarbonFootprint";
 import CarbonFootPrintTracker from "./pages/CarbonFootPrintTracker/CarbonFootPrintTracker";
+import Settings from "./pages/Auth/Settings/setting";
 
 const GOOGLE_CLIENT_ID =
  "818650396288-6s2ba3aqf306cejbgvip393qreb2ef1i.apps.googleusercontent.com";
