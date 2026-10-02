@@ -3,11 +3,26 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
 
+
 // Route Imports
+
+const dns =require("dns");
+dns.setServers(["1.1.1.1" , "8.8.8.8"]);
+
+// Routes Imports
+
 const authRoutes = require("./routes/authRoutes");
 const trackerRoutes = require("./routes/trackerRoutes");
 const goalRoutes = require("./routes/goalRoutes");
-const profileRoutes = require("./routes/profileRoutes"); // <-- ADD THIS LINE
+const profileRoutes = require("./routes/profileRoutes");
+ // <-- ADD THIS LINE
+const recommendationRoutes = require("./routes/recommendationRoutes");
+const challengeRoutes = require("./routes/challengeRoutes");
+const gamificationRoutes = require("./routes/gamificationRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
+const leaderboardRoutes = require("./routes/leaderboardRoutes");
+
+
 
 const app = express();
 
@@ -32,6 +47,12 @@ if (goalRoutes) {
   app.use("/api/goals", goalRoutes);
 }
 app.use("/api/profile", profileRoutes);
+
+app.use("/api/recommendations", recommendationRoutes);
+app.use("/api/challenges", challengeRoutes);
+app.use("/api/gamification", gamificationRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/leaderboard", leaderboardRoutes);
 
 // 404 Fallback
 app.use((req, res) => {
