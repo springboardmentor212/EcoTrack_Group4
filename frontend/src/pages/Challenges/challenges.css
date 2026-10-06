@@ -1,107 +1,67 @@
-
 .challenges-app {
-  /* Scoped, uniquely-prefixed design tokens */
-  --chal-bg-page: #f8f9fa;
+  --chal-bg-page: #f8fafc;
   --chal-bg-white: #ffffff;
-  --chal-border-light: #eef0f2;
-  --chal-border-input: #e2e5e9;
-  --chal-text-primary: #1a1d1f;
-  --chal-text-secondary: #38393d;
-  --chal-text-muted: #7b8086;
-
-  --chal-green-50: #eaf5ee;
-  --chal-green-100: #dcefe3;
-  --chal-green-600: #2f7d4f;
-  --chal-green-700: #1f6b40;
-
-  --chal-blue-50: #eaf1fd;
-  --chal-blue-100: #dbe9fc;
-  --chal-blue-600: #2f6fed;
-
-  --chal-amber-50: #fef6e7;
-  --chal-amber-100: #fcecc9;
-  --chal-amber-500: #d99a2b;
-  --chal-amber-600: #b9820a;
-
-  --chal-orange-50: #fdf1e8;
-  --chal-orange-100: #fbe2cd;
-  --chal-orange-500: #e2711d;
-  --chal-orange-600: #c85f14;
-
-  --chal-yellow-100: #fdf3cf;
-
-  --chal-radius-lg: 12px;
-  --chal-radius-md: 8px;
-  --chal-radius-full: 999px;
-
-  --chal-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --chal-border-light: #e2e8f0;
+  --chal-text-primary: #0f172a;
+  --chal-text-secondary: #475569;
+  --chal-text-muted: #64748b;
+  --chal-green-50: #ecfdf5;
+  --chal-green-100: #d1fae5;
+  --chal-green-600: #059669;
+  --chal-green-700: #047857;
 
   display: grid;
-  grid-template-columns: 224px 1fr;
+  grid-template-columns: 240px 1fr;
   min-height: 100vh;
-  background: linear-gradient(to right, rgb(184, 211, 184),rgb(241, 247, 238));
-  font-family: var(--chal-font);
+  background: #f1f5f9;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   color: var(--chal-text-primary);
 }
 
-.challenges-app,
-.challenges-app *,
-.challenges-app *::before,
-.challenges-app *::after {
+.challenges-app * {
   box-sizing: border-box;
 }
 
-/* ---------- Sidebar ---------- */
+/* Sidebar Styling */
 .challenges-app .sidebar {
-  background: var(--chal-bg-white);
+  background: #ffffff;
   border-right: 1px solid var(--chal-border-light);
-  padding: 20px 16px;
-  display: grid;
-  grid-template-rows: auto 1fr;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
   gap: 32px;
 }
 
 .challenges-app .sidebar-brand {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 0 8px;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 20px;
   color: var(--chal-green-600);
-  color: #059669;
-}
-
-.challenges-app .sidebar-brand span {
-  font-weight: 650;
-  font-size: 18px;
-  color: var(--chal-text-primary);
 }
 
 .challenges-app .sidebar-menu {
-  display: grid;
-  grid-auto-rows: min-content;
-  gap: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .challenges-app .menu-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 9px 12px;
-  border-radius: var(--chal-radius-md);
+  padding: 10px 14px;
+  border-radius: 8px;
   font-size: 14px;
-  font-weight: 550;
+  font-weight: 600;
   color: var(--chal-text-secondary);
   text-decoration: none;
-  transition: background-color 0.15s ease;
+  transition: all 0.2s ease;
 }
 
 .challenges-app .menu-item:hover {
-  background: #f4f5f6;
-}
-
-.challenges-app .menu-item svg {
-  color: #4d5054;
-  flex-shrink: 0;
+  background: #f8fafc;
 }
 
 .challenges-app .menu-item.active {
@@ -109,164 +69,206 @@
   color: var(--chal-green-700);
 }
 
-.challenges-app .menu-item.active svg {
-  color: var(--chal-green-700);
-}
-
-/* ---------- Main content ---------- */
+/* Main Area Layout */
 .challenges-app .main-content {
-  display: grid;
-  grid-template-rows: auto 1fr;
+  padding: 32px;
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Dynamic XP Journey Banner Styling */
+.challenges-app .eco-journey-card {
+  background: #ffffff;
+  border: 1px solid var(--chal-border-light);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   gap: 24px;
-  padding: 24px 32px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
-/* ---------- Header ---------- */
-.challenges-app .page-header {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: start;
+.challenges-app .journey-left {
+  flex: 1;
 }
 
-.challenges-app .page-header h1 {
-  margin: 0;
-  font-size: 26px;
+.challenges-app .journey-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.challenges-app .journey-small-title {
+  font-size: 11px;
   font-weight: 700;
-  line-height: 1.3;
+  color: var(--chal-green-600);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
-.challenges-app .page-header p {
-  margin: 4px 0 0;
+.challenges-app .journey-title-row h2 {
+  margin: 4px 0 0 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--chal-text-primary);
+}
+
+.challenges-app .journey-level-badge {
+  background: var(--chal-green-100);
+  color: var(--chal-green-700);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.challenges-app .xp-info {
+  display: flex;
+  justify-content: space-between;
   font-size: 13px;
+  color: var(--chal-text-secondary);
+  margin-bottom: 6px;
+}
+
+.challenges-app .xp-progress {
+  width: 100%;
+  height: 10px;
+  background: #e2e8f0;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.challenges-app .xp-progress-fill {
+  height: 100%;
+  border-radius: 20px;
+}
+
+.challenges-app .journey-stats {
+  display: flex;
+  gap: 20px;
+  border-left: 1px solid var(--chal-border-light);
+  padding-left: 24px;
+}
+
+.challenges-app .journey-stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f8fafc;
+  padding: 10px 14px;
+  border-radius: 12px;
+}
+
+.challenges-app .journey-stat-icon {
+  font-size: 20px;
+}
+
+.challenges-app .journey-stat strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--chal-text-primary);
+}
+
+.challenges-app .journey-stat small {
+  font-size: 11px;
   color: var(--chal-text-muted);
 }
 
-.challenges-app .header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.challenges-app .icon-button {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--chal-radius-full);
-  background: var(--chal-bg-white);
-  border: 1px solid var(--chal-border-input);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #e2432c;
-  cursor: pointer;
-}
-
-.challenges-app .user-chip {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--chal-green-700);
-  color: #fff;
-  border-radius: var(--chal-radius-full);
-  padding: 4px 10px 4px 4px;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.challenges-app .user-chip-avatar {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* ---------- Body: challenge list + right rail ---------- */
+/* Grid & Content Section */
 .challenges-app .content-grid {
   display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 20px;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
   align-items: start;
 }
 
-/* ---------- Tabs ---------- */
 .challenges-app .tab-bar {
-  display: inline-flex;
-  gap: 8px;
-  background: transparent;
-  margin-bottom: 16px;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
 .challenges-app .tab-btn {
   border: none;
-  background: #eceef0;
+  background: #e2e8f0;
   color: var(--chal-text-secondary);
   font-size: 13px;
-  font-weight: 500;
-  padding: 8px 16px;
-  border-radius: var(--chal-radius-md);
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-.challenges-app .tab-btn:hover {
-  background: #e2e5e8;
+  transition: all 0.2s ease;
 }
 
 .challenges-app .tab-btn.active {
-  background: var(--chal-green-700);
-  color: #fff;
+  background: var(--chal-green-600);
+  color: #ffffff;
 }
 
-/* ---------- Challenge cards ---------- */
 .challenges-app .challenge-list {
-  display: grid;
-  gap: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .challenges-app .challenge-card {
-  background: var(--chal-bg-white);
+  background: #ffffff;
   border: 1px solid var(--chal-border-light);
-  border-radius: var(--chal-radius-lg);
-  padding: 18px;
-  display: grid;
-  grid-template-columns: 44px 1fr;
-  gap: 14px;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  gap: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.challenges-app .challenge-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .challenges-app .challenge-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--chal-radius-md);
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  background-color: var(--chal-green-50);
+}
+
+.challenges-app .challenge-icon.bg-green {
+  background-color: var(--chal-green-50);
+}
+
+.challenges-app .text-green {
+  color: var(--chal-green-600);
 }
 
 .challenges-app .challenge-body {
-  min-width: 0;
-  display: grid;
-  gap: 6px;
+  flex: 1;
 }
 
 .challenges-app .challenge-top {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: start;
-  gap: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .challenges-app .challenge-top h3 {
   margin: 0;
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
 }
 
 .challenges-app .challenge-percent {
   font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
+  font-weight: 700;
 }
 
 .challenges-app .challenge-meta {
@@ -274,348 +276,130 @@
   align-items: center;
   gap: 8px;
   font-size: 12px;
+  margin: 6px 0;
   color: var(--chal-text-muted);
 }
 
 .challenges-app .tag-pill {
-  border-radius: var(--chal-radius-full);
-  padding: 3px 10px;
+  border-radius: 20px;
+  padding: 2px 10px;
   font-size: 11px;
-  font-weight: 600;
-}
-
-.challenges-app .dot {
-  color: #c7cbd1;
+  font-weight: 700;
 }
 
 .challenges-app .challenge-desc {
-  margin: 0;
+  margin: 8px 0 12px 0;
   font-size: 13px;
-  color: #5b6169;
+  color: var(--chal-text-secondary);
   line-height: 1.5;
 }
 
-.challenges-app .challenge-progress-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 10px;
-  margin-top: 4px;
-}
-
-.challenges-app .progress-track {
-  width: 100%;
-  height: 7px;
-  background: #eef0f2;
-  border-radius: var(--chal-radius-full);
-  overflow: hidden;
-}
-
-.challenges-app .progress-fill {
-  height: 100%;
-  border-radius: var(--chal-radius-full);
-}
-
-.challenges-app .progress-label {
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.challenges-app .empty-state {
-  text-align: center;
-  font-size: 13px;
-  color: var(--chal-text-muted);
-  padding: 32px 0;
-}
-
-/* ---------- Right rail ---------- */
+/* Right Rail Widgets */
 .challenges-app .right-rail {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 20px;
-  margin-top: 52px; /* aligns "My Eco Rewards" with the first challenge card, below the tab bar */
 }
 
 .challenges-app .panel {
-  background: var(--chal-bg-white);
+  background: #ffffff;
   border: 1px solid var(--chal-border-light);
-  border-radius: var(--chal-radius-lg);
+  border-radius: 16px;
   padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 .challenges-app .panel h2 {
-  margin: 0 0 14px;
-  font-size: 15px;
-  font-weight: 600;
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 700;
 }
 
 .challenges-app .panel-subtitle {
-  margin: -10px 0 14px;
+  margin: 0 0 16px 0;
   font-size: 12px;
   color: var(--chal-text-muted);
 }
 
-/* Eco score box */
 .challenges-app .score-box {
   background: var(--chal-green-50);
-  border-radius: var(--chal-radius-md);
-  padding: 14px 16px;
+  border-radius: 12px;
+  padding: 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .challenges-app .score-label {
-  margin: 0 0 4px;
+  margin: 0 0 2px 0;
   font-size: 11px;
   color: var(--chal-text-muted);
+  font-weight: 600;
 }
 
 .challenges-app .score-value {
   margin: 0;
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--chal-green-700);
-}
-
-.challenges-app .score-unit {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--chal-green-600);
-  margin-left: 2px;
 }
 
 .challenges-app .level-pill {
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--chal-green-700);
   background: var(--chal-green-100);
   padding: 4px 10px;
-  border-radius: var(--chal-radius-full);
-  white-space: nowrap;
+  border-radius: 20px;
 }
 
-.challenges-app .badges-label {
-  margin: 0 0 10px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--chal-text-secondary);
+/* Leaderboard Scrollbar Customization */
+.challenges-app .leaderboard-list::-webkit-scrollbar {
+  width: 5px;
 }
 
-.challenges-app .badges-row {
-  display: flex;
-  gap: 10px;
+.challenges-app .leaderboard-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
 }
 
-.challenges-app .badge-circle {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.challenges-app .leaderboard-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
 }
 
-/* ---------- Leaderboard ---------- */
-.challenges-app .leaderboard-list {
-  display: grid;
-  gap: 8px;
+.challenges-app .leaderboard-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .challenges-app .leaderboard-row {
-  display: grid;
-  grid-template-columns: auto auto 1fr auto;
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
-  border-radius: var(--chal-radius-md);
-  border: 1px solid transparent;
+  transition: all 0.2s ease;
 }
 
-.challenges-app .leaderboard-row.top {
-  background: var(--chal-yellow-100);
+.challenges-app .leaderboard-row:hover {
+  transform: translateX(2px);
 }
 
-.challenges-app .leaderboard-row.me {
-  background: var(--chal-green-50);
-  border-color: var(--chal-green-100);
-}
-
-.challenges-app .lb-rank {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--chal-text-muted);
-}
-
-.challenges-app .lb-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
-  color: #fff;
-  background: #9ca3af;
-}
-
-.challenges-app .leaderboard-row:nth-child(2) .lb-avatar {
-  background: #9aa1ab;
-}
-
-.challenges-app .leaderboard-row:nth-child(3) .lb-avatar {
-  background: #ea6a4a;
-}
-
-.challenges-app .lb-avatar.gold {
-  background: var(--chal-orange-500);
-}
-
-.challenges-app .lb-avatar.me {
-  background: var(--chal-green-600);
-}
-
-.challenges-app .lb-info {
-  min-width: 0;
-}
-
-.challenges-app .lb-name {
-  margin: 0;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--chal-text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.challenges-app .lb-title {
-  margin: 0;
-  font-size: 11px;
-  color: var(--chal-text-muted);
-}
-
-.challenges-app .leaderboard-row.me .lb-title {
-  color: var(--chal-green-700);
-}
-
-.challenges-app .lb-points {
-  font-size: 12.5px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-/* ---------- Color utilities (tags, icons, progress) ---------- */
-.challenges-app .bg-green { background: var(--chal-green-50); }
-.challenges-app .bg-blue { background: var(--chal-blue-50); }
-.challenges-app .bg-amber { background: var(--chal-amber-50); }
-.challenges-app .bg-orange { background: var(--chal-orange-50); }
-
-.challenges-app .text-green { color: var(--chal-green-700); }
-.challenges-app .text-blue { color: var(--chal-blue-600); }
-.challenges-app .text-amber { color: var(--chal-amber-600); }
-.challenges-app .text-orange { color: var(--chal-orange-600); }
-
-.challenges-app .tag-pill.bg-green { background: var(--chal-green-100); }
-.challenges-app .tag-pill.bg-blue { background: var(--chal-blue-100); }
-.challenges-app .tag-pill.bg-amber { background: var(--chal-amber-100); }
-.challenges-app .tag-pill.bg-orange { background: var(--chal-orange-100); }
-
-.challenges-app .fill-green { background: var(--chal-green-600); }
-.challenges-app .fill-blue { background: var(--chal-blue-600); }
-.challenges-app .fill-amber { background: var(--chal-amber-500); }
-.challenges-app .fill-orange { background: var(--chal-orange-500); }
-
-.challenges-app .badge-circle.bg-green { color: var(--chal-green-600); }
-.challenges-app .badge-circle.bg-blue { color: var(--chal-blue-600); }
-.challenges-app .badge-circle.bg-amber { color: var(--chal-amber-600); }
-.challenges-app .badge-circle.bg-orange { color: var(--chal-orange-600); }
-
-/* ---------- Responsive ---------- */
-@media (max-width: 1100px) {
-  .challenges-app .content-grid {
-    grid-template-columns: 1fr;
-  }
-  .challenges-app .right-rail {
-    margin-top: 0; /* only needed to align beside the challenge list; full-width stack doesn't need it */
-  }
-}
-
-@media (max-width: 720px) {
+/* Responsive Rules */
+@media (max-width: 1024px) {
   .challenges-app {
     grid-template-columns: 1fr;
   }
   .challenges-app .sidebar {
     display: none;
   }
-  .challenges-app .main-content {
-    padding: 16px;
-    gap: 16px;
-  }
-  .challenges-app .page-header {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-  .challenges-app .page-header h1 {
-    font-size: 19px;
-  }
-  .challenges-app .header-actions {
-    justify-self: start;
-  }
-  .challenges-app .tab-bar {
-    display: flex;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 4px;
-  }
-  .challenges-app .tab-btn {
-    flex: 0 0 auto;
-    white-space: nowrap;
-  }
-}
-
-@media (max-width: 560px) {
-  .challenges-app .challenge-card {
-    grid-template-columns: 1fr;
-    padding: 14px;
-  }
-  .challenges-app .challenge-icon {
-    width: 36px;
-    height: 36px;
-  }
-  .challenges-app .challenge-top {
+  .challenges-app .content-grid {
     grid-template-columns: 1fr;
   }
-  .challenges-app .challenge-percent {
-    justify-self: start;
-  }
-  .challenges-app .challenge-progress-row {
-    grid-template-columns: 1fr;
-    gap: 6px;
-  }
-  .challenges-app .progress-label {
-    justify-self: end;
-  }
-  .challenges-app .panel {
-    padding: 16px;
-  }
-  .challenges-app .score-box {
+  .challenges-app .eco-journey-card {
     flex-direction: column;
     align-items: flex-start;
-    gap: 8px;
   }
-  .challenges-app .badges-row {
-    flex-wrap: wrap;
-  }
-  .challenges-app .leaderboard-row {
-    grid-template-columns: auto auto 1fr;
-    row-gap: 2px;
-  }
-  .challenges-app .lb-points {
-    grid-column: 3;
-    justify-self: end;
-    font-size: 12px;
+  .challenges-app .journey-stats {
+    border-left: none;
+    padding-left: 0;
+    width: 100%;
+    justify-content: space-between;
   }
 }

@@ -4,8 +4,7 @@ import { User, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 import { useGoogleLogin } from "@react-oauth/google";
 import background from "../../../assets/bg-image.jpeg";
-import "./Register.css"; // Clean-ah Register.css import panni irukkoam
-
+import "./Register.css";
 const Register = () => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");

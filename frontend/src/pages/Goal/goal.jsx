@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify";
 import "./goal.css";
 
 import {
@@ -46,9 +47,38 @@ function GoalsPage() {
     targetValue: "15",
     targetUnit: "kg CO2e",
     targetDate: "2026-10-31",
-    description: "Cycling short distances instead of driving increases your net CO2 savings.",
+    description: "Cycling short distances instead of driving increases net CO2 savings.",
   });
   const [loadingAi, setLoadingAi] = useState(false);
+
+  // Dynamic Goal Streak Calculation
+  const calculateStreak = (historyLogs) => {
+    if (!historyLogs || historyLogs.length === 0) return 0;
+
+    const sortedDates = [...new Set(historyLogs.map(log => {
+      const d = log.activityDate || log.date || log.createdAt;
+      return d ? new Date(d).toLocaleDateString("en-CA") : null;
+    }).filter(Boolean))].sort().reverse();
+
+    if (sortedDates.length === 0) return 0;
+
+    let streak = 0;
+    let checkDate = new Date();
+
+    for (let i = 0; i < sortedDates.length; i++) {
+      const logDate = new Date(sortedDates[i]);
+      const diffTime = Math.abs(checkDate - logDate);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) - 1;
+
+      if (diffDays <= 1) {
+        streak++;
+        checkDate = logDate;
+      } else {
+        break;
+      }
+    }
+    return streak;
+  };
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -60,7 +90,24 @@ function GoalsPage() {
         setLoggeduser(storedUser);
       }
     }
+
+    checkSystemTriggers();
   }, []);
+
+  const checkSystemTriggers = () => {
+    const prefs = JSON.parse(localStorage.getItem("notifications") || "{}");
+    const today = new Date().toDateString();
+
+    if (prefs.dailyReminder && localStorage.getItem("lastDailyPrompt") !== today) {
+      setTimeout(() => {
+        toast.info("📌 Daily Reminder: Add your today carbon records!", {
+          toastId: "daily-prompt",
+          className: "Toastify__toast--custom",
+        });
+        localStorage.setItem("lastDailyPrompt", today);
+      }, 2000);
+    }
+  };
 
   const getCategoryDetails = (cat) => {
     const cleanCat = String(cat || "").toLowerCase();
@@ -77,14 +124,19 @@ function GoalsPage() {
       const token = localStorage.getItem("token");
       const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
       const res = await axios.get("http://localhost:5000/api/goals", config);
+      const historyRes = await axios.get("http://localhost:5000/api/tracker/history", config).catch(() => ({ data: [] }));
 
       if (res.data) {
         const allGoals = Array.isArray(res.data) ? res.data : res.data.goals || [];
+        const logs = Array.isArray(historyRes.data) ? historyRes.data : historyRes.data.logs || [];
+
+        const computedStreak = calculateStreak(logs);
+
         setGoals(allGoals);
         setStats({
-          activeCount: res.data.activeCount || 0,
-          completedCount: res.data.completedCount || 0,
-          streak: res.data.streak || 0,
+          activeCount: res.data.activeCount || allGoals.filter(g => !g.isCompleted).length,
+          completedCount: res.data.completedCount || allGoals.filter(g => g.isCompleted).length,
+          streak: computedStreak,
           successRate: res.data.successRate || "0%",
         });
       }
@@ -112,7 +164,7 @@ function GoalsPage() {
           targetValue: res.data.targetValue || "15",
           targetUnit: res.data.targetUnit || "kg CO2e",
           targetDate: res.data.targetDate || "2026-10-31",
-          description: res.data.description || "Cycling short distances avoids emissions and drives goal progress.",
+          description: res.data.description || "Cycling short distances avoids emissions and drives progress.",
         });
       }
     } catch (err) {
@@ -130,7 +182,7 @@ function GoalsPage() {
   const handleAddGoal = async (e) => {
     e.preventDefault();
     if (!goalTitle || !targetValue) {
-      alert("Please fill in Goal Title and Target Value!");
+      toast.error("Please fill in Goal Title and Target Value!", { className: "Toastify__toast--custom" });
       return;
     }
 
@@ -148,13 +200,13 @@ function GoalsPage() {
 
       await axios.post("http://localhost:5000/api/goals", payload, config);
 
-      alert("New Goal Created Successfully!");
+      toast.success("New Goal Created Successfully!", { className: "Toastify__toast--custom" });
       setGoalTitle("");
       setTargetValue("");
       fetchGoals();
     } catch (err) {
       console.error("Create Goal Error:", err);
-      alert("Failed to create goal.");
+      toast.error("Failed to create goal.", { className: "Toastify__toast--custom" });
     }
   };
 
@@ -177,7 +229,6 @@ function GoalsPage() {
     <div className="goals-app">
       <aside className="sidebar">
         <div className="sidebar-brand">
-          {/* <Globe className="w-5 h-5" strokeWidth={2} /> */}
           <Globe size={20} />
           <span>EcoTrack</span>
         </div>
@@ -320,12 +371,13 @@ function GoalsPage() {
                   const targetVal = Number(item.targetValue) || 0;
                   const currentProgress = Number(item.currentProgress) || 0;
                   const remainingBalance = Number(item.remainingBalance) || 0;
-                  const percent = Number(item.percent) || 0;
+
                   const isDone = Boolean(item.isCompleted);
+                  const percent = isDone ? 100 : Math.min(99, Number(item.percent) || 0);
 
                   return (
-                    <div 
-                      className={`goal-item ${isDone ? "completed-card" : ""}`} 
+                    <div
+                      className={`goal-item ${isDone ? "completed-card" : ""}`}
                       key={item._id || idx}
                       style={isDone ? { borderLeft: "4px solid #10b981", background: "#f0fdf4" } : {}}
                     >
@@ -352,14 +404,14 @@ function GoalsPage() {
 
                         <div className="goal-item-footer">
                           <span>
-                            {isDone 
-                              ? `Completed Target: ${currentProgress} kg CO₂e` 
+                            {isDone
+                              ? `Completed Target: ${currentProgress} kg CO₂e`
                               : `Net Progress: ${currentProgress} kg / ${targetVal} kg (${remainingBalance} kg needed)`}
                           </span>
-                          <span>Deadline: {item.deadline || "2026-10-31"}</span>
+                          <span>Deadline: {item.targetCompletionDate || "2026-10-31"}</span>
                         </div>
                         <div style={{ fontSize: "11px", color: "#64748b", marginTop: "4px" }}>
-                          Saved: {item.totalSaved} kg | Emitted: {item.totalEmitted} kg
+                          Saved: {item.totalSaved || 0} kg | Emitted: {item.totalEmitted || 0} kg
                         </div>
                       </div>
                     </div>

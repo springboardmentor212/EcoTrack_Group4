@@ -51,20 +51,36 @@ const Login = () => {
     try {
       const accessToken = tokenResponse.access_token;
 
-      // 1. Send Google Access Token to Backend
+      // 1. Fetch User Profile directly from Google API using access_token
+      const googleUserRes = await axios.get(
+        `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${accessToken}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            Accept: "application/json",
+          },
+        }
+      );
+
+      const googleUser = googleUserRes.data;
+
+      // 2. Send extracted google user details (email, name, picture) to Backend
       const res = await axios.post("http://localhost:5000/api/auth/google", { 
-        access_token: accessToken 
+        email: googleUser.email,
+        name: googleUser.name,
+        picture: googleUser.picture,
+        googleId: googleUser.id
       });
 
       if (res.data && res.data.token) {
-        // 2. Store Backend JWT Token & User Info
+        // 3. Store Backend JWT Token & User Info
         localStorage.setItem("token", res.data.token);
         if (res.data.user) {
           localStorage.setItem("user", JSON.stringify(res.data.user));
         }
 
         alert("Google Sign-In Successful!");
-        window.location.href = "/profile"; // Immediate refresh & sync to profile
+        navigate("/home");
       }
     } catch (error) {
       console.error("Google Auth Error:", error.response?.data || error);

@@ -1,47 +1,16 @@
 const mongoose = require("mongoose");
 
-const challengeSchema = new mongoose.Schema(
-  {
-    title: {
-      type: String,
-      required: true,
-    },
-
-    description: {
-      type: String,
-    },
-
-    category: {
-      type: String,
-    },
-
-    points: {
-      type: Number,
-      default: 0,
-    },
-
-    participants: {
-      type: Number,
-      default: 0,
-    },
-
-    status: {
-      type: String,
-      enum: ["active", "completed", "inactive"],
-      default: "active",
-    },
-
-    startDate: {
-      type: Date,
-    },
-
-    endDate: {
-      type: Date,
-    },
-  },
-  {
-    timestamps: true,
-  }
-);
+const challengeSchema = new mongoose.Schema({
+  challengeId: { type: String, required: true, unique: true },
+  title: { type: String, required: true },
+  tag: { type: String, required: true },
+  description: { type: String, required: true },
+  rewardPoints: { type: Number, default: 100 },
+  rewardXP: { type: Number, default: 100 },
+  targetGoal: { type: Number, default: 1 },
+  unit: { type: String, default: "Times" },
+  iconName: { type: String, default: "Recycle" },
+  levelRequired: { type: Number, required: true },
+});
 
 module.exports = mongoose.model("Challenge", challengeSchema);
