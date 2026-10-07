@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
+import AdminChallenges from "./pages/Admin/Challenges/Challenges";
 import Login from "./pages/Auth/login/login";
 import Register from "./pages/Auth/Register/Register";
 import ForgotPassword from "./pages/Auth/ForgotPassword/ForgotPassword";
@@ -41,6 +42,7 @@ function App() {
           <Route path="/challenges" element={<Challenges />} />
           <Route path="/home" element={<Home />} />
           <Route path="/carbon-footprint" element={<CarbonFootprint />} />
+          <Route path="/Admin/challenges" element={<AdminChallenges />} />
           <Route
             path="/carbon-footprint-tracker"
             element={<CarbonFootPrintTracker />}
