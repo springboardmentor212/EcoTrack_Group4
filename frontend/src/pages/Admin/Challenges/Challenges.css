@@ -89,6 +89,7 @@ h1 { margin-top: 6px; font-size: 26px; line-height: 1.2; font-weight: 800; lette
   font-weight: 700; font-size: 14px; line-height: 1.2;
   transition: background 0.15s, transform 0.1s;
 }
+
 .btn:active { transform: translateY(1px); }
 .btn.btn-primary,
 .btn.btn-primary:hover,

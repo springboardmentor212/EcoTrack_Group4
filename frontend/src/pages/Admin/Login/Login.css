@@ -1,0 +1,141 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap");
+
+/* ===== CHANGE THE BACKGROUND IMAGE HERE (one place only) =====
+   Put your file at:  public/images/login-bg.jpg
+   Or change the path below to match your file name / folder. */
+.login-page {
+  --login-bg: url("../../../assets/bg-image.jpeg");
+  --green: #1f7a37;
+  --green-dark: #17622b;
+  --ink: #111827;
+  --muted: #5b6575;
+  --field: #eef2f7;
+  --field-line: #d3dbe6;
+
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  font-family: "Roboto", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--ink);
+  /* dark overlay + image + fallback colour (shows if image is missing) */
+  background:
+    linear-gradient(rgba(5, 25, 18, 0.35), rgba(5, 25, 18, 0.35)),
+    var(--login-bg) center / cover no-repeat,
+    radial-gradient(circle at 30% 20%, #17402f, #07140f 70%);
+  background-color: #07140f;
+}
+.login-page *, .login-page *::before, .login-page *::after { box-sizing: border-box; }
+
+/* ---------- card ---------- */
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 30px 32px 22px;
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+}
+
+.login-logo {
+  display: inline-flex; align-items: center; gap: 8px;
+  color: var(--green); font-size: 24px; font-weight: 500; letter-spacing: -0.3px;
+}
+.login-module {
+  margin: 20px 0 0; color: var(--green);
+  font-size: 11px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase;
+}
+.login-title { margin: 2px 0 0; font-size: 28px; line-height: 1.2; font-weight: 700; letter-spacing: -0.4px; }
+.login-sub { margin: 8px auto 0; max-width: 300px; color: var(--muted); font-size: 12.5px; line-height: 1.45; }
+
+.login-alert {
+  margin-top: 14px; padding: 10px 12px; border-radius: 8px; text-align: left;
+  background: #fdecec; color: #b3261e; font-size: 12.5px; font-weight: 500;
+}
+
+/* ---------- fields ---------- */
+.login-field { margin-top: 18px; text-align: left; }
+.login-field label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; }
+
+.login-input {
+  display: flex; align-items: center; gap: 8px;
+  height: 40px; padding: 0 12px;
+  background: var(--field); border: 1px solid var(--field-line); border-radius: 8px;
+  color: #6b7686; transition: border-color 0.15s, box-shadow 0.15s;
+}
+.login-input:focus-within { border-color: var(--green); box-shadow: 0 0 0 3px rgba(31, 122, 55, 0.15); }
+.login-input.invalid { border-color: #d64545; }
+.login-input .lead { flex: none; }
+.login-input input {
+  flex: 1; min-width: 0; height: 100%;
+  border: 0; outline: 0; background: transparent;
+  font: inherit; font-size: 13px; color: var(--ink);
+}
+.login-input input::placeholder { color: #66717f; }
+.login-eye {
+  flex: none; display: grid; place-items: center; width: 28px; height: 28px;
+  border: 0; border-radius: 6px; background: transparent; color: #4b5666; cursor: pointer;
+}
+.login-eye:hover { background: rgba(0, 0, 0, 0.06); }
+.login-error { display: block; margin-top: 5px; color: #c0392b; font-size: 12px; }
+
+/* ---------- remember / forgot ---------- */
+.login-row {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 8px 16px; flex-wrap: wrap; margin-top: 16px; font-size: 13px;
+}
+.login-check { display: inline-flex; align-items: center; gap: 8px; color: #374151; cursor: pointer; }
+.login-check input { width: 16px; height: 16px; margin: 0; accent-color: var(--green); cursor: pointer; }
+.login-link { color: var(--green); font-weight: 700; text-decoration: none; }
+.login-link:hover { text-decoration: underline; }
+
+/* ---------- button ---------- */
+.login-btn {
+  width: 100%; height: 42px; margin-top: 20px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border: 0; border-radius: 8px; background: var(--green); color: #fff;
+  font: inherit; font-size: 14px; font-weight: 500; cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.login-btn:hover:not(:disabled) { background: var(--green-dark); }
+.login-btn:active:not(:disabled) { transform: translateY(1px); }
+.login-btn:disabled { opacity: 0.8; cursor: wait; }
+.login-spinner {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 2.5px solid rgba(255, 255, 255, 0.4); border-top-color: #fff;
+  animation: login-spin 0.7s linear infinite;
+}
+@keyframes login-spin { to { transform: rotate(360deg); } }
+
+.login-foot { margin: 16px 0 0; color: #4b5563; font-size: 11px; }
+
+.login-page :focus-visible { outline: 3px solid rgba(31, 122, 55, 0.45); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .login-spinner { animation-duration: 2s; } }
+
+/* ---------- responsive ---------- */
+@media (min-width: 1600px) {
+  .login-card { max-width: 460px; padding: 36px 38px 26px; }
+  .login-title { font-size: 31px; }
+}
+
+@media (max-width: 480px) {
+  .login-page { padding: 16px 12px; }
+  .login-card { padding: 24px 18px 18px; border-radius: 16px; }
+  .login-logo { font-size: 22px; }
+  .login-title { font-size: 25px; }
+  .login-input { height: 44px; }          /* easier tap target */
+  .login-input input { font-size: 16px; } /* stops iOS zoom on focus */
+  .login-btn { height: 46px; }
+}
+
+@media (max-width: 340px) {
+  .login-row { flex-direction: column; align-items: flex-start; }
+}
+
+/* short landscape phones: let the page scroll, keep card at the top */
+@media (max-height: 640px) {
+  .login-page { place-items: start center; }
+}
