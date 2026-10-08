@@ -2,6 +2,12 @@ const express = require("express");
 const router = express.Router();
 const Goal = require("../models/Goal");
 const Tracker = require("../models/Tracker");
+let Notification;
+try {
+  Notification = require("../models/Notification");
+} catch (err) {
+  console.log("Notification model optional fallback");
+}
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 let authMiddleware = (req, res, next) => next();
@@ -69,18 +75,32 @@ const calculateGoalStreak = (trackers) => {
 };
 
 // Flexible Category Normalization
-const normalizeCategory = (cat) => {
-  if (!cat) return "overall";
-  const lower = String(cat).toLowerCase().trim();
+const normalizeCategory = (cat, activityType) => {
+  const combined = `${cat || ""} ${activityType || ""}`.toLowerCase().trim();
 
-  if (lower.includes("transport")) return "transport";
-  if (lower.includes("energy") || lower.includes("electric")) return "energy";
-  if (lower.includes("food")) return "food";
-  if (lower.includes("waste")) return "waste";
-  if (lower.includes("water")) return "water";
-  if (lower.includes("overall") || lower.includes("all")) return "overall";
+  if (
+    combined.includes("transport") ||
+    combined.includes("walk") ||
+    combined.includes("cycle") ||
+    combined.includes("bus") ||
+    combined.includes("train") ||
+    combined.includes("commute")
+  ) {
+    return "transport";
+  }
+  if (
+    combined.includes("energy") ||
+    combined.includes("electric") ||
+    combined.includes("bulb") ||
+    combined.includes("power")
+  ) {
+    return "energy";
+  }
+  if (combined.includes("food") || combined.includes("diet")) return "food";
+  if (combined.includes("waste") || combined.includes("plastic")) return "waste";
+  if (combined.includes("water")) return "water";
 
-  return lower;
+  return "overall";
 };
 
 // GET /api/goals/ai-recommendation
@@ -147,9 +167,7 @@ router.get("/", authMiddleware, async (req, res) => {
         { userId: "guest" },
         { userId: { $exists: false } },
       ],
-    })
-      .sort({ createdAt: -1 })
-      .lean();
+    }).sort({ createdAt: -1 });
 
     const trackers = await Tracker.find({
       $or: [
@@ -159,19 +177,50 @@ router.get("/", authMiddleware, async (req, res) => {
       ],
     }).lean();
 
-    const formattedGoals = (goals || []).map((g) => {
-      const catKey = normalizeCategory(g.category);
+    const formattedGoals = [];
+
+    for (const g of goals) {
+      const goalCatKey = normalizeCategory(g.category, g.title);
+
+      let goalCreatedTime = 0;
+      if (g.createdAt) {
+        goalCreatedTime = new Date(g.createdAt).getTime();
+      } else if (g._id && typeof g._id.getTimestamp === "function") {
+        goalCreatedTime = g._id.getTimestamp().getTime();
+      }
 
       let totalEmitted = 0;
       let totalSaved = 0;
 
       (trackers || []).forEach((t) => {
-        const trackerCat = normalizeCategory(t.category);
-        const categoryMatches = catKey === "overall" || trackerCat === catKey;
+        const trackerCatKey = normalizeCategory(
+          t.category,
+          t.activityType || t.title || t.type
+        );
 
-        if (categoryMatches) {
-          const savedVal = Number(t.carbonSaved || t.saved || t.co2Saved || 0);
-          const emittedVal = Number(t.carbonOutput || t.emitted || t.co2Emitted || t.co2 || 0);
+        const categoryMatches =
+          goalCatKey === "overall" || trackerCatKey === goalCatKey;
+
+        let trackerTime = 0;
+        if (t.createdAt) {
+          trackerTime = new Date(t.createdAt).getTime();
+        } else if (t.activityDate) {
+          trackerTime = new Date(t.activityDate).getTime();
+        } else if (t.date) {
+          trackerTime = new Date(t.date).getTime();
+        } else if (t._id && typeof t._id.getTimestamp === "function") {
+          trackerTime = t._id.getTimestamp().getTime();
+        }
+
+        const isAfterGoal = trackerTime >= (goalCreatedTime - 5000);
+
+        if (categoryMatches && isAfterGoal) {
+          const savedVal = Number(
+            t.carbonSaved ?? t.saved ?? t.co2Saved ?? t.savedCo2 ?? 0
+          );
+          const emittedVal = Number(
+            t.carbonOutput ?? t.emitted ?? t.co2Emitted ?? t.co2 ?? 0
+          );
 
           if (savedVal > 0) totalSaved += savedVal;
           if (emittedVal > 0) totalEmitted += emittedVal;
@@ -179,22 +228,45 @@ router.get("/", authMiddleware, async (req, res) => {
       });
 
       const targetVal = parseFloat(g.targetValue) || 1;
-      
-      // OPTION 1: Net calculation (Saved - Emitted) with lower bound 0
-      // OPTION 2: Pure Savings Progress = totalSaved (High emissions won't block saved progress)
-      // Standard Net calculation:
-      let netValue = totalSaved - totalEmitted;
-      
-      // If emissions exceed savings, show totalSaved progress so goals don't stay locked at 0%:
-      const currentProgress = netValue > 0 
-        ? Number(netValue.toFixed(1)) 
-        : Number(totalSaved.toFixed(1));
+      const currentProgress = Math.max(0, Number((totalSaved - totalEmitted).toFixed(1)));
 
-      const percent = Math.min(100, Number(((currentProgress / targetVal) * 100).toFixed(1)));
-      const remainingBalance = Math.max(0, Number((targetVal - currentProgress).toFixed(1)));
-      const isCompleted = currentProgress >= targetVal;
+      let percent = 0;
+      if (targetVal > 0 && currentProgress > 0) {
+        percent = Math.min(
+          100,
+          Number(((currentProgress / targetVal) * 100).toFixed(1))
+        );
+      }
 
-      return {
+      const remainingBalance = Math.max(
+        0,
+        Number((targetVal - currentProgress).toFixed(1))
+      );
+      const isCompleted = targetVal > 0 && currentProgress >= targetVal;
+
+      // AUTOMATIC NOTIFICATION TRIGGER LOGIC
+      if (isCompleted && !g.isCompleted) {
+        g.isCompleted = true;
+        g.completedAt = new Date();
+        await g.save();
+
+        if (Notification) {
+          try {
+            await Notification.create({
+              userId: currentUserId,
+              title: "🎉 Goal Achieved!",
+              message: `Congratulations! You completed your goal: "${g.title}" by saving ${currentProgress} kg CO2e!`,
+              type: "goal_completed",
+              isRead: false,
+              createdAt: new Date(),
+            });
+          } catch (notifErr) {
+            console.log("Failed to create goal notification:", notifErr.message);
+          }
+        }
+      }
+
+      formattedGoals.push({
         _id: g._id,
         title: g.title || "Untitled Goal",
         category: g.category || "Overall",
@@ -208,14 +280,17 @@ router.get("/", authMiddleware, async (req, res) => {
         deadline: g.targetCompletionDate
           ? new Date(g.targetCompletionDate).toISOString().split("T")[0]
           : "2026-10-31",
-        isCompleted,
-      };
-    });
+        isCompleted: Boolean(g.isCompleted || isCompleted),
+      });
+    }
 
     const activeGoals = formattedGoals.filter((g) => !g.isCompleted);
     const completedGoals = formattedGoals.filter((g) => g.isCompleted);
     const totalGoals = formattedGoals.length;
-    const successRatePercent = totalGoals > 0 ? Math.round((completedGoals.length / totalGoals) * 100) : 0;
+    const successRatePercent =
+      totalGoals > 0
+        ? Math.round((completedGoals.length / totalGoals) * 100)
+        : 0;
     const calculatedStreak = calculateGoalStreak(trackers);
 
     res.status(200).json({
@@ -246,6 +321,8 @@ router.post("/", authMiddleware, async (req, res) => {
       targetValue: parseFloat(targetValue) || 0,
       targetUnit: targetUnit || "kg CO2e",
       targetCompletionDate,
+      isCompleted: false,
+      currentProgress: 0,
       createdAt: new Date(),
     });
 

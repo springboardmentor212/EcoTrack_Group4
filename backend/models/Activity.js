@@ -3,20 +3,29 @@ const mongoose = require("mongoose");
 const activitySchema = new mongoose.Schema(
   {
     userId: {
-      type: String, 
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
+      index: true,
     },
     category: {
       type: String,
       required: true,
+      enum: ["Transport", "Energy", "Food", "Waste", "Water", "Other"],
     },
     activityType: {
       type: String,
-      default: "",
+      required: true,
+    },
+    activityMode: {
+      type: String,
+      enum: ["emission", "saving"],
+      required: true,
     },
     value: {
       type: Number,
       required: true,
+      default: 0,
     },
     passengers: {
       type: Number,
@@ -24,11 +33,16 @@ const activitySchema = new mongoose.Schema(
     },
     carbonOutput: {
       type: Number,
-      required: true,
+      default: 0,
+    },
+    carbonSaved: {
+      type: Number,
+      default: 0,
     },
     activityDate: {
       type: Date,
       default: Date.now,
+      index: true,
     },
   },
   { timestamps: true }

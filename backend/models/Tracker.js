@@ -44,6 +44,11 @@ const trackerSchema = new mongoose.Schema(
       type: String,
       default: () => new Date().toISOString().split("T")[0],
     },
+    activityDate: {
+      type: Date,
+      default: Date.now,
+      index: true,
+    },
   },
   { timestamps: true }
 );

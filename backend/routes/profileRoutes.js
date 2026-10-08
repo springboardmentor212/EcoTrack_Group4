@@ -1,60 +1,124 @@
 const express = require("express");
 const router = express.Router();
-const Profile = require("../models/Profile"); // File name case-sensitive (Profile.js)
 const authMiddleware = require("../middleware/authMiddleware");
 
-// GET /api/profile
+const Profile = require("../models/Profile");
+const User = require("../models/User");
+
+// 1. Get Profile Details (/api/profile)
 router.get("/", authMiddleware, async (req, res) => {
   try {
-    const userId = req.user?.id || req.user?._id || req.userId;
-    
-    if (!userId) {
-      return res.status(401).json({ message: "Unauthorized: User ID not found" });
-    }
-
-    let profile = await Profile.findOne({ userId: String(userId) });
+    let profile = await Profile.findOne({ user: req.user.id });
+    const user = await User.findById(req.user.id).select("-password");
 
     if (!profile) {
-      return res.status(200).json({
+      // Default empty profile fallback
+      profile = {
         location: "",
         primaryTransport: "",
-        memberSince: "January 2024",
-      });
+        avatar: user?.picture || "",
+        notifications: {
+          dailyReminder: true,
+          weeklyReport: true,
+          goalAchievement: true,
+          challengeUpdates: false,
+        },
+      };
     }
 
-    res.status(200).json(profile);
-  } catch (error) {
-    console.error("Fetch Profile Error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.json({
+      name: user?.name || user?.fullName || "User",
+      email: user?.email || "",
+      avatar: profile.avatar || user?.picture || "",
+      location: profile.location || "",
+      primaryTransport: profile.primaryTransport || "",
+      notifications: profile.notifications || {},
+    });
+  } catch (err) {
+    console.error("Fetch profile error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-// POST /api/profile
-router.post("/", authMiddleware, async (req, res) => {
+// 2. Save / Update Profile Details - PUT (/api/profile)
+router.put("/", authMiddleware, async (req, res) => {
   try {
-    const userId = req.user?.id || req.user?._id || req.userId;
+    const { name, avatar, location, primaryTransport, notifications } = req.body;
 
-    if (!userId) {
-      return res.status(401).json({ message: "Unauthorized: User ID not found" });
+    // Update User Name if sent
+    if (name) {
+      await User.findByIdAndUpdate(req.user.id, { name: name, fullName: name });
     }
 
-    const { location, primaryTransport, memberSince } = req.body;
+    // Update or Create Profile
+    let profile = await Profile.findOne({ user: req.user.id });
 
-    const profile = await Profile.findOneAndUpdate(
-      { userId: String(userId) },
-      {
-        userId: String(userId),
-        location: location || "",
-        primaryTransport: primaryTransport || "",
-        memberSince: memberSince || "January 2024",
-      },
-      { new: true, upsert: true }
-    );
+    if (!profile) {
+      profile = new Profile({
+        user: req.user.id,
+        avatar,
+        location,
+        primaryTransport,
+        notifications,
+      });
+    } else {
+      if (avatar !== undefined) profile.avatar = avatar;
+      if (location !== undefined) profile.location = location;
+      if (primaryTransport !== undefined) profile.primaryTransport = primaryTransport;
+      if (notifications !== undefined) profile.notifications = notifications;
+    }
 
-    res.status(200).json({ message: "Profile saved successfully", profile });
-  } catch (error) {
-    console.error("Save Profile Error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    await profile.save();
+    res.json({ message: "Settings sariyagi save agide!", profile });
+  } catch (err) {
+    console.error("Update profile error:", err);
+    res.status(500).json({ message: "Settings save madalu agilla" });
+  }
+});
+
+// 3. Fallback POST (/api/profile)
+router.post("/", authMiddleware, async (req, res) => {
+  try {
+    const { location, primaryTransport, name, avatar, notifications } = req.body;
+
+    let profile = await Profile.findOne({ user: req.user.id });
+
+    if (!profile) {
+      profile = new Profile({
+        user: req.user.id,
+        location,
+        primaryTransport,
+        avatar,
+        notifications,
+      });
+    } else {
+      if (location) profile.location = location;
+      if (primaryTransport) profile.primaryTransport = primaryTransport;
+      if (avatar) profile.avatar = avatar;
+      if (notifications) profile.notifications = notifications;
+    }
+
+    if (name) {
+      await User.findByIdAndUpdate(req.user.id, { name, fullName: name });
+    }
+
+    await profile.save();
+    res.json({ message: "Profile update agide!", profile });
+  } catch (err) {
+    console.error("POST Profile error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// 4. Delete Account (/api/profile)
+router.delete("/", authMiddleware, async (req, res) => {
+  try {
+    await Profile.findOneAndDelete({ user: req.user.id });
+    await User.findByIdAndDelete(req.user.id);
+    res.json({ message: "Account delete agide!" });
+  } catch (err) {
+    console.error("Delete account error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 });
 

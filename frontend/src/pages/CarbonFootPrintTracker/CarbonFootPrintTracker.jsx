@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   FileText,
   User,
+  X,
 } from "lucide-react";
 import "./CarbonFootPrintTracker.css";
 
@@ -51,7 +52,7 @@ const CATEGORY_COLORS = {
   Water: "#0284c7",
 };
 
-const CarbonFootPrintTracker = () => {
+export default function CarbonFootPrintTracker() {
   const location = useLocation();
   const [selectedCategory, setSelectedCategory] = useState("Transport");
   const [selectedOption, setSelectedOption] = useState("Car (Petrol/Diesel)");
@@ -60,14 +61,17 @@ const CarbonFootPrintTracker = () => {
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
-  
+
   const [calculatedCO2, setCalculatedCO2] = useState(0.0);
   const [currentFactor, setCurrentFactor] = useState(0.192);
   const [activeMode, setActiveMode] = useState("emission");
 
   const [loggeduser, setLoggeduser] = useState("User");
   const [historyRecords, setHistoryRecords] = useState([]);
-  
+
+  // Gamification Reward Modal State
+  const [unlockedReward, setUnlockedReward] = useState(null);
+
   const [categoryBreakdown, setCategoryBreakdown] = useState({
     Transport: { emitted: 0, saved: 0 },
     Energy: { emitted: 0, saved: 0 },
@@ -129,7 +133,7 @@ const CarbonFootPrintTracker = () => {
     setSummaryData({
       totalEmissions: Number(totalEmitted.toFixed(2)),
       totalSaved: Number(totalSaved.toFixed(2)),
-      netFootprint: Number(Math.max(0, totalEmitted - totalSaved).toFixed(2)),
+      netFootprint: Number(Math.abs(totalEmitted - totalSaved).toFixed(2)),
     });
   }, []);
 
@@ -228,7 +232,12 @@ const CarbonFootPrintTracker = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      alert("Activity logged successfully!");
+      // Check if Challenge Reward Modal is triggered
+      if (res.data.triggerModal && res.data.rewardsUnlocked?.length > 0) {
+        setUnlockedReward(res.data.rewardsUnlocked[0]);
+      } else {
+        alert("Activity logged successfully!");
+      }
 
       const newRecord = res.data?.data ? res.data.data : { _id: Date.now(), ...payload };
       const updatedHistory = [newRecord, ...historyRecords];
@@ -279,10 +288,12 @@ const CarbonFootPrintTracker = () => {
             <LayoutDashboard size={16} />
             <span>Dashboard</span>
           </Link>
+
           <Link to="/reports" className={`menu-item ${isActive("/reports") ? "active" : ""}`}>
             <FileText size={16} />
             <span>Reports</span>
           </Link>
+
           <Link to="/profile" className={`menu-item ${isActive("/profile") ? "active" : ""}`}>
             <User size={16} />
             <span>Profile</span>
@@ -390,7 +401,6 @@ const CarbonFootPrintTracker = () => {
               <div className="breakdown">
                 <h2>Category Breakdown</h2>
                 {Object.entries(categoryBreakdown).map(([cat, data]) => {
-                  const netCat = Math.max(0, data.emitted - data.saved);
                   const pct = summaryData.totalEmissions > 0 
                     ? ((data.emitted / summaryData.totalEmissions) * 100).toFixed(1)
                     : "0.0";
@@ -476,8 +486,116 @@ const CarbonFootPrintTracker = () => {
           </div>
         </div>
       </main>
+
+      {/* Challenge Reward Popup Modal */}
+      {unlockedReward && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          backgroundColor: "rgba(15, 23, 42, 0.75)",
+          backdropFilter: "blur(4px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 9999,
+          padding: "16px"
+        }}>
+          <div style={{
+            backgroundColor: "#fff",
+            borderRadius: "24px",
+            padding: "28px",
+            maxWidth: "380px",
+            width: "100%",
+            textAlign: "center",
+            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+            position: "relative"
+          }}>
+            <button
+              onClick={() => setUnlockedReward(null)}
+              style={{
+                position: "absolute",
+                top: "16px",
+                right: "16px",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: "#64748b"
+              }}
+            >
+              <X size={20} />
+            </button>
+
+            <span style={{
+              backgroundColor: "#d1fae5",
+              color: "#065f46",
+              fontSize: "11px",
+              fontWeight: "bold",
+              padding: "4px 12px",
+              borderRadius: "9999px",
+              textTransform: "uppercase"
+            }}>
+              Challenge Complete! 🎉
+            </span>
+
+            <div style={{ margin: "20px 0", display: "flex", justifyContent: "center" }}>
+              <div style={{
+                width: "80px",
+                height: "80px",
+                backgroundColor: "#ecfdf5",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "40px",
+                border: "2px solid #a7f3d0"
+              }}>
+                {unlockedReward.badgeIcon || "🏆"}
+              </div>
+            </div>
+
+            <h3 style={{ fontSize: "20px", fontWeight: "800", color: "#1e293b", margin: 0 }}>
+              {unlockedReward.title}
+            </h3>
+            <p style={{ fontSize: "12px", color: "#64748b", marginTop: "4px" }}>
+              Goal Reached Successfully!
+            </p>
+
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "12px",
+              margin: "20px 0"
+            }}>
+              <div style={{ backgroundColor: "#fffbeb", border: "1px solid #fde68a", borderRadius: "12px", padding: "12px" }}>
+                <span style={{ fontSize: "11px", color: "#b45309", display: "block", fontWeight: "600" }}>Eco Points</span>
+                <span style={{ fontSize: "18px", fontWeight: "900", color: "#d97706" }}>🪙 +{unlockedReward.rewardPoints}</span>
+              </div>
+              <div style={{ backgroundColor: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "12px", padding: "12px" }}>
+                <span style={{ fontSize: "11px", color: "#1d4ed8", display: "block", fontWeight: "600" }}>Level XP</span>
+                <span style={{ fontSize: "18px", fontWeight: "900", color: "#2563eb" }}>✨ +{unlockedReward.rewardXP}</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setUnlockedReward(null)}
+              style={{
+                width: "100%",
+                backgroundColor: "#10b981",
+                color: "#fff",
+                fontWeight: "bold",
+                padding: "12px",
+                borderRadius: "12px",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "14px",
+                boxShadow: "0 10px 15px -3px rgba(16, 185, 129, 0.3)"
+              }}
+            >
+              CLAIM REWARDS 🚀
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
-};
-
-export default CarbonFootPrintTracker;
+}

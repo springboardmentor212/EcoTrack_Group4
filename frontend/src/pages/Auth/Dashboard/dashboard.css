@@ -191,10 +191,10 @@ body, html, #root {
 }
 
 .dashboard-grid.bottom-grid {
-  height: 260px;
+  height: 280px;
 }
 
-/* DASHBOARD CARD BASE - FIX: CONTAIN OVERFLOW */
+/* DASHBOARD CARD BASE */
 .dashboard-card {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
@@ -266,7 +266,7 @@ body, html, #root {
   color: #0f172a;
 }
 
-/* SCROLLABLE INNER LIST CONTAINERS - FIX OVERFLOW OUTSIDE CONTAINER */
+/* LIST CONTAINERS - NO SCROLLBAR MODIFIER */
 .recommendation-list,
 .goal-progress-list,
 .activity-list,
@@ -276,8 +276,16 @@ body, html, #root {
   gap: 8px;
   margin: 0;
   flex: 1;
-  overflow-y: auto;
-  padding-right: 4px;
+  overflow-y: hidden; /* Scroll bar hidden strictly */
+}
+
+/* Hide scrollbars explicitly across browsers */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .goal-progress-item,
@@ -392,25 +400,33 @@ body, html, #root {
 }
 
 .join-button {
-  background: white;
-  border: 1px solid #10b981;
-  color: #059669;
-  padding: 3px 8px;
+  background: #10b981;
+  border: 1px solid #059669;
+  color: #ffffff;
+  padding: 4px 10px;
   border-radius: 6px;
   font-size: 10.5px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
+  transition: background 0.2s ease;
 }
 
-.join-button.joined {
-  background: #d1fae5;
-  border-color: #059669;
+.join-button:hover {
+  background: #059669;
 }
 
 .challenge-status-badge {
   font-size: 10px;
   color: var(--text-muted);
   font-weight: 600;
+}
+
+.challenge-status-badge.active-badge {
+  color: #059669;
+  background: #d1fae5;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: 700;
 }
 
 .activity-result {
@@ -511,12 +527,6 @@ body, html, #root {
   display: inline-block;
 }
 
-.legend-dot-indicator.cat-transport { background-color: #3b82f6; }
-.legend-dot-indicator.cat-food { background-color: #10b981; }
-.legend-dot-indicator.cat-water { background-color: #06b6d4; }
-.legend-dot-indicator.cat-energy { background-color: #f59e0b; }
-.legend-dot-indicator.cat-waste { background-color: #8b5cf6; }
-
 .emissions-summary {
   background: #f8fafc;
   border: 1px solid var(--border-color);
@@ -528,44 +538,81 @@ body, html, #root {
   flex-shrink: 0;
 }
 
-/* GAMIFICATION */
-.badge-list {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex: 1;
-  margin: 4px 0;
+/* GAMIFICATION & BADGES */
+.level-summary-box {
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
 }
 
-.achievement-badge {
+.level-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.level-name-tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: #065f46;
+}
+
+.xp-text {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.earned-badges-title {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-light);
+  margin-bottom: 6px;
+}
+
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.achievement-badge-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  justify-content: center;
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px 4px;
+  text-align: center;
 }
 
-.badge-shape {
-  width: 42px;
-  height: 42px;
+.badge-symbol-circle {
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: #d1fae5;
-  color: #059669;
   display: grid;
   place-items: center;
-  font-size: 18px;
-}
-
-.next-level {
-  margin-top: auto;
-  flex-shrink: 0;
-}
-
-.next-level-header {
-  display: flex;
-  justify-content: space-between;
-  font-size: 10px;
-  color: var(--text-muted);
   margin-bottom: 4px;
+}
+
+.badge-symbol-circle.green { background: #d1fae5; }
+.badge-symbol-circle.amber { background: #fef3c7; }
+.badge-symbol-circle.emerald { background: #a7f3d0; }
+
+.badge-emoji {
+  font-size: 16px;
+}
+
+.badge-title {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #0f172a;
 }
 
 .no-data {

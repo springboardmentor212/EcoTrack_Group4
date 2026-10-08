@@ -18,15 +18,16 @@ const goalSchema = new mongoose.Schema(
     goalType: {
       type: String,
       enum: ["emission_limit", "saving_target"],
-      default: "emission_limit",
+      default: "saving_target",
     },
     targetValue: {
       type: Number,
+      required: true,
       default: 0,
     },
     targetUnit: {
       type: String,
-      default: "kg CO2e / mo",
+      default: "kg CO2e",
     },
     currentProgress: {
       type: Number,
