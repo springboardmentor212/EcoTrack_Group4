@@ -1,0 +1,67 @@
+.users-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.users-panel-header h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.users-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.users-avatar {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #def3e8;
+  color: #109a62;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.users-panel-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.users-result-count {
+  color: #8a98ac;
+  font-size: 12.5px;
+}
+
+@media (max-width: 680px) {
+  .users-panel-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .users-panel-header .admin-search {
+    width: 100%;
+  }
+
+  .users-panel-footer {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .users-name-cell {
+    justify-content: flex-end;
+  }
+}
