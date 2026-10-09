@@ -1,0 +1,132 @@
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.admin-header-title {
+  min-width: 0;
+}
+
+.admin-breadcrumb {
+  color: #6a7b93;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.admin-header-subtitle {
+  color: #7b8aa0;
+  font-size: 12.5px;
+  margin-top: 2px;
+}
+
+.admin-header-title h1 {
+  margin: 6px 0 0;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.admin-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-menu-button {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #e6ecf3;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+}
+
+.admin-profile {
+  position: relative;
+}
+
+.admin-profile-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 14px 5px 6px;
+  border: 1px solid #e6ecf3;
+  border-radius: 999px;
+  background: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-profile-avatar {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  color: #109a62;
+}
+
+.admin-profile-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 50;
+  min-width: 150px;
+  display: grid;
+  padding: 5px;
+  background: white;
+  border: 1px solid #e6ecf3;
+  border-radius: 12px;
+  box-shadow: 0 14px 30px rgba(15, 27, 45, 0.12);
+}
+
+.admin-profile-menu button {
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-profile-menu button:hover {
+  background: #f1f5fa;
+}
+
+@media (max-width: 900px) {
+  .admin-header {
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .admin-menu-button {
+    display: grid;
+    place-items: center;
+  }
+
+  .admin-header-title {
+    order: 3;
+    flex-basis: 100%;
+  }
+
+  .admin-header-actions {
+    margin-left: auto;
+  }
+
+  .admin-header-title h1 {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 680px) {
+  .admin-header-title h1 {
+    font-size: 21px;
+  }
+
+  .admin-profile-name,
+  .admin-profile-button > span:last-child {
+    display: none;
+  }
+}
