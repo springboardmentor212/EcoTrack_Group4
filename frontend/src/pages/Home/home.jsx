@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 import {
   Globe,
   Home as HomeIcon,
@@ -17,86 +18,50 @@ import treeImage from "../../assets/tree.jpeg";
 import "./home.css";
 
 function Home() {
-  const [summary, setSummary] = useState({
-    today: 0,
-    thisMonth: 0,
-    total: 0,
-    categoryTotals: [],
-  });
+  const [todayEmissions, setTodayEmissions] = useState(0);
 
   useEffect(() => {
-    const fetchTodayEmission = async () => {
+    const fetchEmissionData = async () => {
       try {
         const token = localStorage.getItem("token");
+        if (!token) return;
 
-        // Fetch user activity logs from history API
-        const response = await fetch(
+        const response = await axios.get(
           "http://localhost:5000/api/tracker/history",
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
 
-        const data = await response.json();
+        const records = Array.isArray(response.data)
+          ? response.data
+          : response.data.logs || response.data.history || [];
 
-        if (!response.ok) {
-          throw new Error(data.message || "Failed to fetch tracker history");
-        }
+        // Exact profile co2Emitted calculation logic sync
+        let totalEmissions = 0;
 
-        const records = Array.isArray(data)
-          ? data
-          : data.logs || data.history || [];
+        records.forEach((item) => {
+          const mode =
+            item.activityMode ||
+            (Number(item.carbonSaved) > 0 ? "saving" : "emission");
 
-        // Today's date in YYYY-MM-DD format
-        const today = new Date().toISOString().split("T")[0];
+          if (mode === "emission") {
+            totalEmissions += Number(item.carbonOutput || item.co2 || 0);
+          }
+        });
 
-        // Calculate ONLY today's EMISSIONS (CO2 saved is excluded)
-        const todayEmission = records
-          .filter((item) => {
-            const activityDate = item.activityDate
-              ? String(item.activityDate).split("T")[0]
-              : item.createdAt
-              ? String(item.createdAt).split("T")[0]
-              : "";
-
-            const mode =
-              item.activityMode ||
-              (Number(item.carbonSaved) > 0 ? "saving" : "emission");
-
-            return activityDate === today && mode === "emission";
-          })
-          .reduce((total, item) => {
-            const emission = Number(
-              item.carbonOutput ?? item.co2 ?? 0
-            );
-
-            return total + (Number.isFinite(emission) ? emission : 0);
-          }, 0);
-
-        setSummary((prev) => ({
-          ...prev,
-          today: Number(todayEmission.toFixed(2)),
-        }));
+        setTodayEmissions(totalEmissions);
       } catch (error) {
-        console.error("Error calculating today's emission:", error);
+        console.error("Error calculating gross emissions for home:", error);
       }
     };
 
-    fetchTodayEmission();
+    fetchEmissionData();
   }, []);
-
-  // Format today's calculated emission to 2 decimal places
-  const formattedTodayEmission = 
-    typeof summary.today === "number" 
-      ? summary.today.toFixed(2) 
-      : parseFloat(summary.today || 0).toFixed(2);
 
   return (
     <div className="home-page">
       <div className="home-layout">
-        {/* ================= SIDEBAR ================= */}
         <aside className="sidebar">
           <div className="brand">
             <Globe size={18} strokeWidth={2} />
@@ -141,16 +106,13 @@ function Home() {
           </nav>
         </aside>
 
-        {/* ================= MAIN CONTENT AREA ================= */}
         <div className="main-viewport">
           <main className="main-content">
-            {/* ================= WELCOME HEADER ================= */}
             <div className="welcome">
               <h2>Home</h2>
               <p>Welcome back! Ready to track your green impact today?</p>
             </div>
 
-            {/* ================= CARBON BANNER ================= */}
             <section className="carbon-banner">
               <span className="help-text">HOW TO HELP</span>
               <h1>Calculate Your Carbon Footprint</h1>
@@ -160,7 +122,6 @@ function Home() {
               </p>
             </section>
 
-            {/* ================= STATISTICS ================= */}
             <section className="stats">
               <div className="stat-card">
                 <span>US AVERAGE</span>
@@ -186,17 +147,15 @@ function Home() {
                 </div>
               </div>
 
-              {/* TODAY'S EMISSIONS CALCULATED VALUE */}
               <div className="stat-card">
                 <span>TODAY'S EMISSIONS</span>
                 <div>
-                  <strong>{formattedTodayEmission}</strong>
+                  <strong>{todayEmissions.toFixed(2)}</strong>
                   <small>kg CO₂e</small>
                 </div>
               </div>
             </section>
 
-            {/* ================= INFORMATION CARD ================= */}
             <section className="info-card">
               <div className="tree-box">
                 <img
@@ -231,7 +190,6 @@ function Home() {
               </div>
             </section>
 
-            {/* ================= FOOTER ================= */}
             <footer className="footer">
               <div className="footer-grid">
                 <div className="footer-brand">
@@ -257,17 +215,6 @@ function Home() {
                   <span>Offset Methodology</span>
                   <span>API Documentation</span>
                   <span>Help & Support</span>
-                </div>
-
-                <div className="milestone">
-                  <h4>COMMUNITY MILESTONE</h4>
-                  <strong>
-                    142.8 Tons <span className="milestone-sub">CO₂ saved</span>
-                  </strong>
-                  <div className="progress">
-                    <div></div>
-                  </div>
-                  <small>Target: 200 Tons this month (71%)</small>
                 </div>
               </div>
 

@@ -245,6 +245,13 @@
   padding-right: 40px;
 }
 
+.disabled-input {
+  background-color: #f1f5f9 !important;
+  color: #64748b !important;
+  cursor: not-allowed;
+  border-color: #e2e8f0 !important;
+}
+
 .input-icon svg {
   position: absolute;
   right: 12px;
@@ -546,6 +553,30 @@
   border: 1px solid #dbe3e8;
   background: #f8fafb;
   color: #64748b;
+}
+
+
+/* =========================
+   CUSTOM PROJECT TOAST STYLES
+========================= */
+
+.Toastify__toast--custom {
+  background-color: #ffffff !important;
+  border: 2px solid #059669 !important;
+  border-radius: 10px !important;
+  color: #0f172a !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 10px 25px -5px rgba(5, 150, 105, 0.15) !important;
+}
+
+.Toastify__toast--custom .Toastify__toast-icon svg {
+  fill: #059669 !important;
+}
+
+.Toastify__progress-bar--colored,
+.Toastify__progress-bar--default {
+  background: #059669 !important;
 }
 
 

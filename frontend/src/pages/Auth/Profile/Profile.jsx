@@ -14,6 +14,9 @@ import {
   Edit3,
   PlusCircle,
   X,
+  Settings,
+  Award,
+  Zap,
 } from "lucide-react";
 import "./Profile.css";
 
@@ -24,6 +27,9 @@ export default function Profile() {
     name: "",
     email: "",
   });
+
+  // Profile Image State added
+  const [profileImage, setProfileImage] = useState(null);
 
   const [profileDetails, setProfileDetails] = useState({
     location: "",
@@ -37,6 +43,8 @@ export default function Profile() {
     netFootprint: 0,
     treesEquivalent: 0,
     activeStreak: 0,
+    ecoPoints: 0,
+    badgesEarned: 0,
   });
 
   const [displayGoals, setDisplayGoals] = useState([]);
@@ -44,16 +52,18 @@ export default function Profile() {
 
   const fetchProfileData = async () => {
     try {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        console.warn("No authentication token found.");
-        return;
+      // 1. Fetch Local Storage Saved Profile Photo
+      const customPhoto = localStorage.getItem("customProfileImage");
+      if (customPhoto) {
+        setProfileImage(customPhoto);
       }
+
+      const token = localStorage.getItem("token");
+      if (!token) return;
 
       const headers = { Authorization: `Bearer ${token}` };
 
-      // 1. Fetch User Info
+      // User Profile Fetch
       try {
         const userRes = await axios.get("http://localhost:5000/api/auth/me", { headers });
         if (userRes.data) {
@@ -71,7 +81,24 @@ export default function Profile() {
         });
       }
 
-      // 2. Fetch Profile Info
+      // Fetch Eco Points & Badges from Challenges endpoints
+      let fetchedPoints = 0;
+      let fetchedBadges = 0;
+      try {
+        const challengeRes = await axios.get("http://localhost:5000/api/challenges/available", { headers });
+        if (challengeRes.data && challengeRes.data.ecoPoints !== undefined) {
+          fetchedPoints = Number(challengeRes.data.ecoPoints) || 0;
+        }
+
+        const statusRes = await axios.get("http://localhost:5000/api/challenges/my-status", { headers });
+        if (statusRes.data && Array.isArray(statusRes.data)) {
+          fetchedBadges = statusRes.data.filter((p) => p.status === "CLAIMED").length;
+        }
+      } catch (err) {
+        console.error("Challenges API Fetch Error:", err);
+      }
+
+      // Profile Details Fetch
       try {
         const profileRes = await axios.get("http://localhost:5000/api/profile", { headers });
         if (profileRes.data) {
@@ -84,12 +111,12 @@ export default function Profile() {
         console.log("Using default profile details");
       }
 
-      // 3. Fetch Carbon Logs
+      // Tracker Logs
       try {
         const trackerRes = await axios.get("http://localhost:5000/api/tracker/history", { headers });
         if (trackerRes.data) {
           const logs = Array.isArray(trackerRes.data) ? trackerRes.data : trackerRes.data.logs || [];
-          
+
           if (logs.length > 0) {
             setRecentLogs(logs.slice(0, 3));
 
@@ -97,7 +124,7 @@ export default function Profile() {
             let totalSaved = 0;
 
             logs.forEach((log) => {
-              const mode = log.activityMode || (log.carbonSaved > 0 ? "saving" : "emission");
+              const mode = log.activityMode || (Number(log.carbonSaved) > 0 ? "saving" : "emission");
               if (mode === "saving") {
                 totalSaved += Number(log.carbonSaved || log.co2 || 0);
               } else {
@@ -105,14 +132,16 @@ export default function Profile() {
               }
             });
 
-            const netFootprint = Math.max(0, totalEmissions - totalSaved);
+            const netFootprint = Math.abs(totalEmissions - totalSaved);
             const trees = Math.round(totalSaved / 21);
 
             const uniqueDates = new Set(
-              logs.map((log) => {
-                const d = log.activityDate || log.date || log.createdAt;
-                return d ? new Date(d).toDateString() : null;
-              }).filter(Boolean)
+              logs
+                .map((log) => {
+                  const d = log.activityDate || log.date || log.createdAt;
+                  return d ? new Date(d).toDateString() : null;
+                })
+                .filter(Boolean)
             );
 
             setStats({
@@ -121,24 +150,30 @@ export default function Profile() {
               netFootprint: Number(netFootprint.toFixed(1)),
               treesEquivalent: trees,
               activeStreak: uniqueDates.size,
+              ecoPoints: fetchedPoints,
+              badgesEarned: fetchedBadges,
             });
+          } else {
+            setStats((prev) => ({
+              ...prev,
+              ecoPoints: fetchedPoints,
+              badgesEarned: fetchedBadges,
+            }));
           }
         }
       } catch (err) {
         console.error("Tracker Logs Fetch Error:", err);
       }
 
-      // 4. Fetch Goals (Max 3 Goals: 1 recent completed + 2 active)
+      // Goals Fetch
       try {
         const goalsRes = await axios.get("http://localhost:5000/api/goals", { headers });
         if (goalsRes.data) {
           const allGoals = goalsRes.data.goals || (Array.isArray(goalsRes.data) ? goalsRes.data : []);
-          
           const completed = goalsRes.data.completedGoals || allGoals.filter((g) => g.isCompleted);
           const active = goalsRes.data.activeGoals || allGoals.filter((g) => !g.isCompleted);
 
           let selectedGoals = [];
-
           if (completed.length > 0) {
             selectedGoals.push(completed[0]);
             selectedGoals = selectedGoals.concat(active.slice(0, 2));
@@ -151,7 +186,6 @@ export default function Profile() {
       } catch (err) {
         console.error("Goals Fetch Error:", err);
       }
-
     } catch (err) {
       console.error("Fetch Data Error:", err);
     }
@@ -209,18 +243,51 @@ export default function Profile() {
           <p>Manage your personal information, impact metrics, and app settings.</p>
         </header>
 
-        <div className="profile-figma-grid">
+        <div className="profile-layout-container">
+          
           {/* LEFT COLUMN */}
           <div className="left-column">
+            
+            {/* Separate Cards for Eco Points & Badges */}
+            <div className="eco-header-row">
+              <div className="metric-card eco-card-height">
+                <p className="metric-label">Eco Points</p>
+                <h2 className="metric-value" style={{ color: "#d97706" }}>
+                  {stats.ecoPoints} <span style={{ fontSize: "14px", fontWeight: "600" }}>PTS</span>
+                </h2>
+                <span className="metric-sub text-gray">Earned Points</span>
+              </div>
+
+              <div className="metric-card eco-card-height">
+                <p className="metric-label">Badges Unlocked</p>
+                <h2 className="metric-value" style={{ color: "#9333ea" }}>
+                  {stats.badgesEarned} <span style={{ fontSize: "14px", fontWeight: "600" }}>Badges</span>
+                </h2>
+                <span className="metric-sub text-gray">Achievements</span>
+              </div>
+            </div>
+
             <div className="profile-card">
               <div className="avatar-wrapper">
                 <div className="avatar">
-                  <User size={38} />
+                  {profileImage ? (
+                    <img
+                      src={profileImage}
+                      alt="Profile"
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  ) : (
+                    <User size={38} />
+                  )}
                 </div>
               </div>
               <h3 className="user-name">{user.name || "User"}</h3>
               <p className="user-email">{user.email || "No email"}</p>
-             
 
               <div className="info-details">
                 <div className="info-row">
@@ -249,17 +316,18 @@ export default function Profile() {
             </div>
 
             <div className="settings-card">
-              <h4>Account & App Settings</h4>
-              <p>Manage notification preferences, privacy controls, and application options.</p>
+              <div className="settings-content">
+                <h4>Account & App Settings</h4>
+                <p>Manage notification preferences, privacy controls, and application options.</p>
+              </div>
               <button className="btn-settings" onClick={() => navigate("/settings")}>
-                Go to Settings
+                <Settings size={14} style={{ marginRight: "6px" }} /> Go to Settings
               </button>
             </div>
           </div>
 
           {/* RIGHT COLUMN */}
           <div className="right-column">
-            {/* 4 METRIC CARDS ROW */}
             <div className="metrics-row">
               <div className="metric-card">
                 <p className="metric-label">CO₂ Emitted</p>
@@ -278,7 +346,7 @@ export default function Profile() {
               <div className="metric-card">
                 <p className="metric-label">Net Footprint</p>
                 <h2 className="metric-value">{stats.netFootprint} kg</h2>
-                <span className="metric-sub text-gray">Emitted − Saved</span>
+                <span className="metric-sub text-gray">Net Difference</span>
               </div>
 
               <div className="metric-card">
@@ -290,7 +358,6 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* GOALS SUMMARY PANEL */}
             <div className="panel-card goal-summary-panel">
               <h3>Goal Progress Summary</h3>
               <div className="item-list">
@@ -310,14 +377,13 @@ export default function Profile() {
                     return (
                       <div
                         key={goal._id}
+                        className="goal-item-box"
                         style={{
-                          padding: "12px",
-                          borderRadius: "8px",
                           background: isDone ? "#f0fdf4" : "#f8fafc",
                           border: isDone ? "1px solid #10b981" : "1px solid #e2e8f0",
                         }}
                       >
-                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", fontWeight: "600", marginBottom: "4px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", fontWeight: "600", marginBottom: "6px" }}>
                           <span>
                             {isDone ? `✓ ${goal.title}` : goal.title} ({goal.category || "Overall"})
                           </span>
@@ -332,7 +398,7 @@ export default function Profile() {
                             height: "6px",
                             background: "#e2e8f0",
                             borderRadius: "99px",
-                            margin: "6px 0",
+                            margin: "8px 0",
                             overflow: "hidden",
                           }}
                         >
@@ -362,8 +428,7 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* RECENT ACTIVITY PANEL */}
-            <div className="panel-card">
+            <div className="panel-card activity-panel">
               <h3>Recent Activity</h3>
               <div className="item-list">
                 {recentLogs.length === 0 ? (
@@ -372,21 +437,21 @@ export default function Profile() {
                   </p>
                 ) : (
                   recentLogs.map((log, idx) => {
-                    const mode = log.activityMode || (log.carbonSaved > 0 ? "saving" : "emission");
+                    const mode = log.activityMode || (Number(log.carbonSaved) > 0 ? "saving" : "emission");
                     const co2Val = mode === "saving" 
                       ? (log.carbonSaved || log.co2 || 0) 
                       : (log.carbonOutput || log.co2 || 0);
                     const activityName = log.activityType || log.subType || log.category || "Eco Activity";
-                    const dateStr = log.activityDate || log.date || "Recent";
+                    const dateStr = log.activityDate ? log.activityDate.split("T")[0] : "Recent";
 
                     return (
                       <div className="activity-item" key={log._id || idx}>
                         <div>
                           <p className="item-title">{activityName}</p>
-                          <p className="item-sub">{dateStr} • {log.category}</p>
+                          <p className="item-sub">{dateStr} • {log.category || "General"}</p>
                         </div>
-                        <span className="tag-saved" style={{ color: mode === "saving" ? "#10b981" : "#0f172a" }}>
-                          {mode === "saving" ? `−${Number(co2Val).toFixed(1)} kg saved` : `+${Number(co2Val).toFixed(1)} kg`}
+                        <span className="tag-saved" style={{ color: mode === "saving" ? "#10b981" : "#ef4444" }}>
+                          {mode === "saving" ? `-${Number(co2Val).toFixed(1)} kg saved` : `+${Number(co2Val).toFixed(1)} kg`}
                         </span>
                       </div>
                     );

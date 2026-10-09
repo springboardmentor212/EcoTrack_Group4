@@ -16,10 +16,9 @@
 
   display: grid;
   grid-template-columns: 224px 1fr;
-  align-items: start; /* stops main-content from stretching to fill leftover viewport height */
+  align-items: start;
   min-height: 100vh;
-  /* background: var(--rep-bg); */
-    background: linear-gradient(to right, rgb(184, 211, 184), rgb(241, 247, 238));
+  background: linear-gradient(to right, rgb(184, 211, 184), rgb(241, 247, 238));
   font-family: var(--rep-font);
   color: var(--rep-text);
 }
@@ -28,9 +27,9 @@
   box-sizing: border-box;
 }
 
-/* Sidebar (shared look with other pages, scoped here) */
+/* Sidebar */
 .reports-app .sidebar {
-  align-self: stretch; /* sidebar still fills full page height on its own */
+  align-self: stretch;
   background: var(--rep-white);
   border-right: 1px solid var(--rep-border);
   padding: 20px 16px;
@@ -216,6 +215,10 @@
   border: 1px solid var(--rep-border);
   border-radius: var(--rep-radius);
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
 }
 
 .reports-app .panel h2 {
@@ -232,25 +235,29 @@
 
 .reports-app .chart-wrap {
   width: 100%;
+  height: 100%;
+  min-height: 250px;
 }
 
-/* Charts row: CO2 overview + impact breakdown */
 .reports-app .charts-grid {
   display: grid;
   grid-template-columns: 1.6fr 1fr;
   gap: 20px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .reports-app .donut-row {
   display: flex;
   align-items: center;
   gap: 16px;
+  height: 100%;
+  min-height: 260px;
+  justify-content: space-around;
 }
 
 .reports-app .donut-wrap {
-  flex: 1;
-  min-width: 0;
+  width: 50%;
+  height: 240px;
 }
 
 .reports-app .legend-list {
@@ -276,12 +283,12 @@
   display: inline-block;
 }
 
-/* Bottom row: activities table + monthly comparison */
+
 .reports-app .bottom-grid {
   display: grid;
   grid-template-columns: 1.6fr 1fr;
   gap: 20px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .reports-app .activities-table {
@@ -299,7 +306,7 @@
 }
 
 .reports-app .activities-table td {
-  padding: 10px 0;
+  padding: 12px 0;
   border-top: 1px solid var(--rep-border);
 }
 

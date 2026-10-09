@@ -1,35 +1,6 @@
 
 /* =========================
    Challenges Page
-========================= */
-
-.app {
-  min-height: 100vh;
-  background: #f6f9fc;
-  color: #0f1b2d;
-  font-family: "Plus Jakarta Sans", sans-serif;
-}
-
-.app,
-.app * {
-  box-sizing: border-box;
-}
-
-.main {
-  min-width: 0;
-}
-
-/* =========================
-   Statistics Cards
-========================= */
-
-.stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  margin-bottom: 22px;
-}
-
 .stat {
   display: flex;
   align-items: center;
