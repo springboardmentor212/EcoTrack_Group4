@@ -1,10 +1,9 @@
 const express = require("express");
 const router = express.Router();
+const { getUserGamification } = require("../controllers/gamificationController");
+const authMiddleware = require("../middleware/authMiddleware");
 
-const {
-  getGamificationData,
-} = require("../controllers/gamificationController");
-
-router.get("/", getGamificationData);
+// Ensure getUserGamification is a valid function here
+router.get("/", authMiddleware, getUserGamification);
 
 module.exports = router;

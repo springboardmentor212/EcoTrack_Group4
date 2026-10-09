@@ -1,0 +1,541 @@
+
+/* =========================
+   Challenges Page
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  min-width: 0;
+  padding: 20px;
+  background: #e4f6ec;
+  border: 1px solid #d2eedf;
+  border-radius: 14px;
+}
+
+.stat-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: #c8eedb;
+  color: #109a62;
+  font-size: 23px;
+}
+
+.stat > div {
+  min-width: 0;
+}
+
+.stat strong {
+  display: block;
+  color: #0f1b2d;
+  font-size: 29px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.stat > div > span {
+  display: block;
+  margin-top: 5px;
+  color: #109a62;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* =========================
+   Main Panel
+========================= */
+
+.panel {
+  min-width: 0;
+  padding: 20px;
+  background: #ffffff;
+  border: 1px solid #e6ecf3;
+  border-radius: 14px;
+  box-shadow: 0 3px 12px rgba(15, 27, 45, 0.025);
+}
+
+.panel-title {
+  margin: 0 0 20px;
+  color: #0f1b2d;
+  font-size: 19px;
+  font-weight: 800;
+}
+
+/* =========================
+   Challenges Table
+========================= */
+
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-wrap table {
+  width: 100%;
+  min-width: 700px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table-wrap thead {
+  background: #f7f9fc;
+}
+
+.table-wrap th {
+  padding: 15px 13px;
+  color: #6b7a90;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.45px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.table-wrap td {
+  padding: 17px 13px;
+  border-top: 1px solid #e6ecf3;
+  color: #46556a;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.table-wrap tbody tr:hover {
+  background: #fbfdfc;
+}
+
+.c-title {
+  min-width: 210px;
+  color: #0f1b2d !important;
+  font-weight: 700;
+}
+
+.no-rows {
+  padding: 36px 12px !important;
+  text-align: center;
+  color: #7b8aa0 !important;
+}
+
+/* =========================
+   Level Badge
+========================= */
+
+.level-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 11px;
+  border-radius: 8px;
+  background: #eef2f8;
+  color: #44546b;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* =========================
+   Status Badges
+========================= */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.badge.ok {
+  background: #def3e8;
+  color: #0b7f4f;
+}
+
+.badge.lock {
+  background: #eef2f8;
+  color: #718096;
+}
+
+/* =========================
+   Action Button
+========================= */
+
+.link-btn {
+  padding: 7px 0;
+  border: none;
+  background: transparent;
+  color: #109a62;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.link-btn:hover {
+  color: #0b7f4f;
+  text-decoration: underline;
+}
+
+/* =========================
+   Pagination
+========================= */
+
+.panel-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  padding-top: 17px;
+  border-top: 1px solid #e6ecf3;
+}
+
+.foot-text {
+  color: #8491a5;
+  font-size: 12px;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.page-btn {
+  display: grid;
+  place-items: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 9px;
+  border: 1px solid #e6ecf3;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #65758c;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.page-btn:hover:not(:disabled) {
+  border-color: #109a62;
+  color: #109a62;
+}
+
+.page-btn.current {
+  border-color: #109a62;
+  background: #109a62;
+  color: #ffffff;
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* =========================
+   Buttons
+========================= */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.app.admin-layout .btn-primary {
+  width: auto;
+  background: #109a62;
+  color: #ffffff;
+}
+
+.app.admin-layout .btn-primary:hover {
+  background: #0b7f4f;
+}
+
+.btn-light {
+  background: #eef2f8;
+  color: #44546b;
+}
+
+.btn-light:hover {
+  background: #e0e7f0;
+}
+
+.btn-lg {
+  min-height: 43px;
+  padding: 11px 17px;
+  font-size: 13px;
+}
+
+/* =========================
+   Challenge Modal
+========================= */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 27, 45, 0.48);
+  backdrop-filter: blur(3px);
+}
+
+.modal {
+  width: 100%;
+  max-width: 510px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 17px;
+  box-shadow: 0 24px 70px rgba(15, 27, 45, 0.2);
+}
+
+.modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 23px 24px;
+  border-bottom: 1px solid #e6ecf3;
+}
+
+.modal-head h2 {
+  margin: 0;
+  color: #0f1b2d;
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.modal-head p {
+  margin: 7px 0 0;
+  color: #7b8aa0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 35px;
+  height: 35px;
+  flex-shrink: 0;
+  border: 1px solid #e6ecf3;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 23px;
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  background: #f1f5fa;
+}
+
+.modal-body {
+  display: grid;
+  gap: 19px;
+  padding: 24px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.label {
+  color: #26364b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 13px;
+  border: 1px solid #dbe5f2;
+  border-radius: 10px;
+  outline: none;
+  background: #ffffff;
+  color: #26364b;
+  font-size: 13px;
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: #109a62;
+  box-shadow: 0 0 0 3px rgba(16, 154, 98, 0.1);
+}
+
+.field input::placeholder {
+  color: #a1adbd;
+}
+
+.field input.invalid {
+  border-color: #dc5656;
+}
+
+.error {
+  color: #dc5656;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.select-wrap {
+  position: relative;
+}
+
+.select-wrap select {
+  appearance: auto;
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px;
+  border: 1px solid #d2eedf;
+  border-radius: 10px;
+  background: #e4f6ec;
+  color: #0b7f4f;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.modal-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 17px 24px;
+  border-top: 1px solid #e6ecf3;
+}
+
+/* =========================
+   Toast Notification
+========================= */
+
+.toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 120;
+  max-width: calc(100vw - 32px);
+  padding: 14px 20px;
+  border-radius: 11px;
+  background: #0f1b2d;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 10px 30px rgba(15, 27, 45, 0.18);
+  animation: toast-in 0.2s ease-out;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================
+   Tablet
+========================= */
+
+@media (max-width: 900px) {
+  .stats {
+    gap: 10px;
+  }
+
+  .stat {
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .stat strong {
+    font-size: 25px;
+  }
+
+  .panel {
+    padding: 16px;
+  }
+}
+
+/* =========================
+   Mobile
+========================= */
+
+@media (max-width: 680px) {
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .stat {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .panel {
+    padding: 13px;
+    border-radius: 12px;
+  }
+
+  .panel-title {
+    font-size: 17px;
+  }
+
+  .table-wrap table {
+    min-width: 680px;
+  }
+
+  .panel-foot {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pager {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .modal-head,
+  .modal-body {
+    padding: 18px;
+  }
+
+  .modal-foot {
+    padding: 14px 18px;
+  }
+
+  .modal-head h2 {
+    font-size: 18px;
+  }
+
+  .toast {
+    right: 16px;
+    bottom: 16px;
+  }
+}
