@@ -9,6 +9,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+import AdminChallenges from "./pages/Admin/Challenges/Challenges";
 import Login from "./pages/Auth/login/login";
 import Register from "./pages/Auth/Register/Register";
 import ForgotPassword from "./pages/Auth/ForgotPassword/ForgotPassword";
@@ -22,6 +23,7 @@ import Home from "./pages/Home/home";
 import CarbonFootprint from "./pages/CarbonFootprint/CarbonFootprint";
 import CarbonFootPrintTracker from "./pages/CarbonFootPrintTracker/CarbonFootPrintTracker";
 import Settings from "./pages/Auth/Settings/setting";
+import AdminLogin from "./pages/Admin/Login/Login";
 
 const GOOGLE_CLIENT_ID =
   "818650396288-6s2ba3aqf306cejbgvip393qreb2ef1i.apps.googleusercontent.com";
@@ -57,6 +59,8 @@ function App() {
           <Route path="/challenges" element={<Challenges />} />
           <Route path="/home" element={<Home />} />
           <Route path="/carbon-footprint" element={<CarbonFootprint />} />
+          <Route path="/Admin/challenges" element={<AdminChallenges />} />
+          <Route path="/Admin/login" element={<AdminLogin />} />
           <Route
             path="/carbon-footprint-tracker"
             element={<CarbonFootPrintTracker />}
