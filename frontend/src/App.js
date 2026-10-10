@@ -23,6 +23,8 @@ import Home from "./pages/Home/home";
 import CarbonFootprint from "./pages/CarbonFootprint/CarbonFootprint";
 import CarbonFootPrintTracker from "./pages/CarbonFootPrintTracker/CarbonFootPrintTracker";
 import Users from "./pages/Admin/Users/Users";
+import AdminLogin from "./pages/Admin/Login/Login";
+import AdminReports from "./pages/Admin/Report/Report";
 
 const GOOGLE_CLIENT_ID =
   "818650396288-6s2ba3aqf306cejbgvip393qreb2ef1i.apps.googleusercontent.com";
@@ -65,6 +67,7 @@ function App() {
             element={<CarbonFootPrintTracker />}
           />
           <Route path="/Admin/users" element={<Users />} />
+           <Route path="/Admin/reports" element={<AdminReports />} />
         </Routes>
       </Router>
     </GoogleOAuthProvider>
