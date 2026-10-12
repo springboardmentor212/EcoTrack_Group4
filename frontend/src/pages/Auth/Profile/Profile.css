@@ -1,3 +1,4 @@
+/* Profile page layout fix */
 .profile-app {
   --p-bg-main: #f8fafc;
   --p-bg-white: #ffffff;
@@ -9,9 +10,9 @@
   --p-green-800: #166534;
   --p-green-50: #f0fdf4;
 
-  display: flex;
+  display: flex !important;
   min-height: 100vh;
-  width: 100%;
+  width: 100% !important;
   background: var(--p-bg-main);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   color: var(--p-text-dark);
@@ -23,14 +24,15 @@
 
 /* Sidebar */
 .profile-app .sidebar {
-  width: 230px;
-  min-width: 230px;
+  width: 240px !important;
+  min-width: 240px !important;
   background: var(--p-bg-white);
   border-right: 1px solid var(--p-border);
-  padding: 24px 16px;
-  display: flex;
-  flex-direction: column;
+  padding: 24px 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
   gap: 28px;
+  flex-shrink: 0;
 }
 
 .profile-app .sidebar-brand {
@@ -53,7 +55,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 14px;
+  height: 42px;
+  padding: 0 14px;
   border-radius: 8px;
   font-size: 14px;
   color: var(--p-text-muted);
@@ -75,12 +78,12 @@
 
 /* Main Content */
 .profile-app .main-content {
-  flex: 1;
+  flex: 1 !important;
   padding: 28px 36px;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  width: calc(100% - 230px);
+  width: calc(100% - 240px);
   max-width: 100%;
 }
 

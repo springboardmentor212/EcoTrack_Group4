@@ -3,12 +3,12 @@ const router = express.Router();
 const User = require("../models/User");
 const ChallengeParticipation = require("../models/ChallengeParticipation");
 
-// GET /api/leaderboard - Calculate points & rank based on completed points and joined count
+// GET /api/leaderboard - Calculate total points (Weekly + Level Rewards) & Rank
 router.get("/", async (req, res) => {
   try {
     const users = await User.find({}).select("fullName name email level").lean();
 
-    // 1. Aggregate completed/claimed points per user
+    // 1. Aggregate completed/claimed points per user (Both Level & Weekly Challenges)
     const completedScores = await ChallengeParticipation.aggregate([
       { $match: { status: { $in: ["COMPLETED", "CLAIMED"] } } },
       {
@@ -28,7 +28,7 @@ router.get("/", async (req, res) => {
       },
     ]);
 
-    // 2. Count active joined challenges per user (for tie-breaker)
+    // 2. Count active/joined challenges per user (Tie-breaker)
     const activeParticipations = await ChallengeParticipation.aggregate([
       { $match: { status: { $in: ["JOINED", "COMPLETED", "CLAIMED"] } } },
       {
@@ -49,7 +49,7 @@ router.get("/", async (req, res) => {
       activeMap[String(a._id)] = a.joinedCount;
     });
 
-    // 3. Map calculated points & joined count
+    // 3. Map calculated total points & joined count to users
     const leaderboard = users.map((user) => {
       const uId = String(user._id);
       const actualPoints = scoreMap[uId] || 0;
@@ -63,7 +63,7 @@ router.get("/", async (req, res) => {
       };
     });
 
-    // 4. Sort: Highest points first -> Most joined challenges second
+    // 4. Sort: Highest Total Points First -> Most joined challenges second
     leaderboard.sort((a, b) => {
       if (b.ecoPoints !== a.ecoPoints) {
         return b.ecoPoints - a.ecoPoints;

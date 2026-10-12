@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify";
 import "./challenges.css";
 import {
   Globe,
@@ -11,7 +12,6 @@ import {
   LayoutDashboard,
   FileText,
   User,
-  Bell,
   ChevronDown,
   Recycle,
   Bike,
@@ -21,11 +21,11 @@ import {
   Trophy,
   Award,
   Droplet,
-  Flame,
 } from "lucide-react";
 
 const TABS = [
   { key: "all", label: "All Challenges" },
+  { key: "weekly", label: "Weekly Drives ⚡" },
   { key: "active", label: "Active" },
   { key: "completed", label: "Completed" },
 ];
@@ -38,7 +38,19 @@ const ICON_MAP = {
   Droplet: Droplet,
 };
 
-// Category Based Dynamic Unit Logic
+// DYNAMIC DAYS LEFT CALCULATION FROM REAL END DATE
+const getDaysLeftTag = (endDateStr) => {
+  if (!endDateStr) return "⏳ 7 days left";
+  const now = new Date();
+  const end = new Date(endDateStr);
+  const diffTime = end.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
+
+  if (diffDays <= 0) return "⏳ Ends Today";
+  if (diffDays === 1) return "⏳ 1 day left";
+  return `⏳ ${diffDays} days left`;
+};
+
 const getChallengeUnit = (item) => {
   if (item.unit && item.unit.toLowerCase() !== "days") {
     return item.unit;
@@ -69,26 +81,27 @@ const getChallengeUnit = (item) => {
   return "Units";
 };
 
-// Category Based Dynamic Progress Bar Color
 const getCategoryColor = (item) => {
+  if (item.isWeekly) return "#d97706";
+
   const category = (item.tag || item.category || "").toLowerCase();
 
   if (category.includes("waste") || category.includes("plastic") || category.includes("recycling")) {
-    return "#10b981"; // Green
+    return "#10b981";
   }
   if (category.includes("transport") || category.includes("travel") || category.includes("commute")) {
-    return "#3b82f6"; // Blue
+    return "#3b82f6";
   }
   if (category.includes("energy") || category.includes("electricity") || category.includes("power")) {
-    return "#f59e0b"; // Yellow / Amber
+    return "#f59e0b";
   }
   if (category.includes("water") || category.includes("conservation")) {
-    return "#06b6d4"; // Cyan / Water Blue
+    return "#06b6d4";
   }
   if (category.includes("food") || category.includes("compost") || category.includes("diet")) {
-    return "#ec4899"; // Pink
+    return "#ec4899";
   }
-  return "#8b5cf6"; // Purple (Default)
+  return "#8b5cf6";
 };
 
 export default function Challenges() {
@@ -119,7 +132,6 @@ export default function Challenges() {
 
   const [activeRewardModal, setActiveRewardModal] = useState(null);
 
-  // Dynamic Week Streak Logic calculation
   const calculateWeekStreak = (logs) => {
     if (!logs || logs.length === 0) return 0;
 
@@ -137,7 +149,6 @@ export default function Challenges() {
     return computedWeeks > 0 ? computedWeeks : activeDaysCount > 0 ? 1 : 0;
   };
 
-  // 1. Fetch Leaderboard & Sync Current User
   const fetchLeaderboard = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
@@ -171,7 +182,6 @@ export default function Challenges() {
     }
   }, []);
 
-  // 2. Load Challenges, Tracker Logs & Participation Status
   const loadDataAndCalculate = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
@@ -179,7 +189,6 @@ export default function Challenges() {
 
       const headers = { Authorization: `Bearer ${token}` };
 
-      // Fetch dynamic tracker logs for week streak
       try {
         const trackerRes = await axios.get("http://localhost:5000/api/tracker/history", { headers });
         const logs = Array.isArray(trackerRes.data) ? trackerRes.data : trackerRes.data.logs || [];
@@ -224,8 +233,9 @@ export default function Challenges() {
         }
 
         let modalToTrigger = null;
+
         const mergedChallenges = fetchedChallenges.map((ch) => {
-          const part = myParticipations.find((p) => p.challengeId === ch.challengeId);
+          const part = myParticipations.find((p) => String(p.challengeId) === String(ch.challengeId));
 
           let status = "AVAILABLE";
           let progress = 0;
@@ -235,17 +245,24 @@ export default function Challenges() {
             progress = part.progress || 0;
           }
 
+          const isWeeklyDrive = ch.isWeekly === true || ch.isWeekly === "true";
+          const finalRewardXP = isWeeklyDrive ? 0 : Number(ch.rewardXP || 0);
+
           if (status === "COMPLETED" && !modalToTrigger) {
             modalToTrigger = {
               id: ch.challengeId,
               title: ch.title,
+              badgeName: ch.badgeName,
               rewardPoints: ch.rewardPoints,
-              rewardXP: ch.rewardXP,
+              rewardXP: finalRewardXP,
+              isWeekly: isWeeklyDrive,
             };
           }
 
           return {
             ...ch,
+            rewardXP: finalRewardXP,
+            isWeekly: isWeeklyDrive,
             userStatus: status,
             userProgress: progress,
             participantsCount: countsMap[ch.challengeId] || 0,
@@ -281,10 +298,19 @@ export default function Challenges() {
         { challengeId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
+      toast.success("🔥 New challenge joined successfully!", {
+        toastId: `join-${challengeId}`,
+        className: "Toastify__toast--custom",
+      });
+
       await loadDataAndCalculate();
       await fetchLeaderboard();
     } catch (err) {
       console.error("Error joining challenge:", err);
+      toast.error(err.response?.data?.message || "Failed to join challenge", {
+        className: "Toastify__toast--custom",
+      });
     }
   };
 
@@ -315,10 +341,17 @@ export default function Challenges() {
     }
   };
 
-  const claimedBadgesCount = userParticipations.filter((p) => p.status === "CLAIMED").length;
+  const totalClaimedBadgesCount = userParticipations.filter(
+    (p) => p.status === "CLAIMED" || p.status === "COMPLETED"
+  ).length;
+
+  const rewardsPanelChallenges = challenges.filter(
+    (c) => Number(c.levelRequired) === Number(levelDetails.level) || c.isWeekly
+  );
 
   const visibleChallenges = challenges.filter((c) => {
     if (activeTab === "all") return true;
+    if (activeTab === "weekly") return Boolean(c.isWeekly);
     if (activeTab === "active") return c.userStatus === "JOINED";
     if (activeTab === "completed") return c.userStatus === "COMPLETED" || c.userStatus === "CLAIMED";
     return true;
@@ -344,66 +377,16 @@ export default function Challenges() {
       </aside>
 
       <main className="main-content">
-        <div
-          className="page-header"
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "20px",
-            paddingBottom: "16px",
-            borderBottom: "1px solid #e2e8f0",
-          }}
-        >
+        <div className="page-header">
           <div>
-            <h1 style={{ fontSize: "24px", fontWeight: "800", color: "#0f172a", margin: 0 }}>
-              Community Challenges 🏆
-            </h1>
-            <p style={{ color: "#64748b", margin: "4px 0 0 0", fontSize: "14px" }}>
-              Join eco-drives, earn badges, and climb the leaderboard
-            </p>
+            <h1>Community Challenges 🏆</h1>
+            <p>Join eco-drives, earn badges, and climb the leaderboard</p>
           </div>
-          <div className="header-actions" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <button
-              className="icon-button"
-              style={{
-                background: "#f1f5f9",
-                border: "none",
-                padding: "8px",
-                borderRadius: "50%",
-                cursor: "pointer",
-              }}
-            >
-              <Bell size={18} color="#475569" />
-            </button>
-            <div
-              className="user-chip"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                background: "#f8fafc",
-                border: "1px solid #cbd5e1",
-                padding: "6px 12px",
-                borderRadius: "20px",
-                fontWeight: "600",
-                fontSize: "13px",
-              }}
-            >
-              <span
-                className="user-chip-avatar"
-                style={{
-                  background: "#10b981",
-                  color: "#fff",
-                  padding: "4px",
-                  borderRadius: "50%",
-                  display: "flex",
-                }}
-              >
-                <User size={12} />
-              </span>
-              {userInfo.name}
-              <ChevronDown size={14} />
+          <div className="header-actions">
+            <div className="user-chip">
+              <span className="user-chip-avatar"><User size={12} strokeWidth={2.5} /></span>
+              <span>{userInfo.name}</span>
+              <ChevronDown size={14} strokeWidth={2.5} />
             </div>
           </div>
         </div>
@@ -455,7 +438,7 @@ export default function Challenges() {
             <div className="journey-stat">
               <span className="journey-stat-icon">🏅</span>
               <div>
-                <strong>{claimedBadgesCount}</strong>
+                <strong>{totalClaimedBadgesCount}</strong>
                 <small>Badges</small>
               </div>
             </div>
@@ -471,7 +454,7 @@ export default function Challenges() {
         </div>
 
         <div className="content-grid">
-          <section>
+          <section className="left-section">
             <div className="tab-bar">
               {TABS.map((tab) => (
                 <button
@@ -484,6 +467,7 @@ export default function Challenges() {
               ))}
             </div>
 
+            {/* SCROLLABLE CHALLENGE LIST WITH EXACT LEADERBOARD ALIGNMENT */}
             <div className="challenge-list">
               {visibleChallenges.length === 0 ? (
                 <div style={{ padding: "40px", textAlign: "center", color: "#64748b" }}>
@@ -499,6 +483,9 @@ export default function Challenges() {
 
                   const displayUnit = getChallengeUnit(item);
                   const progressColor = getCategoryColor(item);
+                  const daysLeftText = item.isWeekly ? getDaysLeftTag(item.endDate) : null;
+                  
+                  const isUserFinished = item.userStatus === "COMPLETED" || item.userStatus === "CLAIMED";
 
                   return (
                     <div className="challenge-card" key={item.challengeId}>
@@ -508,7 +495,22 @@ export default function Challenges() {
 
                       <div className="challenge-body">
                         <div className="challenge-top">
-                          <h3>{item.title}</h3>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <h3>{item.title}</h3>
+                            <span
+                              style={{
+                                fontSize: "11px",
+                                background: item.isWeekly ? "#fef3c7" : "#f1f5f9",
+                                color: item.isWeekly ? "#b45309" : "#475569",
+                                border: item.isWeekly ? "1px solid #fde68a" : "none",
+                                padding: "2px 6px",
+                                borderRadius: "4px",
+                                fontWeight: "bold",
+                              }}
+                            >
+                              {item.isWeekly ? "Weekly Drive ⚡" : `Lvl ${item.levelRequired}`}
+                            </span>
+                          </div>
                           <span
                             className="challenge-percent"
                             style={{ color: progressColor, fontWeight: "bold" }}
@@ -537,6 +539,15 @@ export default function Challenges() {
                           <span style={{ color: "#d97706", fontWeight: "bold" }}>
                             🏆 +{item.rewardPoints} Points
                           </span>
+
+                          {item.isWeekly && !isUserFinished && (
+                            <>
+                              <span className="dot">•</span>
+                              <span style={{ color: "#059669", fontWeight: "bold", fontSize: "12px" }}>
+                                {daysLeftText}
+                              </span>
+                            </>
+                          )}
                         </div>
 
                         <p className="challenge-desc">{item.description}</p>
@@ -546,7 +557,7 @@ export default function Challenges() {
                             <button
                               onClick={() => handleJoinChallenge(item.challengeId)}
                               style={{
-                                backgroundColor: "#059669",
+                                backgroundColor: item.isWeekly ? "#d97706" : "#059669",
                                 color: "#fff",
                                 border: "none",
                                 padding: "8px 20px",
@@ -624,7 +635,10 @@ export default function Challenges() {
                 <span className="level-pill">Lvl {levelDetails.level} Eco</span>
               </div>
 
-              <p className="badges-label">Earned Sustainability Badges</p>
+              <p className="badges-label">
+                Earned Badges (Current Level & Weekly)
+              </p>
+
               <div
                 className="badges-row"
                 style={{
@@ -632,17 +646,24 @@ export default function Challenges() {
                   gap: "10px",
                   flexWrap: "wrap",
                   marginTop: "10px",
+                  maxHeight: "160px",
+                  overflowY: "auto",
+                  paddingRight: "4px",
                 }}
               >
-                {challenges.map((ch) => {
-                  const part = userParticipations.find((p) => p.challengeId === ch.challengeId);
-                  const isUnlocked = part && part.status === "CLAIMED";
+                {rewardsPanelChallenges.map((ch) => {
+                  const part = userParticipations.find((p) => String(p.challengeId) === String(ch.challengeId));
+                  const isUnlocked = part && (part.status === "CLAIMED" || part.status === "COMPLETED");
                   const BadgeIcon = ICON_MAP[ch.iconName] || Award;
 
                   return (
                     <div
                       key={ch.challengeId}
-                      title={isUnlocked ? ch.title : "Locked Badge"}
+                      title={
+                        isUnlocked
+                          ? `${ch.badgeName || ch.title} (Unlocked)`
+                          : `${ch.badgeName || ch.title} (Locked)`
+                      }
                       style={{
                         width: "42px",
                         height: "42px",
@@ -650,34 +671,52 @@ export default function Challenges() {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        backgroundColor: isUnlocked ? "#d1fae5" : "#f1f5f9",
-                        border: isUnlocked ? "2px solid #10b981" : "2px dashed #cbd5e1",
+                        backgroundColor: isUnlocked
+                          ? ch.isWeekly
+                            ? "#fef3c7"
+                            : "#d1fae5"
+                          : "#f1f5f9",
+                        border: isUnlocked
+                          ? ch.isWeekly
+                            ? "2px solid #d97706"
+                            : "2px solid #10b981"
+                          : "2px dashed #cbd5e1",
                         opacity: isUnlocked ? 1 : 0.4,
                         transition: "all 0.3s ease",
                       }}
                     >
-                      <BadgeIcon size={20} color={isUnlocked ? "#059669" : "#94a3b8"} />
+                      <BadgeIcon
+                        size={20}
+                        color={
+                          isUnlocked
+                            ? ch.isWeekly
+                              ? "#b45309"
+                              : "#059669"
+                            : "#94a3b8"
+                        }
+                      />
                     </div>
                   );
                 })}
               </div>
             </div>
 
-            <div className="panel">
+            <div className="panel" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
               <h2>Community Leaderboard</h2>
               <p className="panel-subtitle">Top individual eco-impact rankings</p>
 
               <div
                 className="leaderboard-list"
                 style={{
-                  maxHeight: "380px",
+                  flex: 1,
+                  maxHeight: "340px",
                   overflowY: "auto",
                   paddingRight: "6px",
                 }}
               >
                 {leaderboard.map((item, index) => {
                   const isCurrentUser =
-                    (item._id && item._id === userInfo.id) ||
+                    (item._id && String(item._id) === String(userInfo.id)) ||
                     (item.email && item.email === userInfo.email);
 
                   return (
@@ -737,7 +776,7 @@ export default function Challenges() {
         </div>
       </main>
 
-      {/* Claim Reward Popup Modal */}
+      {/* Claim Reward Modal */}
       {activeRewardModal && (
         <div
           style={{
@@ -781,8 +820,8 @@ export default function Challenges() {
 
             <span
               style={{
-                backgroundColor: "#d1fae5",
-                color: "#065f46",
+                backgroundColor: activeRewardModal.isWeekly ? "#fef3c7" : "#d1fae5",
+                color: activeRewardModal.isWeekly ? "#b45309" : "#065f46",
                 fontSize: "11px",
                 fontWeight: "bold",
                 padding: "4px 12px",
@@ -790,7 +829,7 @@ export default function Challenges() {
                 textTransform: "uppercase",
               }}
             >
-              Challenge Completed! 🎉
+              {activeRewardModal.isWeekly ? "Weekly Drive Completed! ⚡" : "Challenge Completed! 🎉"}
             </span>
 
             <div style={{ margin: "20px 0", display: "flex", justifyContent: "center" }}>
@@ -816,6 +855,24 @@ export default function Challenges() {
             <p style={{ fontSize: "13px", color: "#64748b", marginTop: "6px" }}>
               Congratulations on reaching your eco target!
             </p>
+
+            {activeRewardModal.badgeName && (
+              <div
+                style={{
+                  backgroundColor: "#fffbeb",
+                  border: "1px solid #fde68a",
+                  color: "#b45309",
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  padding: "4px 12px",
+                  borderRadius: "8px",
+                  margin: "10px 0",
+                  display: "inline-block",
+                }}
+              >
+                🏅 UNLOCKED: {activeRewardModal.badgeName}
+              </div>
+            )}
 
             <div
               style={{

@@ -40,7 +40,7 @@ router.post("/register", async (req, res) => {
     user = new User({
       fullName: fullName || email.split("@")[0],
       email,
-      password, // Password hashing apply pannalam if using bcrypt
+      password,
     });
 
     await user.save();
@@ -79,7 +79,6 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: "User not found with this email." });
     }
 
-    // Password verification logic (Bcrypt use panna comparison inge varum)
     if (user.password && user.password !== password) {
       return res.status(400).json({ message: "Invalid email or password." });
     }
@@ -104,7 +103,7 @@ router.post("/login", async (req, res) => {
 });
 
 // ----------------------------------------------------
-// 3. GOOGLE LOGIN (/api/auth/google) - Fixes 500 & 404 Error
+// 3. GOOGLE LOGIN (/api/auth/google)
 // ----------------------------------------------------
 router.post("/google", async (req, res) => {
   try {
@@ -117,7 +116,6 @@ router.post("/google", async (req, res) => {
     let user = await User.findOne({ email });
 
     if (!user) {
-      // Create user if not existing
       user = new User({
         fullName: name || email.split("@")[0],
         email: email,
@@ -126,7 +124,6 @@ router.post("/google", async (req, res) => {
       });
       await user.save();
     } else {
-      // Update Google profile picture if missing in database
       if (picture && !user.picture) {
         user.picture = picture;
         await user.save();

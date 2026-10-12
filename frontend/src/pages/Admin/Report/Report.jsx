@@ -1,321 +1,349 @@
-import React, { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  Leaf,
-  Trees,
-  Target,
-  CalendarDays,
-  Search,
-  Download,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
-
-import AdminSidebar from "../components/AdminSidebar";
+import { useEffect, useState, useMemo } from "react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import "./Report.css";
+import "../AdminLayout.css";
+import AdminSidebar from "../components/AdminSidebar";
+import AdminHeader from "../components/AdminHeader";
 
-const usersData = [
-  {
-    id: 1,
-    name: "Aarav Sharma",
-    email: "aarav@example.com",
-    co2: 42.5,
-    streak: 12,
-    status: "Completed",
-    date: "Oct 6, 2026",
-  },
-  {
-    id: 2,
-    name: "Priya Singh",
-    email: "priya@example.com",
-    co2: 38.2,
-    streak: 9,
-    status: "Completed",
-    date: "Oct 6, 2026",
-  },
-  {
-    id: 3,
-    name: "Rahul Verma",
-    email: "rahul@example.com",
-    co2: 31.8,
-    streak: 7,
-    status: "In Progress",
-    date: "Oct 5, 2026",
-  },
-  {
-    id: 4,
-    name: "Ananya Gupta",
-    email: "ananya@example.com",
-    co2: 27.4,
-    streak: 14,
-    status: "Completed",
-    date: "Oct 5, 2026",
-  },
-  {
-    id: 5,
-    name: "Arjun Mehta",
-    email: "arjun@example.com",
-    co2: 24.6,
-    streak: 11,
-    status: "In Progress",
-    date: "Oct 4, 2026",
-  },
-  {
-    id: 6,
-    name: "Isha Kapoor",
-    email: "isha@example.com",
-    co2: 19.8,
-    streak: 6,
-    status: "Completed",
-    date: "Oct 4, 2026",
-  },
-  {
-    id: 7,
-    name: "Kabir Malhotra",
-    email: "kabir@example.com",
-    co2: 16.3,
-    streak: 8,
-    status: "In Progress",
-    date: "Oct 3, 2026",
-  },
-];
+export default function Report() {
+  const [reports, setReports] = useState([]);
+  const [userLevelWise, setUserLevelWise] = useState([]);
+  const [weeklyDrives, setWeeklyDrives] = useState([]);
+  const [levelChallenges, setLevelChallenges] = useState([]);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [stats, setStats] = useState({
+    totalCO2Reduced: 0,
+    treesSavedEq: 0,
+    goalsCompletedPercent: "0%",
+    avgActiveStreak: "0 days",
+  });
 
-const ITEMS_PER_PAGE = 5;
-
-function Report() {
-  const navigate = useNavigate();
-
-  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const filteredUsers = useMemo(() => {
-    return usersData.filter((user) => {
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch("http://localhost:5000/api/admin/reports");
+        const data = await res.json();
+
+        if (data.success) {
+          setReports(data.reports || []);
+          setStats(data.stats || {});
+          setWeeklyDrives(data.weeklyDrives || []);
+          setLevelChallenges(data.levelChallenges || []);
+          setUserLevelWise(data.userLevelWiseSummary || []);
+          setLeaderboard(data.leaderboard || []);
+        }
+      } catch (err) {
+        console.error("Error fetching reports:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReports();
+  }, []);
+
+  const filteredReports = useMemo(() => {
+    return reports.filter((item) => {
       const matchesSearch =
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase());
+        item.name.toLowerCase().includes(search.toLowerCase()) ||
+        item.email.toLowerCase().includes(search.toLowerCase());
 
       const matchesStatus =
-        statusFilter === "All" || user.status === statusFilter;
+        statusFilter === "All" || item.goalStatus === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
-  }, [searchTerm, statusFilter]);
+  }, [reports, search, statusFilter]);
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredUsers.length / ITEMS_PER_PAGE)
-  );
+  // Export Professional PDF Document Functionality
+  const handleExportPDF = () => {
+    const doc = new jsPDF("p", "pt", "a4");
+    const totalUsers = reports.length;
 
-  const safePage = Math.min(currentPage, totalPages);
+    // PDF Title Banner
+    doc.setFillColor(16, 185, 129); // Eco Green
+    doc.rect(0, 0, 595, 60, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text("EcoTrack - Impact & Challenge Analytics Report", 40, 38);
 
-  const visibleUsers = filteredUsers.slice(
-    (safePage - 1) * ITEMS_PER_PAGE,
-    safePage * ITEMS_PER_PAGE
-  );
+    let currentY = 80;
 
-  const exportCSV = () => {
-    const headers = [
-      "Name",
-      "Email",
-      "CO2 Reduced (kg)",
-      "Active Streak (days)",
-      "Goal Status",
-      "Last Activity",
+    // SECTION 1: EXECUTIVE REPORT SUMMARY
+    doc.setTextColor(15, 23, 42);
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.text("1. Executive Report Summary", 40, currentY);
+
+    const summaryRows = [
+      ["Total Level Challenges", levelChallenges.length],
+      ["Total Active Weekly Drives (Created by Admin)", weeklyDrives.length],
+      ["Total Enrolled Users", totalUsers],
+      ["Total CO₂ Impact Saved", `${stats.totalCO2Reduced || 0} kg`],
     ];
 
-    const rows = filteredUsers.map((user) => [
-      user.name,
-      user.email,
-      user.co2,
-      user.streak,
-      user.status,
-      user.date,
-    ]);
-
-    const escapeCSV = (value) =>
-      `"${String(value).replace(/"/g, '""')}"`;
-
-    const csv = [headers, ...rows]
-      .map((row) => row.map(escapeCSV).join(","))
-      .join("\r\n");
-
-    const blob = new Blob(["\uFEFF" + csv], {
-      type: "text/csv;charset=utf-8;",
+    autoTable(doc, {
+      startY: currentY + 10,
+      head: [["Metric Header", "Value"]],
+      body: summaryRows,
+      theme: "striped",
+      headStyles: { fillStyle: "F", fillColor: [16, 185, 129] },
+      margin: { left: 40, right: 40 },
     });
 
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    currentY = doc.lastAutoTable.finalY + 25;
 
-    link.href = url;
-    link.download = "ecotrack-impact-activity-report.csv";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+    // SECTION 2: ADMIN WEEKLY DRIVES & COMMUNITY CHALLENGES
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(15, 23, 42);
+    doc.text("2. Admin Weekly Drives & Dynamic Challenges", 40, currentY);
 
-    URL.revokeObjectURL(url);
+    const weeklyRows = weeklyDrives.map((w) => [
+      w.title,
+      w.category,
+      w.totalParticipants,
+      w.completedParticipants,
+      w.completionRate,
+      w.badgeName,
+    ]);
+
+    autoTable(doc, {
+      startY: currentY + 10,
+      head: [
+        [
+          "Weekly Drive Title",
+          "Category",
+          "Joined",
+          "Completed",
+          "Completion Rate",
+          "Badge Name",
+        ],
+      ],
+      body: weeklyRows.length > 0 ? weeklyRows : [["No Weekly Drives Created Yet", "-", "-", "-", "-", "-"]],
+      theme: "grid",
+      headStyles: { fillStyle: "F", fillColor: [217, 119, 6] },
+      styles: { fontSize: 8 },
+      margin: { left: 40, right: 40 },
+    });
+
+    currentY = doc.lastAutoTable.finalY + 25;
+
+    if (currentY > 700) {
+      doc.addPage();
+      currentY = 40;
+    }
+
+    // SECTION 3: USER LEVEL-WISE SUMMARY
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.text("3. User Level-Wise Performance Summary", 40, currentY);
+
+    const userLevelRows = userLevelWise.map((ul) => [
+      ul.userName,
+      ul.userEmail,
+      `Level ${ul.level}`,
+      ul.totalInLevel,
+      ul.joined,
+      ul.completed,
+      ul.completionRate,
+    ]);
+
+    autoTable(doc, {
+      startY: currentY + 10,
+      head: [
+        [
+          "User Name",
+          "Email",
+          "Level",
+          "Total",
+          "Joined",
+          "Completed",
+          "Completion Rate",
+        ],
+      ],
+      body: userLevelRows,
+      theme: "striped",
+      headStyles: { fillStyle: "F", fillColor: [51, 65, 85] },
+      styles: { fontSize: 8 },
+      margin: { left: 40, right: 40 },
+    });
+
+    currentY = doc.lastAutoTable.finalY + 25;
+
+    if (currentY > 700) {
+      doc.addPage();
+      currentY = 40;
+    }
+
+    // SECTION 4: LEVEL CHALLENGES ANALYTICS
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.text("4. Default Level Challenges Analytics", 40, currentY);
+
+    const challengeRows = levelChallenges.map((ch) => [
+      `Lvl ${ch.level}`,
+      ch.title,
+      ch.category,
+      ch.totalParticipants,
+      ch.completedParticipants,
+      ch.completionRate,
+      ch.badgeName,
+    ]);
+
+    autoTable(doc, {
+      startY: currentY + 10,
+      head: [
+        [
+          "Level",
+          "Challenge Title",
+          "Category",
+          "Joined",
+          "Done",
+          "Completion Rate",
+          "Badge Name",
+        ],
+      ],
+      body: challengeRows,
+      theme: "striped",
+      headStyles: { fillStyle: "F", fillColor: [16, 185, 129] },
+      styles: { fontSize: 8 },
+      margin: { left: 40, right: 40 },
+    });
+
+    currentY = doc.lastAutoTable.finalY + 25;
+
+    if (currentY > 700) {
+      doc.addPage();
+      currentY = 40;
+    }
+
+    // SECTION 5: LEADERBOARD SUMMARY
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.text("5. Leaderboard Summary", 40, currentY);
+
+    const leaderboardRows = leaderboard.map((lb, idx) => [
+      `#${idx + 1}`,
+      lb.name,
+      lb.ecoPoints,
+      lb.xp,
+      `Lvl ${lb.level}`,
+      lb.challengesCompleted,
+      lb.badgesEarned,
+    ]);
+
+    autoTable(doc, {
+      startY: currentY + 10,
+      head: [
+        [
+          "Rank",
+          "User Name",
+          "Eco Points",
+          "XP",
+          "Level",
+          "Completed",
+          "Badges",
+        ],
+      ],
+      body: leaderboardRows,
+      theme: "grid",
+      headStyles: { fillStyle: "F", fillColor: [51, 65, 85] },
+      styles: { fontSize: 8 },
+      margin: { left: 40, right: 40 },
+    });
+
+    doc.save(`EcoTrack_Analytics_Report_${Date.now()}.pdf`);
   };
 
-  const handleLogout = () => {
-    setMenuOpen(false);
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("adminToken");
-    sessionStorage.removeItem("token");
-    navigate("/login");
-  };
+  const getInitials = (name) =>
+    (name || "User")
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
 
   return (
-    <div className="admin-report-page">
-      <AdminSidebar />
+    <div className="admin-layout">
+      <AdminSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <main className="admin-report-main">
-        {/* Header */}
-        <header className="report-page-header">
-          <div className="report-title-area">
-            <div className="report-breadcrumb">
-              Admin <span>/</span> Reports
-            </div>
-
-            <p className="report-subtitle">
-              Impact Analytics &amp; User Progress
-            </p>
-
-            <h1>Impact &amp; Activity Reports</h1>
-          </div>
-
-          <div className="report-header-actions">
+      <main className="admin-layout-main">
+        <AdminHeader
+          title="Reports"
+          subtitle="Impact Analytics & User Progress"
+          onMenuClick={() => setSidebarOpen(true)}
+          action={
             <button
-              type="button"
-              className="export-csv"
-              onClick={exportCSV}
+              className="btn btn-secondary btn-md"
+              onClick={handleExportPDF}
             >
-              <Download size={17} />
-              Export CSV
+              📄 Export Report PDF
             </button>
+          }
+        />
 
-            {/* Admin profile dropdown */}
-            <div className="admin-profile">
-              <button
-                type="button"
-                className="admin-profile-button"
-                onClick={() => setMenuOpen(!menuOpen)}
-                aria-expanded={menuOpen}
-              >
-                <span className="admin-profile-avatar">●</span>
-                <span className="admin-profile-name">Admin</span>
-                <ChevronDown size={16} />
-              </button>
-
-              {menuOpen && (
-                <div className="admin-profile-menu">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      navigate("/admin/profile");
-                    }}
-                  >
-                    Profile
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      navigate("/admin/settings");
-                    }}
-                  >
-                    Settings
-                  </button>
-
-                  <button type="button" onClick={handleLogout}>
-                    Log out
-                  </button>
-                </div>
-              )}
+        <section className="admin-stats">
+          <div className="admin-stat">
+            <div>
+              <strong>{stats.totalCO2Reduced || 0} kg</strong>
+              <span>Total CO₂ Reduced</span>
             </div>
           </div>
-        </header>
 
-        {/* Statistics */}
-        <section className="admin-stats">
-          <article className="admin-stat-card">
-            <div className="stat-icon green">
-              <Leaf size={24} />
-            </div>
+          <div className="admin-stat">
             <div>
-              <h2>1,240 kg</h2>
-              <p>Total CO₂ Reduced</p>
+              <strong>{weeklyDrives.length || 0}</strong>
+              <span>Active Weekly Drives</span>
             </div>
-          </article>
+          </div>
 
-          <article className="admin-stat-card">
-            <div className="stat-icon blue">
-              <Trees size={24} />
-            </div>
+          <div className="admin-stat">
             <div>
-              <h2>56</h2>
-              <p>Trees Saved Eq.</p>
+              <strong>{stats.goalsCompletedPercent || "0%"}</strong>
+              <span>Goals Completed</span>
             </div>
-          </article>
+          </div>
 
-          <article className="admin-stat-card">
-            <div className="stat-icon purple">
-              <Target size={24} />
-            </div>
+          <div className="admin-stat">
             <div>
-              <h2>85%</h2>
-              <p>Goals Completed</p>
+              <strong>{stats.avgActiveStreak || "0 days"}</strong>
+              <span>Avg Active Streak</span>
             </div>
-          </article>
-
-          <article className="admin-stat-card">
-            <div className="stat-icon orange">
-              <CalendarDays size={24} />
-            </div>
-            <div>
-              <h2>14 days</h2>
-              <p>Avg Active Streak</p>
-            </div>
-          </article>
+          </div>
         </section>
 
-        {/* User Activity */}
-        <section className="activity-panel">
-          <div className="activity-header">
+        <section className="admin-panel">
+          <div className="users-panel-header">
             <div>
               <h2>User Activity</h2>
-              <p>
+              <p style={{ fontSize: "12px", color: "#64748b", margin: 0 }}>
                 Review user progress, carbon savings, and recent activity.
               </p>
             </div>
 
-            <div className="activity-filters">
-              <label className="search-box">
-                <Search size={18} />
-
-                <input
-                  type="search"
-                  placeholder="Search users..."
-                  value={searchTerm}
-                  onChange={(event) => {
-                    setSearchTerm(event.target.value);
-                    setCurrentPage(1);
-                  }}
-                />
-              </label>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <input
+                type="search"
+                className="admin-search"
+                placeholder="Search users..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
 
               <select
-                className="status-filter"
+                className="admin-search"
+                style={{ width: "130px" }}
                 value={statusFilter}
-                onChange={(event) => {
-                  setStatusFilter(event.target.value);
-                  setCurrentPage(1);
-                }}
-                aria-label="Filter by status"
+                onChange={(e) => setStatusFilter(e.target.value)}
               >
                 <option value="All">All Status</option>
                 <option value="Completed">Completed</option>
@@ -324,130 +352,82 @@ function Report() {
             </div>
           </div>
 
-          <div className="table-wrapper">
-            <table>
+          <div className="admin-table-wrap">
+            <table className="admin-table">
               <thead>
                 <tr>
-                  <th>User</th>
-                  <th>CO₂ Reduced</th>
-                  <th>Active Streak</th>
-                  <th>Goal Status</th>
-                  <th>Last Activity</th>
+                  <th>USER</th>
+                  <th>CO₂ REDUCED</th>
+                  <th>ACTIVE STREAK</th>
+                  <th>COMPLETED GOALS</th>
+                  <th>GOAL STATUS</th>
+                  <th>LAST ACTIVITY</th>
                 </tr>
               </thead>
 
               <tbody>
-                {visibleUsers.length > 0 ? (
-                  visibleUsers.map((user, index) => (
+                {loading ? (
+                  <tr>
+                    <td colSpan="6" className="admin-empty">
+                      Loading activity reports...
+                    </td>
+                  </tr>
+                ) : filteredReports.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="admin-empty">
+                      No activity logs found.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredReports.map((user) => (
                     <tr key={user.id}>
-                      <td>
-                        <div className="user-info">
-                          <span
-                            className={`user-avatar avatar-${index % 4}`}
-                          >
-                            {user.name
-                              .split(" ")
-                              .map((part) => part[0])
-                              .join("")
-                              .slice(0, 2)}
+                      <td data-label="USER">
+                        <div className="users-name-cell">
+                          <span className="users-avatar">
+                            {getInitials(user.name)}
                           </span>
-
-                          <span>
+                          <div>
                             <strong>{user.name}</strong>
-                            <small>{user.email}</small>
-                          </span>
+                            <div style={{ fontSize: "11px", color: "#64748b" }}>
+                              {user.email}
+                            </div>
+                          </div>
                         </div>
                       </td>
 
-                      <td className="co2-value">
-                        {user.co2.toFixed(1)} kg
+                      <td data-label="CO₂ REDUCED">
+                        <strong>{user.co2Reduced} kg</strong>
                       </td>
 
-                      <td>
-                        <span className="streak-value">
-                          <CalendarDays size={15} />
-                          {user.streak} days
+                      <td data-label="ACTIVE STREAK">
+                        📅 {user.activeStreak} days
+                      </td>
+
+                      <td data-label="COMPLETED GOALS">
+                        <span style={{ fontWeight: "bold", color: "#059669" }}>
+                          🎯 {user.completedGoalsCount || 0} / {user.totalGoalsCount || 0}
                         </span>
                       </td>
 
-                      <td>
+                      <td data-label="GOAL STATUS">
                         <span
-                          className={`status ${
-                            user.status === "Completed"
-                              ? "completed"
-                              : "progress"
+                          className={`badge ${
+                            user.goalStatus === "Completed" ? "ok" : "lock"
                           }`}
                         >
-                          {user.status}
+                          {user.goalStatus}
                         </span>
                       </td>
 
-                      <td>{user.date}</td>
+                      <td data-label="LAST ACTIVITY">{user.lastActivity}</td>
                     </tr>
                   ))
-                ) : (
-                  <tr>
-                    <td colSpan="5" className="empty-results">
-                      No users found. Try another search or filter.
-                    </td>
-                  </tr>
                 )}
               </tbody>
             </table>
-          </div>
-
-          {/* Pagination */}
-          <div className="pagination">
-            <span>
-              Showing{" "}
-              {filteredUsers.length > 0
-                ? (safePage - 1) * ITEMS_PER_PAGE + 1
-                : 0}
-              –
-              {Math.min(
-                safePage * ITEMS_PER_PAGE,
-                filteredUsers.length
-              )}{" "}
-              of {filteredUsers.length} users
-            </span>
-
-            <div className="page-buttons">
-              <button
-                type="button"
-                aria-label="Previous page"
-                disabled={safePage === 1}
-                onClick={() => setCurrentPage(safePage - 1)}
-              >
-                <ChevronLeft size={17} />
-              </button>
-
-              {Array.from({ length: totalPages }, (_, index) => (
-                <button
-                  type="button"
-                  key={index + 1}
-                  className={
-                    safePage === index + 1 ? "selected" : ""
-                  }
-                  onClick={() => setCurrentPage(index + 1)}
-                >
-                  {index + 1}
-                </button>
-              ))}
-
-              <button
-                type="button"
-                aria-label="Next page"
-                disabled={safePage === totalPages}
-                onClick={() => setCurrentPage(safePage + 1)}
-              >
-                <ChevronRight size={17} />
-              </button>
-            </div>
           </div>
         </section>
       </main>
     </div>
   );
 }
-
-export default Report;

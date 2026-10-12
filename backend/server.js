@@ -21,13 +21,14 @@ const challengeRoutes = require("./routes/challengeRoutes");
 const gamificationRoutes = require("./routes/gamificationRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const leaderboardRoutes = require("./routes/leaderboardRoutes");
-
-// THIS WAS MISSING: Dashboard Route Import
 const dashboardRoutes = require("./routes/dashboardRoutes");
+
+// Admin Routes Import
+const adminRoutes = require("./routes/adminRoutes"); // Matches AdminRoutes.js filename case
 
 const app = express();
 
-// Middlewares - Support large image payloads (base64 photo uploads)
+// Middlewares - Support large image payloads
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
@@ -43,7 +44,7 @@ app.get("/", (req, res) => {
   res.send("EcoTrack Backend API is running!");
 });
 
-// API Routes
+// API Routes Mapping
 app.use("/api/auth", authRoutes);
 app.use("/api/tracker", trackerRoutes);
 
@@ -62,6 +63,8 @@ app.use("/api/leaderboard", leaderboardRoutes);
 // Dashboard Route Binding
 app.use("/api/dashboard", dashboardRoutes);
 
+// Admin Route Binding (/api/admin)
+app.use("/api/admin", adminRoutes);
 
 // 404 Fallback Route
 app.use((req, res) => {
@@ -83,7 +86,7 @@ mongoose
   .then(async () => {
     console.log("MongoDB Connected Successfully!");
     
-    // Auto populate 40 Challenges (10 Levels x 4 Challenges)
+    // Auto populate 40 Challenges
     try {
       await seedChallenges();
     } catch (seedErr) {

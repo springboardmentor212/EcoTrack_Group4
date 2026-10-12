@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const Tracker = require("../models/Tracker");
 const Goal = require("../models/Goal");
+const Challenge = require("../models/Challenge");
+const ChallengeParticipation = require("../models/ChallengeParticipation");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 let authMiddleware = (req, res, next) => next();
@@ -11,17 +13,16 @@ try {
   console.log("authMiddleware fallback active");
 }
 
-// Gemini AI API Instance Initialization
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "dummy_key");
 
-// GET /api/dashboard - Gemini AI Recommendations Integration
+// GET /api/dashboard - Gemini AI Recommendations & User Footprint Overview
 router.get("/", authMiddleware, async (req, res) => {
   try {
     const rawUserId =
       req.user?.id || req.user?._id || req.userId || req.user?.email || "guest";
     const currentUserId = String(rawUserId);
 
-    // 1. Fetch user recent activity tracker records
+    // 1. Fetch user recent tracker records
     const trackerLogs = await Tracker.find({
       $or: [
         { userId: currentUserId },
@@ -32,7 +33,7 @@ router.get("/", authMiddleware, async (req, res) => {
       .sort({ createdAt: -1, activityDate: -1 })
       .lean();
 
-    // 2. Calculate Total Emissions & Savings for Category Breakdown
+    // 2. Calculate Total Emissions & Savings
     let totalEmissionsKg = 0;
     let totalSavedKg = 0;
 
@@ -63,7 +64,6 @@ router.get("/", authMiddleware, async (req, res) => {
 
     const netFootprintKg = Math.abs(totalEmissionsKg - totalSavedKg);
 
-    // Dynamic Categories Percentages Array
     const categoriesArray = Object.keys(categoryTotals).map((catName) => {
       const emission = categoryTotals[catName].emission;
       const percentage =
@@ -78,18 +78,18 @@ router.get("/", authMiddleware, async (req, res) => {
       };
     });
 
-    // 3. 🤖 GEMINI AI RECOMMENDATIONS WITH DYNAMIC RANDOM FALLBACK SHUFFLE
+    // 3. AI Recommendations Logic
     let aiRecommendations = [];
 
     try {
       if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === "dummy_key") {
-        throw new Error("GEMINI_API_KEY missing or invalid in process.env");
+        throw new Error("GEMINI_API_KEY missing");
       }
 
       const userSummaryPrompt = `
         User carbon stats: Total Emissions: ${totalEmissionsKg.toFixed(1)}kg, Total CO2 Saved: ${totalSavedKg.toFixed(1)}kg.
         Highest emission categories: ${JSON.stringify(categoriesArray)}.
-        Act as an AI Eco Advisor. Provide 4 unique, actionable, short eco recommendations to lower footprint.
+        Act as an AI Eco Advisor. Provide 4 unique, short eco recommendations.
         Return ONLY valid JSON array without markdown syntax:
         [
           {
@@ -111,10 +111,9 @@ router.get("/", authMiddleware, async (req, res) => {
           .trim();
         aiRecommendations = JSON.parse(cleanJsonText);
       } else {
-        throw new Error("No response from Gemini API");
+        throw new Error("No AI response");
       }
     } catch (aiErr) {
-      // Dynamic Shuffle Pool on Fallback
       const fallbackPool = [
         {
           icon: "transport",
@@ -136,21 +135,6 @@ router.get("/", authMiddleware, async (req, res) => {
           title: "Reduce shower time by 3 minutes",
           subtitle: "Potential saving: 0.4 kg CO₂/day",
         },
-        {
-          icon: "energy",
-          title: "Optimize home cooling and heating schedule",
-          subtitle: "Potential saving: 1.5 kg CO₂/day",
-        },
-        {
-          icon: "sun",
-          title: "Unplug device chargers when not in use",
-          subtitle: "Potential saving: 0.3 kg CO₂/day",
-        },
-        {
-          icon: "shield",
-          title: "Separate recyclable plastic and paper waste",
-          subtitle: "Potential saving: 0.6 kg CO₂/kg",
-        }
       ];
 
       aiRecommendations = [...fallbackPool].sort(() => 0.5 - Math.random()).slice(0, 4);
@@ -167,7 +151,7 @@ router.get("/", authMiddleware, async (req, res) => {
       aiRecommendations,
     });
   } catch (error) {
-    console.error("Dashboard Backend Route Error:", error);
+    console.error("Dashboard Error:", error);
     res.status(500).json({ message: "Dashboard error", error: error.message });
   }
 });

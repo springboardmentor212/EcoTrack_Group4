@@ -5,37 +5,43 @@ const trackerController = require("../controllers/trackerController");
 const ChallengeParticipation = require("../models/ChallengeParticipation");
 const Challenge = require("../models/Challenge");
 
-// Middleware to decode Token (Works for JWT & Google Auth Tokens)
+const JWT_SECRET = process.env.JWT_SECRET || "ecotrack_jwt_secret_key_123";
+
+// Middleware to decode Token strictly for logged-in user
 const authenticateUser = (req, res, next) => {
   const authHeader = req.headers.authorization;
   
   if (!authHeader) {
-    req.userId = "guest";
-    req.user = { id: "guest" };
-    return next();
+    return res.status(401).json({ message: "Authorization header missing" });
   }
 
   const token = authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : authHeader;
 
   try {
-    const decoded = jwt.decode(token);
-    if (decoded) {
-      const extractedId = String(decoded.id || decoded._id || decoded.sub || decoded.email || "guest");
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded && (decoded.id || decoded._id)) {
+      const extractedId = String(decoded.id || decoded._id);
       req.userId = extractedId;
       req.user = { id: extractedId };
       return next();
     }
-    req.userId = "guest";
-    req.user = { id: "guest" };
-    return next();
+    return res.status(401).json({ message: "Invalid user token" });
   } catch (err) {
-    req.userId = "guest";
-    req.user = { id: "guest" };
-    return next();
+    try {
+      const decodedFallback = jwt.decode(token);
+      if (decodedFallback && (decodedFallback.id || decodedFallback._id || decodedFallback.sub)) {
+        const extractedId = String(decodedFallback.id || decodedFallback._id || decodedFallback.sub);
+        req.userId = extractedId;
+        req.user = { id: extractedId };
+        return next();
+      }
+    } catch (e) {
+      return res.status(401).json({ message: "Token authentication failed" });
+    }
+    return res.status(401).json({ message: "Unauthorized request" });
   }
 };
 
-// Helper middleware to update joined challenge progress when logging carbon activities
 const updateChallengeProgressOnLog = async (req, res, next) => {
   try {
     const userId = req.user?.id || req.userId;
@@ -44,7 +50,6 @@ const updateChallengeProgressOnLog = async (req, res, next) => {
     const activityCategory = category || type || transportType || energyType;
 
     if (userId && userId !== "guest" && activityCategory) {
-      // Category Mapping to Challenge Tags
       let matchedTags = [];
       const catLower = String(activityCategory).toLowerCase();
 
@@ -75,7 +80,7 @@ const updateChallengeProgressOnLog = async (req, res, next) => {
           p.progress = (p.progress || 0) + 1;
           if (p.progress >= challenge.targetGoal) {
             p.progress = challenge.targetGoal;
-            p.status = "COMPLETED"; // Ready to claim reward
+            p.status = "COMPLETED";
           }
           await p.save();
         }
@@ -93,7 +98,7 @@ router.get("/history", authenticateUser, trackerController.getHistory);
 // 2. GET /api/tracker/summary
 router.get("/summary", authenticateUser, trackerController.getSummary);
 
-// 3. POST /api/tracker/log (Runs tracker controller & auto updates challenge progress)
+// 3. POST /api/tracker/log
 router.post("/log", authenticateUser, updateChallengeProgressOnLog, trackerController.logActivity);
 
 module.exports = router;

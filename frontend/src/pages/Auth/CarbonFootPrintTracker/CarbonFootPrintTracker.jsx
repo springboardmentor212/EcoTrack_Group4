@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify";
 import {
   Globe,
   Home,
@@ -10,6 +11,7 @@ import {
   LayoutDashboard,
   FileText,
   User,
+  ChevronDown,
   X,
 } from "lucide-react";
 import "./CarbonFootPrintTracker.css";
@@ -200,14 +202,14 @@ export default function CarbonFootPrintTracker() {
   const handleLogActivity = async (e) => {
     e.preventDefault();
     if (!usageValue || parseFloat(usageValue) <= 0) {
-      alert("Please enter a valid usage value!");
+      toast.error("Please enter a valid usage value!");
       return;
     }
 
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        alert("Session expired. Please log in again.");
+        toast.error("Session expired. Please log in again.");
         return;
       }
 
@@ -232,11 +234,20 @@ export default function CarbonFootPrintTracker() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Check if Challenge Reward Modal is triggered
-      if (res.data.triggerModal && res.data.rewardsUnlocked?.length > 0) {
+      // Trigger Goal Completed Toast Popup dynamically
+      if (res.data?.goalAchieved && res.data?.achievedGoals?.length > 0) {
+        res.data.achievedGoals.forEach((goal) => {
+          toast.success(`🎯 GOAL ACHIEVED: ${goal.title}!`, {
+            toastId: `goal-achieved-${goal.id || goal.title}`,
+            autoClose: 5000,
+          });
+        });
+      }
+
+      if (res.data?.triggerModal && res.data?.rewardsUnlocked?.length > 0) {
         setUnlockedReward(res.data.rewardsUnlocked[0]);
       } else {
-        alert("Activity logged successfully!");
+        toast.success("Activity logged successfully!");
       }
 
       const newRecord = res.data?.data ? res.data.data : { _id: Date.now(), ...payload };
@@ -247,7 +258,7 @@ export default function CarbonFootPrintTracker() {
       setUsageValue("");
     } catch (error) {
       console.error("Error logging activity:", error);
-      alert("Failed to log activity record.");
+      toast.error("Failed to log activity record.");
     }
   };
 
@@ -308,10 +319,10 @@ export default function CarbonFootPrintTracker() {
             <p>Log & Calculate Activity Emissions & CO₂ Savings</p>
           </div>
           <div className="header-actions">
-            <div className="icon-button">🔥</div>
             <div className="user-chip">
-              <div className="user-chip-avatar">🌱</div>
+              <span className="user-chip-avatar"><User size={12} strokeWidth={2.5} /></span>
               <span>{loggeduser}</span>
+              <ChevronDown size={14} strokeWidth={2.5} />
             </div>
           </div>
         </header>
