@@ -263,7 +263,8 @@ export default function CarbonFootPrintTracker() {
     <div className="carbon-tracker-app">
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <Globe size={22} color="#059669" strokeWidth={2.2} />
+          <Globe size={20} color="#059669" strokeWidth={2.2} />
+          
           <span>EcoTrack</span>
         </div>
 

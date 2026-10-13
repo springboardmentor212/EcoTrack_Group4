@@ -64,7 +64,7 @@ function Home() {
       <div className="home-layout">
         <aside className="sidebar">
           <div className="brand">
-            <Globe size={18} strokeWidth={2} />
+            <Globe size={20} strokeWidth={2} />
             <span>EcoTrack</span>
           </div>
 

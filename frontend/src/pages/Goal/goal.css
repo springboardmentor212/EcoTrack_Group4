@@ -551,15 +551,61 @@
     grid-template-columns: 1fr;
   }
 }
-
-@media (max-width: 720px) {
+@media (max-width: 768px) {
+  /* Icon-only sidebar (about 0.5 inch) */
   .goals-app {
-    grid-template-columns: 1fr;
+    grid-template-columns: 48px minmax(0, 1fr);
   }
-  .goals-app .sidebar {
+  .goals-app > :first-child { /* the sidebar; !important because another stylesheet sets its width/position */
+    width: 48px !important;
+    position: sticky !important;
+    top: 0;
+    height: 100vh;
+    align-self: start;
+    padding: 12px 4px;
+    overflow: hidden auto;
+    justify-items: center;
+  }
+  .goals-app .sidebar-brand {
+    justify-content: center;
+    padding: 0;
+  }
+  .goals-app .sidebar-brand span {
     display: none;
   }
-  .goals-app .stat-grid {
+  .goals-app .sidebar-brand svg {
+    width: 24px;
+    height: 24px;
+  }
+  .goals-app .sidebar-menu {
+    justify-items: center;
+  }
+  .goals-app .menu-item {
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    gap: 0;
+    font-size: 0; /* hides the label, keeps the icon */
+  }
+  .goals-app .menu-item svg {
+    width: 16px;
+    height: 16px;
+  }
+ 
+  .goals-app .main-content {
+    padding: 16px;
+    gap: 16px;
+  }
+  .goals-app .goal-item-footer {
     grid-template-columns: 1fr;
   }
 }
+ 
+@media (max-width: 480px) {
+  .goals-app .stat-grid,
+  .goals-app .form-row-split {
+    grid-template-columns: 1fr;
+  }
+}
+ 

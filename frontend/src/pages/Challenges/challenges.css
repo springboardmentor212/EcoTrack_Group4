@@ -29,7 +29,7 @@
   padding: 24px 16px;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 8px;
 }
 
 .challenges-app .sidebar-brand {
@@ -402,4 +402,65 @@
     width: 100%;
     justify-content: space-between;
   }
+  @media (max-width: 768px) {
+  /* Icon-only sidebar (about 0.5 inch) */
+  .challenges-app {
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+  .challenges-app > :first-child { /* the sidebar; !important because another stylesheet sets its width/position */
+    max-width: 48px !important;
+    position: sticky !important;
+    top: 0;
+    height: 100vh;
+    align-self: start;
+    padding: 12px 4px;
+    overflow: hidden auto;
+    align-items: center;
+  }
+  .challenges-app .sidebar-brand {
+    justify-content: center;
+    padding: 0;
+  }
+  .challenges-app .sidebar-brand span {
+    display: none;
+  }
+  .challenges-app .sidebar-brand svg {
+    width: 24px;
+    height: 24px;
+  }
+  .challenges-app .sidebar-menu {
+    align-items: center;
+  }
+  .challenges-app .menu-item {
+    justify-content: left;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    gap: 0;
+    font-size: 0; /* hides the label, keeps the icon */
+  }
+  .challenges-app .menu-item svg {
+    width: 16px;
+    height: 16px;
+  }
+ 
+  .challenges-app .main-content {
+    padding: 16px;
+  }
+  .challenges-app .eco-journey-card {
+    padding: 16px;
+  }
+  .challenges-app .journey-stat {
+    flex: 1 1 140px;
+  }
+  .challenges-app .tab-bar,
+  .challenges-app .challenge-top,
+  .challenges-app .challenge-meta {
+    flex-wrap: wrap;
+  }
+  .challenges-app .challenge-body {
+    min-width: 0;
+  }
+  }
+ 
 }

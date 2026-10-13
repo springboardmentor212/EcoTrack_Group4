@@ -30,7 +30,7 @@
   padding: 24px 16px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 8px;
 }
 
 .profile-app .sidebar-brand {
