@@ -112,6 +112,19 @@
   color: #0f1b2d !important;
   font-weight: 700;
 }
+.detail-box {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  color: #1e293b;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+}
 
 .no-rows {
   padding: 36px 12px !important;

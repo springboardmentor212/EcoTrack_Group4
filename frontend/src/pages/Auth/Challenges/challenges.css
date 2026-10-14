@@ -1,3 +1,4 @@
+/* Community Challenges Layout & Component Styles */
 .challenges-app {
   --chal-bg-page: #f8fafc;
   --chal-bg-white: #ffffff;
@@ -10,8 +11,8 @@
   --chal-green-600: #059669;
   --chal-green-700: #047857;
 
-  display: grid;
-  grid-template-columns: 240px 1fr;
+  display: flex !important;
+  width: 100% !important;
   min-height: 100vh;
   background: #f1f5f9;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -24,12 +25,15 @@
 
 /* Sidebar Styling */
 .challenges-app .sidebar {
+  width: 240px !important;
+  min-width: 240px !important;
   background: #ffffff;
   border-right: 1px solid var(--chal-border-light);
-  padding: 24px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  padding: 24px 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 28px;
+  flex-shrink: 0;
 }
 
 .challenges-app .sidebar-brand {
@@ -39,6 +43,7 @@
   font-weight: 700;
   font-size: 20px;
   color: var(--chal-green-600);
+  padding-left: 8px;
 }
 
 .challenges-app .sidebar-menu {
@@ -51,10 +56,11 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 14px;
+  height: 42px;
+  padding: 0 14px;
   border-radius: 8px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--chal-text-secondary);
   text-decoration: none;
   transition: all 0.2s ease;
@@ -67,14 +73,55 @@
 .challenges-app .menu-item.active {
   background: var(--chal-green-50);
   color: var(--chal-green-700);
+  font-weight: 600;
 }
 
 /* Main Area Layout */
 .challenges-app .main-content {
+  flex: 1 !important;
   padding: 32px;
-  max-width: 1280px;
+  width: calc(100% - 240px);
+}
+
+/* Header Flex Layout Fix */
+.challenges-app .page-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  margin-bottom: 24px;
   width: 100%;
-  margin: 0 auto;
+}
+
+.challenges-app .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* User Chip Styling */
+.user-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.user-chip-avatar {
+  width: 22px;
+  height: 22px;
+  background-color: #10b981;
+  color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Dynamic XP Journey Banner Styling */
@@ -178,18 +225,26 @@
   color: var(--chal-text-muted);
 }
 
-/* Grid & Content Section */
+/* Grid & Content Section Layout */
 .challenges-app .content-grid {
   display: grid;
   grid-template-columns: 1fr 340px;
   gap: 24px;
-  align-items: start;
+  align-items: stretch; /* Stretch removes bottom height gap */
+}
+
+.challenges-app .left-section {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .challenges-app .tab-bar {
   display: flex;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-top: 4px;
+  margin-bottom: 16px;
+  flex-shrink: 0;
 }
 
 .challenges-app .tab-btn {
@@ -209,10 +264,33 @@
   color: #ffffff;
 }
 
+/* PERFECT HEIGHT ALIGNMENT WITH RIGHT LEADERBOARD PANEL */
 .challenges-app .challenge-list {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  max-height: 670px; /* Leaderboard Panel Bottom Edge Exact Alignment Height */
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* Left Challenge List Custom Scrollbar */
+.challenges-app .challenge-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.challenges-app .challenge-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.challenges-app .challenge-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.challenges-app .challenge-list::-webkit-scrollbar-thumb:hover {
+  background: #10b981;
 }
 
 .challenges-app .challenge-card {
@@ -352,6 +430,14 @@
   background: var(--chal-green-100);
   padding: 4px 10px;
   border-radius: 20px;
+}
+
+/* Badges Row */
+.challenges-app .badges-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--chal-text-secondary);
+  margin-bottom: 8px;
 }
 
 /* Leaderboard Scrollbar Customization */

@@ -1,69 +1,50 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import "./Users.css";
 import AdminSidebar from "../components/AdminSidebar";
 import AdminHeader from "../components/AdminHeader";
 import "../AdminLayout.css";
 
-const initialUsers = [
-  {
-    id: 1,
-    name: "Manpreet Singh",
-    email: "manpreet@example.com",
-    joinedDate: "Aug 10, 2026",
-  },
-  {
-    id: 2,
-    name: "Aman Sharma",
-    email: "aman.sharma@gmail.com",
-    joinedDate: "Aug 14, 2026",
-  },
-  {
-    id: 3,
-    name: "Rohit Verma",
-    email: "rohit.verma@outlook.com",
-    joinedDate: "Sep 02, 2026",
-  },
-  {
-    id: 4,
-    name: "Priya Mehta",
-    email: "priya.mehta@yahoo.com",
-    joinedDate: "Sep 15, 2026",
-  },
-  {
-    id: 5,
-    name: "Rahul Kumar",
-    email: "rahul.kumar@gmail.com",
-    joinedDate: "Sep 18, 2026",
-  },
-  {
-    id: 6,
-    name: "Ananya Gupta",
-    email: "ananya.gupta@gmail.com",
-    joinedDate: "Sep 20, 2026",
-  },
-  {
-    id: 7,
-    name: "Arjun Singh",
-    email: "arjun.singh@gmail.com",
-    joinedDate: "Sep 22, 2026",
-  },
-  {
-    id: 8,
-    name: "Neha Verma",
-    email: "neha.verma@gmail.com",
-    joinedDate: "Sep 25, 2026",
-  },
-];
-
 const USERS_PER_PAGE = 4;
 
 export default function Users() {
-  const [users] = useState(initialUsers);
+  const [users, setUsers] = useState([]);
+  const [stats, setStats] = useState({
+    totalEnrolled: 0,
+    newThisMonth: 0,
+    completedGoals: 0,
+  });
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Search users by name or email
+  // Fetch Users & Real-time Metrics from Backend
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch("http://localhost:5000/api/admin/users");
+        const data = await res.json();
+
+        if (data.success) {
+          setUsers(data.users || []);
+          setStats({
+            totalEnrolled: data.totalEnrolled || 0,
+            newThisMonth: data.newThisMonth || 0,
+            completedGoals: data.completedGoals || 0,
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching users:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  // Search users by name or email safely
   const filteredUsers = useMemo(() => {
     const query = search.trim().toLowerCase();
 
@@ -71,8 +52,8 @@ export default function Users() {
 
     return users.filter(
       (user) =>
-        user.name.toLowerCase().includes(query) ||
-        user.email.toLowerCase().includes(query)
+        (user.name && user.name.toLowerCase().includes(query)) ||
+        (user.email && user.email.toLowerCase().includes(query))
     );
   }, [users, search]);
 
@@ -83,9 +64,7 @@ export default function Users() {
   );
 
   const currentPage = Math.min(page, totalPages);
-
   const startIndex = (currentPage - 1) * USERS_PER_PAGE;
-
   const currentUsers = filteredUsers.slice(
     startIndex,
     startIndex + USERS_PER_PAGE
@@ -93,7 +72,7 @@ export default function Users() {
 
   // Generate initials for user avatars
   const getInitials = (name) =>
-    name
+    (name || "User")
       .split(" ")
       .map((part) => part[0])
       .join("")
@@ -116,25 +95,25 @@ export default function Users() {
           onMenuClick={() => setSidebarOpen(true)}
         />
 
-        {/* Statistics */}
+        {/* Statistics Cards */}
         <section className="admin-stats">
           <div className="admin-stat">
             <div>
-              <strong>138</strong>
+              <strong>{stats.totalEnrolled}</strong>
               <span>Total Enrolled</span>
             </div>
           </div>
 
           <div className="admin-stat">
             <div>
-              <strong>24</strong>
+              <strong>{stats.newThisMonth}</strong>
               <span>New This Month</span>
             </div>
           </div>
 
           <div className="admin-stat">
             <div>
-              <strong>89</strong>
+              <strong>{stats.completedGoals}</strong>
               <span>Completed Goals</span>
             </div>
           </div>
@@ -169,7 +148,13 @@ export default function Users() {
               </thead>
 
               <tbody>
-                {currentUsers.length === 0 ? (
+                {loading ? (
+                  <tr>
+                    <td colSpan="3" className="admin-empty">
+                      Loading enrolled users from database...
+                    </td>
+                  </tr>
+                ) : currentUsers.length === 0 ? (
                   <tr>
                     <td colSpan="3" className="admin-empty">
                       No users found.
@@ -204,7 +189,7 @@ export default function Users() {
               Showing{" "}
               {filteredUsers.length === 0 ? 0 : startIndex + 1} to{" "}
               {Math.min(startIndex + USERS_PER_PAGE, filteredUsers.length)} of{" "}
-              {filteredUsers.length} users
+              {filteredUsers.length} enrolled users
             </span>
 
             <div className="admin-pager">

@@ -57,7 +57,7 @@ export default function ReportsPage() {
   const [stats, setStats] = useState({
     totalCO2: "0 kg",
     totalActivities: "0",
-    avgDailyImpact: "0 kg",
+    avgImpactPerActivity: "0 kg",
     ecoScore: "0",
   });
 
@@ -102,7 +102,7 @@ export default function ReportsPage() {
     setStats({
       totalCO2: "0 kg",
       totalActivities: "0",
-      avgDailyImpact: "0 kg",
+      avgImpactPerActivity: "0 kg",
       ecoScore: "0",
     });
 
@@ -151,10 +151,17 @@ export default function ReportsPage() {
             ? data.totalCO2Reduced
             : data.totalEmissions || 0;
 
+        const activitiesCount = Number(data.totalActivities) || 0;
+        
+        // Activity count base panni Average Impact calculate pandrom
+        const avgImpact = activitiesCount > 0 
+          ? (Number(co2Value) / activitiesCount).toFixed(1) 
+          : "0";
+
         setStats({
           totalCO2: `${co2Value} kg`,
-          totalActivities: `${data.totalActivities || 0}`,
-          avgDailyImpact: `${data.avgDailyImpact || 0} kg`,
+          totalActivities: `${activitiesCount}`,
+          avgImpactPerActivity: `${avgImpact} kg`,
           ecoScore: `${data.ecoScore || 0}`,
         });
 
@@ -232,7 +239,7 @@ export default function ReportsPage() {
       link.remove();
     } catch (error) {
       console.error("PDF Download Error:", error);
-      alert("PDF Report download cheyyunnathil prashnamund. Thulliyayi meendum sramikkuka.");
+      alert("Failed to export PDF report. Please try again.");
     } finally {
       setExporting(false);
     }
@@ -241,7 +248,7 @@ export default function ReportsPage() {
   const statCards = [
     { label: "Total CO2 Reduced:", value: stats.totalCO2, icon: Footprints, color: "green" },
     { label: "Total Activities:", value: stats.totalActivities, icon: ClipboardList, color: "blue" },
-    { label: "Average Daily Impact:", value: stats.avgDailyImpact, icon: Calculator, color: "gray" },
+    { label: "Avg Impact per Activity:", value: stats.avgImpactPerActivity, icon: Calculator, color: "gray" },
     { label: "Eco Score:", value: stats.ecoScore, icon: Gauge, color: "gauge" },
   ];
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -13,7 +13,6 @@ import {
   LayoutDashboard,
   FileText,
   User,
-  Bell,
   ChevronDown,
   CircleDot,
   CheckCircle2,
@@ -51,7 +50,6 @@ function GoalsPage() {
   });
   const [loadingAi, setLoadingAi] = useState(false);
 
-  // Dynamic Goal Streak Calculation
   const calculateStreak = (historyLogs) => {
     if (!historyLogs || historyLogs.length === 0) return 0;
 
@@ -119,7 +117,7 @@ function GoalsPage() {
     return { icon: Target, color: "green" };
   };
 
-  const fetchGoals = async () => {
+  const fetchGoals = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
       const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
@@ -143,7 +141,7 @@ function GoalsPage() {
     } catch (err) {
       console.warn("Backend fetch issue.");
     }
-  };
+  }, []);
 
   const fetchAiRecommendation = async () => {
     try {
@@ -177,12 +175,12 @@ function GoalsPage() {
   useEffect(() => {
     fetchGoals();
     fetchAiRecommendation();
-  }, []);
+  }, [fetchGoals]);
 
   const handleAddGoal = async (e) => {
     e.preventDefault();
     if (!goalTitle || !targetValue) {
-      toast.error("Please fill in Goal Title and Target Value!", { className: "Toastify__toast--custom" });
+      toast.error("Please fill in Goal Title and Target Value!");
       return;
     }
 
@@ -200,13 +198,13 @@ function GoalsPage() {
 
       await axios.post("http://localhost:5000/api/goals", payload, config);
 
-      toast.success("New Goal Created Successfully!", { className: "Toastify__toast--custom" });
+      toast.success("New Goal Created Successfully!");
       setGoalTitle("");
       setTargetValue("");
       fetchGoals();
     } catch (err) {
       console.error("Create Goal Error:", err);
-      toast.error("Failed to create goal.", { className: "Toastify__toast--custom" });
+      toast.error("Failed to create goal.");
     }
   };
 
@@ -251,7 +249,6 @@ function GoalsPage() {
             <p>Net Savings Goal Progress = CO₂ Saved − CO₂ Emitted</p>
           </div>
           <div className="header-actions">
-            <button className="icon-button" type="button"><Bell size={16} strokeWidth={2} /></button>
             <div className="user-chip">
               <span className="user-chip-avatar"><User size={12} strokeWidth={2.5} /></span>
               <span>{loggeduser}</span>

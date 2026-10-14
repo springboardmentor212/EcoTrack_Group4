@@ -74,7 +74,6 @@ const calculateGoalStreak = (trackers) => {
   return streak;
 };
 
-// Flexible Category Normalization
 const normalizeCategory = (cat, activityType) => {
   const combined = `${cat || ""} ${activityType || ""}`.toLowerCase().trim();
 
@@ -154,28 +153,29 @@ router.get("/ai-recommendation", async (req, res) => {
   }
 });
 
-// GET /api/goals
+// GET /api/goals (Strict User Isolation)
 router.get("/", authMiddleware, async (req, res) => {
   try {
     const rawUserId =
-      req.user?.id || req.user?._id || req.userId || req.user?.email || "guest";
+      req.user?.id || req.user?._id || req.userId || req.user?.email;
+
+    if (!rawUserId || rawUserId === "guest") {
+      return res.status(200).json({
+        goals: [],
+        activeGoals: [],
+        completedGoals: [],
+        activeCount: 0,
+        completedCount: 0,
+        streak: 0,
+        successRate: "0%",
+      });
+    }
+
     const currentUserId = String(rawUserId);
 
-    const goals = await Goal.find({
-      $or: [
-        { userId: currentUserId },
-        { userId: "guest" },
-        { userId: { $exists: false } },
-      ],
-    }).sort({ createdAt: -1 });
-
-    const trackers = await Tracker.find({
-      $or: [
-        { userId: currentUserId },
-        { userId: "guest" },
-        { userId: { $exists: false } },
-      ],
-    }).lean();
+    // Fetch ONLY the user's specific goals and trackers
+    const goals = await Goal.find({ userId: currentUserId }).sort({ createdAt: -1 });
+    const trackers = await Tracker.find({ userId: currentUserId }).lean();
 
     const formattedGoals = [];
 
@@ -244,7 +244,6 @@ router.get("/", authMiddleware, async (req, res) => {
       );
       const isCompleted = targetVal > 0 && currentProgress >= targetVal;
 
-      // AUTOMATIC NOTIFICATION TRIGGER LOGIC
       if (isCompleted && !g.isCompleted) {
         g.isCompleted = true;
         g.completedAt = new Date();
@@ -312,7 +311,11 @@ router.get("/", authMiddleware, async (req, res) => {
 router.post("/", authMiddleware, async (req, res) => {
   try {
     const { title, category, targetValue, targetUnit, targetCompletionDate } = req.body;
-    const rawUserId = req.user?.id || req.user?._id || req.userId || req.user?.email || "guest";
+    const rawUserId = req.user?.id || req.user?._id || req.userId || req.user?.email;
+
+    if (!rawUserId || rawUserId === "guest") {
+      return res.status(400).json({ message: "Please log in to create goals." });
+    }
 
     const newGoal = new Goal({
       userId: String(rawUserId),

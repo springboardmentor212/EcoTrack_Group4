@@ -14,7 +14,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 
-import treeImage from "../../assets/tree.jpeg";
+import treeImage from "../../../assets/tree.jpeg";
 import "./home.css";
 
 function Home() {

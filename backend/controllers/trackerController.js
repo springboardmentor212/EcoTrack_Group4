@@ -13,14 +13,11 @@ try {
   console.log("Notification model load failed fallback");
 }
 
+// Strict Logged-in User ID Extractor (No "guest" fallback)
 const getUserId = (req) => {
-  return (
-    req.user?.id || 
-    req.user?._id || 
-    req.user?.googleId || 
-    req.user?.email || 
-    "guest"
-  );
+  const rawId = req.user?.id || req.user?._id || req.userId || req.user?.googleId;
+  if (!rawId || rawId === "guest") return null;
+  return String(rawId);
 };
 
 // Category and Activity Normalization
@@ -52,25 +49,31 @@ const normalizeCategory = (cat, activityType) => {
   return "overall";
 };
 
-// Helper 1: Check Goals & Trigger Notifications
-const checkGoalsAndNotify = async (currentUserId) => {
-  try {
-    const userQuery = [
-      { userId: currentUserId },
-      { userId: String(currentUserId) },
-      { userId: "guest" }
-    ];
 
+const checkGoalsAndNotify = async (currentUserId) => {
+  const newlyAchievedGoals = [];
+  try {
+    if (!currentUserId) return newlyAchievedGoals;
+
+    const userQuery = [{ userId: currentUserId }];
     if (mongoose.Types.ObjectId.isValid(currentUserId)) {
       userQuery.push({ userId: new mongoose.Types.ObjectId(currentUserId) });
     }
 
-    const activeGoals = await Goal.find({
+    // Fetch active goals
+    const rawActiveGoals = await Goal.find({
       $or: userQuery,
       $or: [{ isCompleted: false }, { isCompleted: {$exists: false } }]
     });
 
-    if (!activeGoals || activeGoals.length === 0) return;
+    if (!rawActiveGoals || rawActiveGoals.length === 0) return newlyAchievedGoals;
+
+    
+    const uniqueGoalMap = new Map();
+    rawActiveGoals.forEach((g) => {
+      uniqueGoalMap.set(String(g._id), g);
+    });
+    const activeGoals = Array.from(uniqueGoalMap.values());
 
     const allTrackers = await Tracker.find({ $or: userQuery }).lean();
 
@@ -119,7 +122,14 @@ const checkGoalsAndNotify = async (currentUserId) => {
         g.completedAt = new Date();
         await g.save();
 
-        console.log(`🎉 GOAL ACHIEVED TRIGGERED: ${g.title}`);
+        console.log(`🎉 GOAL ACHIEVED TRIGGERED JUST NOW: ${g.title}`);
+
+        newlyAchievedGoals.push({
+          id: String(g._id),
+          title: g.title,
+          category: g.category,
+          targetValue: targetVal
+        });
 
         if (Notification) {
           await Notification.create({
@@ -136,12 +146,15 @@ const checkGoalsAndNotify = async (currentUserId) => {
   } catch (err) {
     console.error("Error in checkGoalsAndNotify:", err);
   }
+
+  return newlyAchievedGoals;
 };
 
 const checkChallengesAndUpdateRewards = async (currentUserId, rawCategory, activityValue) => {
   let completedRewards = [];
 
   try {
+    if (!currentUserId) return completedRewards;
     const normCat = normalizeCategory(rawCategory, "");
 
     const activeParticipations = await Participation.find({
@@ -162,7 +175,6 @@ const checkChallengesAndUpdateRewards = async (currentUserId, rawCategory, activ
           p.status = "COMPLETED";
           p.completedAt = new Date();
 
-          // User Accounts Updates (Points & XP)
           let user = null;
           if (mongoose.Types.ObjectId.isValid(currentUserId)) {
             user = await User.findById(currentUserId);
@@ -173,7 +185,7 @@ const checkChallengesAndUpdateRewards = async (currentUserId, rawCategory, activ
           if (user) {
             user.ecoPoints = (user.ecoPoints || 0) + (p.challengeId.rewardPoints || 0);
             user.xp = (user.xp || 0) + (p.challengeId.rewardXP || 0);
-            user.level = Math.floor(user.xp / 500) + 1; // Level Up Calculation
+            user.level = Math.floor(user.xp / 500) + 1;
             await user.save();
 
             completedRewards.push({
@@ -187,7 +199,6 @@ const checkChallengesAndUpdateRewards = async (currentUserId, rawCategory, activ
               newLevel: user.level
             });
 
-            // Challenge Completion Notification
             if (Notification) {
               await Notification.create({
                 userId: String(currentUserId),
@@ -210,9 +221,15 @@ const checkChallengesAndUpdateRewards = async (currentUserId, rawCategory, activ
   return completedRewards;
 };
 
-// 1. Log Activity (Emissions & Savings + Challenge Auto Sync)
+// 1. Log Activity (Emissions & Savings)
 exports.logActivity = async (req, res) => {
   try {
+    const currentUserId = getUserId(req);
+
+    if (!currentUserId) {
+      return res.status(401).json({ message: "Unauthorized. Please log in to record activities." });
+    }
+
     const { 
       category, 
       activityType, 
@@ -227,9 +244,7 @@ exports.logActivity = async (req, res) => {
       date 
     } = req.body;
 
-    const currentUserId = getUserId(req);
     const mode = activityMode === "saving" ? "saving" : "emission";
-    
     const outputVal = mode === "emission" ? (Number(carbonOutput !== undefined ? carbonOutput : co2) || 0) : 0;
     const savedVal = mode === "saving" ? (Number(carbonSaved !== undefined ? carbonSaved : co2) || 0) : 0;
     const usageValue = Number(value) || 0;
@@ -256,18 +271,10 @@ exports.logActivity = async (req, res) => {
 
     await newLog.save();
 
-    console.log("=================================");
-    console.log("NEW TRACKER ACTIVITY LOGGED");
-    console.log("User:", currentUserId);
-    console.log("Mode:", mode);
-    console.log("Output:", outputVal, "| Saved:", savedVal);
-    console.log("Date:", dateStr);
-    console.log("=================================");
+    // Catch newly achieved goals array from checkGoalsAndNotify
+    const achievedGoals = await checkGoalsAndNotify(currentUserId);
 
-    // 1. AUTOMATICALLY CHECK GOALS & CREATE NOTIFICATION
-    await checkGoalsAndNotify(currentUserId);
-
-    // 2. AUTOMATICALLY CHECK CHALLENGES & UNLOCK REWARDS
+    // Check Challenges
     const rewardsUnlocked = await checkChallengesAndUpdateRewards(
       currentUserId,
       cleanCategory,
@@ -277,6 +284,8 @@ exports.logActivity = async (req, res) => {
     return res.status(201).json({ 
       message: "Activity logged successfully", 
       data: newLog,
+      goalAchieved: achievedGoals.length > 0,
+      achievedGoals: achievedGoals,
       triggerModal: rewardsUnlocked.length > 0,
       rewardsUnlocked: rewardsUnlocked
     });
@@ -291,12 +300,11 @@ exports.getHistory = async (req, res) => {
   try {
     const currentUserId = getUserId(req);
 
-    const userQuery = [
-      { userId: currentUserId },
-      { userId: String(currentUserId) },
-      { userId: "guest" }
-    ];
+    if (!currentUserId) {
+      return res.status(200).json([]);
+    }
 
+    const userQuery = [{ userId: currentUserId }];
     if (mongoose.Types.ObjectId.isValid(currentUserId)) {
       userQuery.push({ userId: new mongoose.Types.ObjectId(currentUserId) });
     }
@@ -326,15 +334,27 @@ exports.getHistory = async (req, res) => {
 
 // 3. Get Summary
 exports.getSummary = async (req, res) => {
+  const emptySummary = {
+    totalEmissions: 0,
+    totalSaved: 0,
+    netFootprint: 0,
+    categoryBreakdown: {
+      Transport: { emitted: 0, saved: 0 },
+      Energy: { emitted: 0, saved: 0 },
+      Food: { emitted: 0, saved: 0 },
+      Waste: { emitted: 0, saved: 0 },
+      Water: { emitted: 0, saved: 0 }
+    },
+  };
+
   try {
     const currentUserId = getUserId(req);
 
-    const userQuery = [
-      { userId: currentUserId },
-      { userId: String(currentUserId) },
-      { userId: "guest" }
-    ];
+    if (!currentUserId) {
+      return res.status(200).json(emptySummary);
+    }
 
+    const userQuery = [{ userId: currentUserId }];
     if (mongoose.Types.ObjectId.isValid(currentUserId)) {
       userQuery.push({ userId: new mongoose.Types.ObjectId(currentUserId) });
     }
@@ -376,17 +396,6 @@ exports.getSummary = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in getSummary:", error);
-    return res.status(200).json({
-      totalEmissions: 0,
-      totalSaved: 0,
-      netFootprint: 0,
-      categoryBreakdown: {
-        Transport: { emitted: 0, saved: 0 },
-        Energy: { emitted: 0, saved: 0 },
-        Food: { emitted: 0, saved: 0 },
-        Waste: { emitted: 0, saved: 0 },
-        Water: { emitted: 0, saved: 0 }
-      },
-    });
+    return res.status(200).json(emptySummary);
   }
 };
