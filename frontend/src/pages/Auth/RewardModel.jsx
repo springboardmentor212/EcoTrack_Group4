@@ -8,13 +8,13 @@ export default function RewardModal({ reward, onClose }) {
       <div className="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl border-2 border-emerald-500 relative transform transition-all scale-100">
         {/* Header Tag */}
         <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-          Challenge Complete! 🎉
+          {reward.isWeekly ? "Weekly Drive Completed! ⚡" : "Level Challenge Complete! 🎉"}
         </span>
 
-        {/* Animated Badge Icon */}
+        {/* Badge Icon */}
         <div className="my-6 relative flex justify-center">
           <div className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center text-5xl shadow-inner border border-emerald-200 animate-bounce">
-            {reward.badgeIcon || "🚲"}
+            {reward.badgeIcon || "🏆"}
           </div>
         </div>
 

@@ -15,8 +15,6 @@ import {
   PlusCircle,
   X,
   Settings,
-  Award,
-  Zap,
 } from "lucide-react";
 import "./Profile.css";
 
@@ -28,7 +26,6 @@ export default function Profile() {
     email: "",
   });
 
-  // Profile Image State added
   const [profileImage, setProfileImage] = useState(null);
 
   const [profileDetails, setProfileDetails] = useState({
@@ -52,36 +49,43 @@ export default function Profile() {
 
   const fetchProfileData = async () => {
     try {
-      // 1. Fetch Local Storage Saved Profile Photo
-      const customPhoto = localStorage.getItem("customProfileImage");
-      if (customPhoto) {
-        setProfileImage(customPhoto);
-      }
-
       const token = localStorage.getItem("token");
       if (!token) return;
 
       const headers = { Authorization: `Bearer ${token}` };
 
-      // User Profile Fetch
+      // 1. User Profile Fetch
+      let currentEmail = "";
       try {
         const userRes = await axios.get("http://localhost:5000/api/auth/me", { headers });
         if (userRes.data) {
           const userData = userRes.data.user || userRes.data;
+          currentEmail = userData.email || "";
           setUser({
             name: userData.fullName || userData.name || userData.username || "User",
-            email: userData.email || "No email",
+            email: currentEmail || "No email",
           });
         }
       } catch (err) {
         const localUser = JSON.parse(localStorage.getItem("user") || "{}");
+        currentEmail = localUser.email || localUser.userEmail || "";
         setUser({
           name: localUser.fullName || localUser.name || localUser.username || "User",
-          email: localUser.email || localUser.userEmail || "No email",
+          email: currentEmail || "No email",
         });
       }
 
-      // Fetch Eco Points & Badges from Challenges endpoints
+      // Fetch Profile Picture
+      if (currentEmail) {
+        const userPhoto = localStorage.getItem(`profile_pic_${currentEmail}`);
+        if (userPhoto) {
+          setProfileImage(userPhoto);
+        } else {
+          setProfileImage(null);
+        }
+      }
+
+      // 2. Fetch Eco Points & ALL Badges (Regular + Weekly Drives)
       let fetchedPoints = 0;
       let fetchedBadges = 0;
       try {
@@ -92,13 +96,16 @@ export default function Profile() {
 
         const statusRes = await axios.get("http://localhost:5000/api/challenges/my-status", { headers });
         if (statusRes.data && Array.isArray(statusRes.data)) {
-          fetchedBadges = statusRes.data.filter((p) => p.status === "CLAIMED").length;
+          // CLAIMED matrum COMPLETED irukkira elaa badges (including weekly drives)-aiyum count panrom
+          fetchedBadges = statusRes.data.filter(
+            (p) => p.status === "CLAIMED" || p.status === "COMPLETED"
+          ).length;
         }
       } catch (err) {
         console.error("Challenges API Fetch Error:", err);
       }
 
-      // Profile Details Fetch
+      // 3. Profile Details Fetch
       try {
         const profileRes = await axios.get("http://localhost:5000/api/profile", { headers });
         if (profileRes.data) {
@@ -111,7 +118,7 @@ export default function Profile() {
         console.log("Using default profile details");
       }
 
-      // Tracker Logs
+      // 4. Tracker Logs
       try {
         const trackerRes = await axios.get("http://localhost:5000/api/tracker/history", { headers });
         if (trackerRes.data) {
@@ -154,8 +161,14 @@ export default function Profile() {
               badgesEarned: fetchedBadges,
             });
           } else {
+            setRecentLogs([]);
             setStats((prev) => ({
               ...prev,
+              co2Emitted: 0,
+              co2Saved: 0,
+              netFootprint: 0,
+              treesEquivalent: 0,
+              activeStreak: 0,
               ecoPoints: fetchedPoints,
               badgesEarned: fetchedBadges,
             }));
@@ -165,7 +178,7 @@ export default function Profile() {
         console.error("Tracker Logs Fetch Error:", err);
       }
 
-      // Goals Fetch
+      // 5. Goals Fetch
       try {
         const goalsRes = await axios.get("http://localhost:5000/api/goals", { headers });
         if (goalsRes.data) {
@@ -244,11 +257,8 @@ export default function Profile() {
         </header>
 
         <div className="profile-layout-container">
-          
           {/* LEFT COLUMN */}
           <div className="left-column">
-            
-            {/* Separate Cards for Eco Points & Badges */}
             <div className="eco-header-row">
               <div className="metric-card eco-card-height">
                 <p className="metric-label">Eco Points</p>
@@ -459,7 +469,6 @@ export default function Profile() {
                 )}
               </div>
             </div>
-
           </div>
         </div>
       </main>

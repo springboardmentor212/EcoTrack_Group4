@@ -1,22 +1,31 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Login.css";
 
-/* ---------- API placeholder: replace with your real backend call ---------- */
+// Admin API Call
 async function loginRequest(email, password) {
-  // const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/login`, {
-  //   method: "POST",
-  //   headers: { "Content-Type": "application/json" },
-  //   body: JSON.stringify({ email, password }),
-  // });
-  // if (!res.ok) throw new Error("Invalid email or password");
-  // return res.json();
-  await new Promise((r) => setTimeout(r, 800));
-  return { token: "demo-token" };
+  const res = await fetch("http://localhost:5000/api/admin/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+
+  if (!res.ok) {
+    const errData = await res.json();
+    throw new Error(errData.message || "Invalid email or password");
+  }
+
+  const data = await res.json();
+  if (data.token) {
+    localStorage.setItem("adminToken", data.token);
+    localStorage.setItem("adminUser", JSON.stringify(data.admin));
+  }
+  return data;
 }
 
 const emailOk = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
-/* ---------- icons ---------- */
+/* ---------- Icons ---------- */
 const Svg = ({ size = 16, children, ...p }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
     strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...p}>{children}</svg>
@@ -31,48 +40,34 @@ const EyeIcon = (p) => (<Svg {...p}><path d="M2 12s3.600-7 10-7 10 7 10 7-3.600 
 const EyeOffIcon = (p) => (<Svg {...p}><path d="M3 3l18 18M10.600 5.100A9.900 9.900 0 0 1 12 5c6.400 0 10 7 10 7a17 17 0 0 1-3.200 4.100M6.600 6.600C3.700 8.500 2 12 2 12s3.600 7 10 7c1.600 0 3-.4 4.300-1M9.900 9.900a3 3 0 0 0 4.200 4.200" /></Svg>);
 const ArrowIcon = (p) => (<Svg {...p} strokeWidth="2.200"><path d="M5 12h14M13 6l6 6-6 6" /></Svg>);
 
-/* ---------- component ---------- */
-export default function Login({ onLoginSuccess }) {
-  const [email, setEmail] = useState(() => {
-    try { return localStorage.getItem("ecotrack_admin_email") || ""; } catch { return ""; }
-  });
-  const [password, setPassword] = useState("");
+export default function Login() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("admin@ecotrack.com");
+  const [password, setPassword] = useState("adminpassword123");
   const [showPw, setShowPw] = useState(false);
-  const [remember, setRemember] = useState(() => {
-    try { return Boolean(localStorage.getItem("ecotrack_admin_email")); } catch { return false; }
-  });
+  const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = {};
-    if (!email.trim()) errs.email = "Enter your admin email.";
+    if (!email.trim()) errs.email = "Enter admin email.";
     else if (!emailOk(email.trim())) errs.email = "Enter a valid email address.";
-    if (!password) errs.password = "Enter your password.";
-    else if (password.length < 6) errs.password = "Password must be at least 6 characters.";
+    if (!password) errs.password = "Enter password.";
     setErrors(errs);
     if (Object.keys(errs).length) return;
 
     setLoading(true);
     try {
-      const data = await loginRequest(email.trim(), password);
-      try {
-        if (remember) localStorage.setItem("ecotrack_admin_email", email.trim());
-        else localStorage.removeItem("ecotrack_admin_email");
-      } catch { /* storage blocked: ignore */ }
-      onLoginSuccess?.(data);
+      await loginRequest(email.trim(), password);
+      // Login success dynamic navigation to Admin Users page
+      navigate("/Admin/users");
     } catch (err) {
       setErrors({ form: err.message || "Login failed. Please try again." });
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleForgot = (e) => {
-    e.preventDefault();
-    // TODO: navigate("/forgot-password") or open your reset flow
-    alert("Password reset flow goes here.");
   };
 
   return (
@@ -83,7 +78,7 @@ export default function Login({ onLoginSuccess }) {
           <span>EcoTrack</span>
         </div>
 
-        <p className="login-module">Admin Module</p>
+        <p className="login-module">ADMIN MODULE</p>
         <h1 className="login-title">Welcome back</h1>
         <p className="login-sub">
           Please log in to your admin account to manage Users, Challenges, and Reports
@@ -96,7 +91,7 @@ export default function Login({ onLoginSuccess }) {
           <div className={`login-input ${errors.email ? "invalid" : ""}`}>
             <MailIcon className="lead" />
             <input id="email" type="email" value={email} autoComplete="username"
-              placeholder="name@example.com"
+              placeholder="admin@ecotrack.com"
               onChange={(e) => setEmail(e.target.value)} />
           </div>
           {errors.email && <span className="login-error">{errors.email}</span>}
@@ -107,10 +102,9 @@ export default function Login({ onLoginSuccess }) {
           <div className={`login-input ${errors.password ? "invalid" : ""}`}>
             <LockIcon className="lead" />
             <input id="password" type={showPw ? "text" : "password"} value={password}
-              autoComplete="current-password" placeholder="Enter your password"
+              autoComplete="current-password" placeholder="Enter password"
               onChange={(e) => setPassword(e.target.value)} />
-            <button type="button" className="login-eye" onClick={() => setShowPw((v) => !v)}
-              aria-label={showPw ? "Hide password" : "Show password"}>
+            <button type="button" className="login-eye" onClick={() => setShowPw((v) => !v)}>
               {showPw ? <EyeOffIcon /> : <EyeIcon />}
             </button>
           </div>
@@ -122,12 +116,11 @@ export default function Login({ onLoginSuccess }) {
             <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
             <span>Remember this device</span>
           </label>
-          <a href="#forgot" className="login-link" onClick={handleForgot}>Forgot Password?</a>
         </div>
 
         <button type="submit" className="login-btn" disabled={loading}>
           {loading ? <span className="login-spinner" aria-label="Signing in" /> : (
-            <>Login to Dashboard <ArrowIcon size={16} /></>
+            <>Login <ArrowIcon size={16} /></>
           )}
         </button>
 

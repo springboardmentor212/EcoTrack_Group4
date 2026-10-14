@@ -1,4 +1,5 @@
-.goals-app {
+/* Goal page layout fix */
+:root {
   --goal-bg-white: #ffffff;
   --goal-border-light: #eef0f2;
   --goal-border-input: #e2e5e9;
@@ -29,9 +30,11 @@
   --goal-radius-full: 999px;
 
   --goal-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
 
-  display: grid;
-  grid-template-columns: 224px 1fr;
+.goals-app {
+  display: flex !important;
+  width: 100% !important;
   min-height: 100vh;
   background: linear-gradient(to right, rgb(184, 211, 184), rgb(241, 247, 238));
   font-family: var(--goal-font);
@@ -47,12 +50,15 @@
 
 /* ---------- Sidebar ---------- */
 .goals-app .sidebar {
+  width: 240px !important;
+  min-width: 240px !important;
   background: var(--goal-bg-white);
   border-right: 1px solid var(--goal-border-light);
-  padding: 20px 16px;
-  display: grid;
-  grid-template-rows: auto 1fr;
+  padding: 24px 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .goals-app .sidebar-brand {
@@ -60,6 +66,7 @@
   align-items: center;
   gap: 8px;
   padding: 0 8px;
+  margin-bottom: 16px;
 }
 
 .goals-app .sidebar-brand svg {
@@ -72,16 +79,17 @@
 }
 
 .goals-app .sidebar-menu {
-  display: grid;
-  grid-auto-rows: min-content;
-  gap: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .goals-app .menu-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 9px 12px;
+  height: 42px;
+  padding: 0 14px;
   border-radius: var(--goal-radius-md);
   font-size: 14px;
   font-weight: 500;
@@ -104,6 +112,7 @@
 .goals-app .menu-item.active {
   background: var(--goal-green-50);
   color: var(--goal-green-700);
+  font-weight: 600;
 }
 
 .goals-app .menu-item.active svg {
@@ -112,10 +121,12 @@
 
 /* ---------- Main Content ---------- */
 .goals-app .main-content {
-  display: grid;
-  grid-template-rows: auto auto 1fr;
+  flex: 1 !important;
+  display: flex;
+  flex-direction: column;
   gap: 24px;
   padding: 24px 32px;
+  width: calc(100% - 240px);
 }
 
 /* ---------- Header ---------- */
@@ -157,26 +168,30 @@
   cursor: pointer;
 }
 
+/* ---------- User Chip Standardized (Matching Challenges Page Style) ---------- */
 .goals-app .user-chip {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--goal-green-700);
-  color: #fff;
-  border-radius: var(--goal-radius-full);
-  padding: 4px 10px 4px 4px;
-  font-size: 13px;
-  font-weight: 500;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  padding: 6px 14px !important;
+  border-radius: 20px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #1e293b !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
 }
 
 .goals-app .user-chip-avatar {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 22px !important;
+  height: 22px !important;
+  background-color: #10b981 !important;
+  color: #ffffff !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 /* ---------- Stat Cards Row ---------- */
@@ -246,7 +261,7 @@
   border: 1px solid var(--goal-border-light);
   border-radius: var(--goal-radius-lg);
   padding: 20px;
-  display:flex;
+  display: flex;
   flex-direction: column;
 }
 

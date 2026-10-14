@@ -58,14 +58,22 @@
   background: white;
   font-weight: 700;
   cursor: pointer;
+  transition: background 0.2s ease;
 }
 
+.admin-profile-button:hover {
+  background: #f8fafc;
+}
+
+/* Green Circular Avatar */
 .admin-profile-avatar {
   display: grid;
   place-items: center;
   width: 30px;
   height: 30px;
-  color: #109a62;
+  border-radius: 50%;
+  background: #10b981;
+  color: #ffffff;
 }
 
 .admin-profile-menu {
@@ -73,7 +81,7 @@
   right: 0;
   top: calc(100% + 6px);
   z-index: 50;
-  min-width: 150px;
+  min-width: 140px;
   display: grid;
   padding: 5px;
   background: white;
@@ -88,11 +96,17 @@
   border-radius: 8px;
   background: transparent;
   text-align: left;
+  font-weight: 600;
   cursor: pointer;
+  transition: background 0.2s ease;
 }
 
-.admin-profile-menu button:hover {
-  background: #f1f5fa;
+.admin-profile-menu button.logout-btn {
+  color: #ef4444;
+}
+
+.admin-profile-menu button.logout-btn:hover {
+  background: #fef2f2;
 }
 
 @media (max-width: 900px) {

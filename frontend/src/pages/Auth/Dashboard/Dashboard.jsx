@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify";
 import "./dashboard.css";
 
 import {
@@ -12,7 +13,6 @@ import {
   LayoutDashboard,
   FileText,
   User,
-  Bell,
   ChevronDown,
   CircleDot,
   CheckCircle2,
@@ -33,7 +33,10 @@ import {
   Award,
   Star,
   Medal,
-  Flame
+  Flame,
+  Recycle,
+  Bike,
+  TreePine,
 } from "lucide-react";
 
 const icons = {
@@ -44,7 +47,6 @@ const icons = {
   grid: LayoutDashboard,
   chart: BarChart3,
   user: User,
-  bell: Bell,
   plus: Plus,
   arrow: ArrowUpRight,
   check: CheckCircle2,
@@ -61,11 +63,14 @@ const icons = {
   award: Award,
   star: Star,
   medal: Medal,
-  flame: Flame
+  flame: Flame,
+  recycle: Recycle,
+  bike: Bike,
+  treepine: TreePine,
 };
 
 function Icon({ name, size = "normal" }) {
-  const LucideIcon = icons[name] || CircleDot;
+  const LucideIcon = icons[name?.toLowerCase()] || CircleDot;
   return (
     <span className={`icon icon-${size}`} aria-hidden="true">
       <LucideIcon size="1em" />
@@ -118,7 +123,7 @@ function Sidebar() {
   );
 }
 
-function DashboardHeader({ onNotification, notificationsOpen, loggeduser }) {
+function DashboardHeader({ loggeduser }) {
   return (
     <header className="dashboard-header">
       <div className="header-copy">
@@ -130,30 +135,11 @@ function DashboardHeader({ onNotification, notificationsOpen, loggeduser }) {
       </div>
 
       <div className="header-actions">
-        <div className="notification-wrap">
-          <button type="button" className="notification-button" onClick={onNotification}>
-            <Icon name="bell" />
-            <span className="notification-dot" />
-          </button>
-
-          {notificationsOpen && (
-            <div className="notification-popover">
-              <strong>Notifications</strong>
-              <span>You have 3 new sustainability updates.</span>
-              <span>Your weekly goal progress is ready.</span>
-            </div>
-          )}
+        <div className="user-chip">
+          <span className="user-chip-avatar"><User size={12} strokeWidth={2.5} /></span>
+          <span>{loggeduser || "User"}</span>
+          <ChevronDown size={14} strokeWidth={2.5} />
         </div>
-
-        <button type="button" className="user-menu">
-          <span className="user-avatar">
-            {loggeduser ? loggeduser.substring(0, 2).toUpperCase() : "US"}
-          </span>
-          <p className="user-menu-name">{loggeduser || "User"}</p>
-          <span className="user-chevron">
-            <ChevronDown size={16} />
-          </span>
-        </button>
       </div>
     </header>
   );
@@ -165,7 +151,6 @@ function CarbonFootprintCard({ carbonStats }) {
   const totalSavedKg = Number(carbonStats?.totalSavedKg || carbonStats?.totalCO2Reduced || 0);
   const netFootprintKg = Number(carbonStats?.netFootprintKg || carbonStats?.netFootprint || 0);
 
-  // Dynamic Ratio Formula (Same as Reports)
   const totalActivity = totalSavedKg + totalEmissionsKg;
   const calculatedScore = carbonStats?.ecoScore ?? (
     totalActivity > 0 ? Math.round((totalSavedKg / totalActivity) * 100) : 50
@@ -419,22 +404,95 @@ function ImpactGamificationCard({ levelDetails, earnedBadges = [] }) {
         <ProgressBar value={xpPercent} />
       </div>
 
-      <div className="earned-badges-title">
-        <span>EARNED BADGES ({earnedBadges.length})</span>
+      <div className="earned-badges-title" style={{ marginTop: "16px", marginBottom: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span style={{ fontSize: "11px", fontWeight: "700", color: "#64748b", letterSpacing: "0.05em" }}>
+          ALL EARNED BADGES ({earnedBadges.length})
+        </span>
+        <span style={{ fontSize: "11px", color: "#059669", fontWeight: "bold" }}>🏅 All Levels & Weekly Drives</span>
       </div>
 
-      <div className="badge-grid">
+      <div
+        className="badge-grid"
+        style={{
+          maxHeight: "210px",
+          overflowY: "auto",
+          paddingRight: "6px",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))",
+          gap: "12px",
+        }}
+      >
         {earnedBadges.length > 0 ? (
-          earnedBadges.map((badge, idx) => (
-            <div className="achievement-badge-card" key={badge.challengeId || idx}>
-              <div className="badge-symbol-circle green">
-                <span className="badge-emoji">🏅</span>
+          earnedBadges.map((badge, idx) => {
+            const isWeekly = badge.isWeekly;
+            const badgeTitle = badge.badgeName || badge.title || "Eco Hero";
+
+            return (
+              <div
+                className="achievement-badge-card"
+                key={badge.challengeId || idx}
+                style={{
+                  backgroundColor: isWeekly ? "#fffbeb" : "#f0fdf4",
+                  border: isWeekly ? "1px solid #fde68a" : "1px solid #bbf7d0",
+                  borderRadius: "12px",
+                  padding: "10px 8px",
+                  textAlign: "center",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "6px",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+                }}
+              >
+                <div
+                  className="badge-symbol-circle"
+                  style={{
+                    width: "38px",
+                    height: "38px",
+                    borderRadius: "50%",
+                    background: isWeekly ? "#fef3c7" : "#d1fae5",
+                    border: isWeekly ? "1.5px solid #d97706" : "1.5px solid #10b981",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <span className="badge-emoji" style={{ fontSize: "18px" }}>
+                    {isWeekly ? "⚡" : "🏅"}
+                  </span>
+                </div>
+
+                <strong
+                  className="badge-title"
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: "700",
+                    color: isWeekly ? "#92400e" : "#065f46",
+                    lineHeight: "1.2",
+                  }}
+                >
+                  {badgeTitle}
+                </strong>
+
+                <span
+                  style={{
+                    fontSize: "9px",
+                    fontWeight: "bold",
+                    color: isWeekly ? "#b45309" : "#047857",
+                    background: isWeekly ? "#fef3c7" : "#d1fae5",
+                    padding: "1px 6px",
+                    borderRadius: "4px",
+                  }}
+                >
+                  {isWeekly ? "Weekly Drive" : `Level ${badge.levelRequired || 1}`}
+                </span>
               </div>
-              <strong className="badge-title">{badge.title}</strong>
-            </div>
-          ))
+            );
+          })
         ) : (
-          <p className="no-data" style={{ gridColumn: "span 3" }}>No badges earned yet. Complete challenges to earn badges!</p>
+          <p className="no-data" style={{ gridColumn: "span 3", textAlign: "center", color: "#64748b" }}>
+            No badges earned yet. Complete challenges to earn badges!
+          </p>
         )}
       </div>
     </section>
@@ -442,7 +500,6 @@ function ImpactGamificationCard({ levelDetails, earnedBadges = [] }) {
 }
 
 export default function Dashboard() {
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [loggeduser, setLoggeduser] = useState(null);
 
   const [goalsList, setGoalsList] = useState([]);
@@ -474,6 +531,7 @@ export default function Dashboard() {
       if (!token) return;
       const headers = { Authorization: `Bearer ${token}` };
 
+      // 1. Fetch Goals
       try {
         const goalsRes = await axios.get("http://localhost:5000/api/goals", { headers });
         const fetchedGoals = Array.isArray(goalsRes.data) ? goalsRes.data : goalsRes.data.goals || [];
@@ -482,6 +540,7 @@ export default function Dashboard() {
         console.warn("Goals sync error:", e);
       }
 
+      // 2. Fetch ALL Available Challenges Across All Levels & User Status
       try {
         const challengeRes = await axios.get("http://localhost:5000/api/challenges/available", { headers });
         if (challengeRes.data) {
@@ -497,7 +556,7 @@ export default function Dashboard() {
           } catch (err) {}
 
           const mergedChallenges = fetchedChallenges.map((ch) => {
-            const part = myParticipations.find((p) => p.challengeId === ch.challengeId);
+            const part = myParticipations.find((p) => String(p.challengeId) === String(ch.challengeId));
             return {
               ...ch,
               userStatus: part ? part.status : "AVAILABLE",
@@ -506,13 +565,29 @@ export default function Dashboard() {
 
           setChallengesList(mergedChallenges);
 
-          const claimedBadges = mergedChallenges.filter((c) => c.userStatus === "CLAIMED");
-          setEarnedBadges(claimedBadges);
+          // ALL Badges Fetch: Any challenge that user has Completed or Claimed (Regular Levels + Weekly Drives)
+          const allEarnedBadges = myParticipations
+            .filter((p) => p.status === "CLAIMED" || p.status === "COMPLETED")
+            .map((p) => {
+              const matchedChallenge = fetchedChallenges.find(
+                (ch) => String(ch.challengeId) === String(p.challengeId)
+              );
+              return {
+                challengeId: p.challengeId,
+                badgeName: p.badgeName || matchedChallenge?.badgeName || matchedChallenge?.title || "Eco Winner",
+                title: matchedChallenge?.title || p.badgeName,
+                isWeekly: matchedChallenge?.isWeekly || p.isWeekly,
+                levelRequired: matchedChallenge?.levelRequired || 1,
+              };
+            });
+
+          setEarnedBadges(allEarnedBadges);
         }
       } catch (e) {
         console.warn("Challenges sync error:", e);
       }
 
+      // 3. Fetch Dashboard Overview
       try {
         const dashboardRes = await axios.get("http://localhost:5000/api/dashboard", { headers });
         const data = dashboardRes.data;
@@ -520,6 +595,7 @@ export default function Dashboard() {
           if (data.carbonFootprint) setCarbonStats(data.carbonFootprint);
           if (data.recentActivity) setActivitiesList(data.recentActivity);
           if (data.aiRecommendations) setRecommendationsList(data.aiRecommendations);
+          if (data.userLevelDetails) setLevelDetails(data.userLevelDetails);
         }
       } catch (e) {}
 
@@ -536,9 +612,16 @@ export default function Dashboard() {
         { challengeId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
+      toast.success("🔥 New challenge joined successfully!", {
+        toastId: `join-dash-${challengeId}`,
+        className: "Toastify__toast--custom",
+      });
+
       await fetchDashboardData();
     } catch (e) {
       console.error("Error joining challenge from Dashboard:", e);
+      toast.error("Failed to join challenge", { className: "Toastify__toast--custom" });
     }
   };
 
@@ -550,11 +633,7 @@ export default function Dashboard() {
     <div className="dashboard-shell">
       <Sidebar />
       <main className="dashboard-main">
-        <DashboardHeader
-          loggeduser={loggeduser}
-          onNotification={() => setNotificationsOpen(!notificationsOpen)}
-          notificationsOpen={notificationsOpen}
-        />
+        <DashboardHeader loggeduser={loggeduser} />
         <div className="dashboard-grid top-grid">
           <CarbonFootprintCard carbonStats={carbonStats} />
           <GoalProgressCard goals={goalsList} />
