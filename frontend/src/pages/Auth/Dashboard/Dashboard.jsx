@@ -274,7 +274,7 @@ function GoalProgressCard({ goals = [] }) {
   );
 }
 
-function RecommendationsCard({ recommendations = [], onRefresh }) {
+function RecommendationsCard({ recommendations = [], onRefresh, loading }) {
   const displayRecs = recommendations.slice(0, 4);
 
   return (
@@ -285,8 +285,8 @@ function RecommendationsCard({ recommendations = [], onRefresh }) {
           <h2>AI Recommendations</h2>
           <p>Personalized sustainability insights</p>
         </div>
-        <button onClick={onRefresh} className="icon-refresh-btn" type="button">
-          <RotateCw size={16} />
+        <button onClick={onRefresh} className="icon-refresh-btn" type="button" disabled={loading}>
+          <RotateCw size={16} className={loading ? "spin-animation" : ""} />
         </button>
       </div>
 
@@ -501,6 +501,7 @@ function ImpactGamificationCard({ levelDetails, earnedBadges = [] }) {
 
 export default function Dashboard() {
   const [loggeduser, setLoggeduser] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const [goalsList, setGoalsList] = useState([]);
   const [activitiesList, setActivitiesList] = useState([]);
@@ -519,6 +520,7 @@ export default function Dashboard() {
 
   const fetchDashboardData = useCallback(async () => {
     try {
+      setRefreshing(true);
       const token = localStorage.getItem("token");
       const storedUser = localStorage.getItem("user");
       if (storedUser) {
@@ -529,6 +531,7 @@ export default function Dashboard() {
       }
 
       if (!token) return;
+      const timestamp = new Date().getTime();
       const headers = { Authorization: `Bearer ${token}` };
 
       // 1. Fetch Goals
@@ -540,7 +543,7 @@ export default function Dashboard() {
         console.warn("Goals sync error:", e);
       }
 
-      // 2. Fetch ALL Available Challenges Across All Levels & User Status
+      // 2. Fetch Challenges & Status
       try {
         const challengeRes = await axios.get("http://localhost:5000/api/challenges/available", { headers });
         if (challengeRes.data) {
@@ -565,7 +568,6 @@ export default function Dashboard() {
 
           setChallengesList(mergedChallenges);
 
-          // ALL Badges Fetch: Any challenge that user has Completed or Claimed (Regular Levels + Weekly Drives)
           const allEarnedBadges = myParticipations
             .filter((p) => p.status === "CLAIMED" || p.status === "COMPLETED")
             .map((p) => {
@@ -587,9 +589,9 @@ export default function Dashboard() {
         console.warn("Challenges sync error:", e);
       }
 
-      // 3. Fetch Dashboard Overview
+      // 3. Fetch Dashboard Overview with Timestamp cache busting
       try {
-        const dashboardRes = await axios.get("http://localhost:5000/api/dashboard", { headers });
+        const dashboardRes = await axios.get(`http://localhost:5000/api/dashboard?t=${timestamp}`, { headers });
         const data = dashboardRes.data;
         if (data) {
           if (data.carbonFootprint) setCarbonStats(data.carbonFootprint);
@@ -601,6 +603,8 @@ export default function Dashboard() {
 
     } catch (err) {
       console.error("Dashboard Sync Fetch Error:", err);
+    } finally {
+      setRefreshing(false);
     }
   }, []);
 
@@ -637,7 +641,7 @@ export default function Dashboard() {
         <div className="dashboard-grid top-grid">
           <CarbonFootprintCard carbonStats={carbonStats} />
           <GoalProgressCard goals={goalsList} />
-          <RecommendationsCard recommendations={recommendationsList} onRefresh={fetchDashboardData} />
+          <RecommendationsCard recommendations={recommendationsList} onRefresh={fetchDashboardData} loading={refreshing} />
         </div>
         <div className="dashboard-grid bottom-grid">
           <CommunityChallengesCard 

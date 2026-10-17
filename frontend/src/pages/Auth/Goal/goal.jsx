@@ -148,6 +148,8 @@ function GoalsPage() {
       setLoadingAi(true);
       const token = localStorage.getItem("token");
       const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+      
+      // Dynamic timestamp query param to prevent caching
       const timestamp = new Date().getTime();
 
       const res = await axios.get(
@@ -159,7 +161,7 @@ function GoalsPage() {
         setAiData({
           title: res.data.title || "Cycle for Short Commutes",
           category: res.data.category || "Transport",
-          targetValue: res.data.targetValue || "15",
+          targetValue: String(res.data.targetValue || "15"),
           targetUnit: res.data.targetUnit || "kg CO2e",
           targetDate: res.data.targetDate || "2026-10-31",
           description: res.data.description || "Cycling short distances avoids emissions and drives progress.",
@@ -214,6 +216,7 @@ function GoalsPage() {
     setTargetValue(aiData.targetValue);
     setTargetUnit(aiData.targetUnit);
     setTargetDate(aiData.targetDate);
+    toast.success("✨ AI details autofilled!");
   };
 
   const statCards = [
@@ -345,7 +348,7 @@ function GoalsPage() {
                     <RotateCw size={13} className={loadingAi ? "spin-animation" : ""} />
                   </button>
                 </div>
-                <p>{aiData.description}</p>
+                <p>{loadingAi ? "Generating smart recommendation..." : aiData.description}</p>
                 <button type="button" className="ai-callout-link" onClick={handleAiAutoFill}>
                   Auto-fill Goal Details →
                 </button>

@@ -85,7 +85,7 @@ export default function Profile() {
         }
       }
 
-      // 2. Fetch Eco Points & ALL Badges (Regular + Weekly Drives)
+      // 2. Fetch Eco Points & ALL Badges
       let fetchedPoints = 0;
       let fetchedBadges = 0;
       try {
@@ -96,7 +96,6 @@ export default function Profile() {
 
         const statusRes = await axios.get("http://localhost:5000/api/challenges/my-status", { headers });
         if (statusRes.data && Array.isArray(statusRes.data)) {
-          // CLAIMED matrum COMPLETED irukkira elaa badges (including weekly drives)-aiyum count panrom
           fetchedBadges = statusRes.data.filter(
             (p) => p.status === "CLAIMED" || p.status === "COMPLETED"
           ).length;

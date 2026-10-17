@@ -102,52 +102,89 @@ const normalizeCategory = (cat, activityType) => {
   return "overall";
 };
 
-// GET /api/goals/ai-recommendation
-router.get("/ai-recommendation", async (req, res) => {
-  const dynamicRecommendations = [
-    {
-      title: "Try Cycling for Short Commutes",
-      category: "Transport",
-      targetValue: "15",
-      targetUnit: "kg CO2e",
-      targetDate: "2026-10-31",
-      description: "Cycling short distances instead of driving directly generates CO2 savings.",
-    },
-    {
-      title: "Save Energy at Home",
-      category: "Energy",
-      targetValue: "30",
-      targetUnit: "kg CO2e",
-      targetDate: "2026-11-15",
-      description: "Reduce electricity usage to maintain net carbon savings.",
-    },
-  ];
-
+// GET /api/goals/ai-recommendation (Truly Dynamic Gemini Prompt)
+router.get("/ai-recommendation", authMiddleware, async (req, res) => {
+  const rawUserId = req.user?.id || req.user?._id || req.userId || req.user?.email || "guest";
+  
   try {
-    if (!process.env.GEMINI_API_KEY) throw new Error("GEMINI_API_KEY missing");
+    // Get recent activity of current user to personalise prompt
+    const recentLogs = await Tracker.find({ userId: String(rawUserId) })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .lean();
+
+    const categoriesLogged = [...new Set(recentLogs.map((l) => l.category || "General"))];
+    const categoryContext = categoriesLogged.length > 0 ? categoriesLogged.join(", ") : "Transport, Energy";
+
+    if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === "dummy_key") {
+      throw new Error("GEMINI_API_KEY missing");
+    }
 
     const prompt = `
-      Act as an Eco-Friendly Carbon Footprint Assistant.
-      Return ONLY raw JSON in this format:
+      You are an AI Carbon Footprint Assistant. 
+      The user recently logged activity in categories: [${categoryContext}].
+      Generate ONE unique, highly effective, creative goal recommendation.
+      
+      CRITICAL: Return ONLY raw valid JSON (no markdown fence, no backticks):
       {
-        "title": "Goal title",
+        "title": "Short creative goal title",
         "category": "Transport" OR "Energy" OR "Food" OR "Waste" OR "Water" OR "Overall",
-        "targetValue": "25",
+        "targetValue": "20",
         "targetUnit": "kg CO2e",
         "targetDate": "2026-10-31",
-        "description": "Short reasoning."
+        "description": "Customized 1-sentence motivation based on their activities."
       }
     `;
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const result = await model.generateContent(prompt);
-    const cleanJsonText = result.response
-      .text()
+    
+    const responseText = result.response.text();
+    const cleanJsonText = responseText
       .replace(/```json/gi, "")
       .replace(/```/g, "")
       .trim();
+
     return res.status(200).json(JSON.parse(cleanJsonText));
   } catch (error) {
+    console.warn("Gemini AI Goals fallback triggered:", error.message);
+    
+    // Dynamic randomized fallback array to ensure recommendations vary
+    const dynamicRecommendations = [
+      {
+        title: "Try Cycling for Short Commutes",
+        category: "Transport",
+        targetValue: "15",
+        targetUnit: "kg CO2e",
+        targetDate: "2026-10-31",
+        description: "Cycling short distances instead of driving directly generates CO2 savings.",
+      },
+      {
+        title: "Save Energy at Home",
+        category: "Energy",
+        targetValue: "30",
+        targetUnit: "kg CO2e",
+        targetDate: "2026-11-15",
+        description: "Reduce electricity usage to maintain net carbon savings.",
+      },
+      {
+        title: "Adopt 2 Plant-Based Meals",
+        category: "Food",
+        targetValue: "12",
+        targetUnit: "kg CO2e",
+        targetDate: "2026-10-31",
+        description: "Replacing meat with plant meals reduces personal carbon impact effectively.",
+      },
+      {
+        title: "Zero Waste Weekend",
+        category: "Waste",
+        targetValue: "10",
+        targetUnit: "kg CO2e",
+        targetDate: "2026-11-05",
+        description: "Eliminate single-use plastics to decrease waste emissions.",
+      }
+    ];
+
     const randomIndex = Math.floor(Math.random() * dynamicRecommendations.length);
     return res.status(200).json(dynamicRecommendations[randomIndex]);
   }
@@ -156,8 +193,7 @@ router.get("/ai-recommendation", async (req, res) => {
 // GET /api/goals (Strict User Isolation)
 router.get("/", authMiddleware, async (req, res) => {
   try {
-    const rawUserId =
-      req.user?.id || req.user?._id || req.userId || req.user?.email;
+    const rawUserId = req.user?.id || req.user?._id || req.userId || req.user?.email;
 
     if (!rawUserId || rawUserId === "guest") {
       return res.status(200).json({
@@ -173,7 +209,6 @@ router.get("/", authMiddleware, async (req, res) => {
 
     const currentUserId = String(rawUserId);
 
-    // Fetch ONLY the user's specific goals and trackers
     const goals = await Goal.find({ userId: currentUserId }).sort({ createdAt: -1 });
     const trackers = await Tracker.find({ userId: currentUserId }).lean();
 

@@ -78,7 +78,7 @@ router.get("/", authMiddleware, async (req, res) => {
       };
     });
 
-    // 3. AI Recommendations Logic
+    // 3. Dynamic Gemini AI Recommendations Logic
     let aiRecommendations = [];
 
     try {
@@ -87,20 +87,25 @@ router.get("/", authMiddleware, async (req, res) => {
       }
 
       const userSummaryPrompt = `
-        User carbon stats: Total Emissions: ${totalEmissionsKg.toFixed(1)}kg, Total CO2 Saved: ${totalSavedKg.toFixed(1)}kg.
-        Highest emission categories: ${JSON.stringify(categoriesArray)}.
-        Act as an AI Eco Advisor. Provide 4 unique, short eco recommendations.
-        Return ONLY valid JSON array without markdown syntax:
+        You are an AI Carbon Advisor. User stats:
+        - Total Emissions: ${totalEmissionsKg.toFixed(1)} kg CO2e
+        - Total CO2 Saved: ${totalSavedKg.toFixed(1)} kg CO2e
+        - Category Breakdown: ${JSON.stringify(categoriesArray)}
+
+        Based on these specific figures, generate exactly 4 personalized actionable tips.
+        
+        CRITICAL: Return ONLY raw JSON array. No markdown code blocks or ticks:
         [
           {
             "icon": "transport" | "bolt" | "leaf" | "water" | "energy" | "shield" | "sun",
-            "title": "Short title recommendation",
+            "title": "Clear action recommendation title",
             "subtitle": "Potential saving: X.X kg CO₂/day"
           }
         ]
       `;
 
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      // Correct Model Name for standard Google Gemini API
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       const result = await model.generateContent(userSummaryPrompt);
       
       if (result && result.response) {
@@ -111,9 +116,11 @@ router.get("/", authMiddleware, async (req, res) => {
           .trim();
         aiRecommendations = JSON.parse(cleanJsonText);
       } else {
-        throw new Error("No AI response");
+        throw new Error("No response text from Gemini API");
       }
     } catch (aiErr) {
+      console.warn("Dashboard Gemini AI fallback executed:", aiErr.message);
+
       const fallbackPool = [
         {
           icon: "transport",
@@ -135,8 +142,19 @@ router.get("/", authMiddleware, async (req, res) => {
           title: "Reduce shower time by 3 minutes",
           subtitle: "Potential saving: 0.4 kg CO₂/day",
         },
+        {
+          icon: "sun",
+          title: "Use natural lighting during peak hours",
+          subtitle: "Potential saving: 0.5 kg CO₂/day",
+        },
+        {
+          icon: "energy",
+          title: "Unplug chargers when fully charged",
+          subtitle: "Potential saving: 0.3 kg CO₂/day",
+        }
       ];
 
+      // Shuffle fallback recommendations dynamically on every reload
       aiRecommendations = [...fallbackPool].sort(() => 0.5 - Math.random()).slice(0, 4);
     }
 
