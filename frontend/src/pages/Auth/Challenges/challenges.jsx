@@ -361,7 +361,7 @@ export default function Challenges() {
     <div className="challenges-app">
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <Globe size={19} />
+          <Globe size={20} />
           <span>EcoTrack</span>
         </div>
 

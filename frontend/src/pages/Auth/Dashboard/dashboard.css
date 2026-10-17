@@ -42,7 +42,7 @@ body, html, #root {
   padding: 24px 16px !important;
   display: flex !important;
   flex-direction: column !important;
-  gap: 28px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
